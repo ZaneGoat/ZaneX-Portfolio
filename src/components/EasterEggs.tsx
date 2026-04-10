@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TerminalOverlay } from "./TerminalOverlay";
 import { ShieldAlert, Zap } from "lucide-react";
@@ -11,20 +11,18 @@ export const EasterEggs = () => {
   const [showHint, setShowHint] = useState(false);
   
   const [konamiIndex, setKonamiIndex] = useState(0);
-  const [phoneIndex, setPhoneIndex] = useState(0);
+  const isHoldingRef = useRef(false);
 
   const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-  const phoneCode = ['VolumeDown', 'VolumeDown', 'VolumeUp', 'Shake'];
 
   useEffect(() => {
     let lastShakeTime = 0;
 
     const handleMotion = (e: DeviceMotionEvent) => {
-      if (phoneIndex === 3) {
+      if (isHoldingRef.current) {
         const acc = e.accelerationIncludingGravity;
         if (!acc) return;
 
-        const threshold = 15;
         const x = acc.x || 0;
         const y = acc.y || 0;
         const z = acc.z || 0;
@@ -37,7 +35,6 @@ export const EasterEggs = () => {
           if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
           setShowTerminal(true);
           setShowHint(false);
-          setPhoneIndex(0);
         }
       }
     };
@@ -56,18 +53,10 @@ export const EasterEggs = () => {
       } else {
         setKonamiIndex(0);
       }
-
-      // Mobile Volume Bridge
-      if (e.key === 'VolumeDown' || e.key === 'VolumeUp') {
-        if (e.key === phoneCode[phoneIndex]) {
-          const nextIndex = phoneIndex + 1;
-          setPhoneIndex(nextIndex);
-          if (navigator.vibrate) navigator.vibrate(50);
-        } else {
-          setPhoneIndex(0);
-        }
-      }
     };
+
+    const handleStart = () => { isHoldingRef.current = true; };
+    const handleEnd = () => { isHoldingRef.current = false; };
 
     const handleClick = () => {
       // Request permission for motion sensors on iOS
@@ -99,6 +88,11 @@ export const EasterEggs = () => {
 
     document.addEventListener('click', handleClick);
     document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handleStart);
+    document.addEventListener('mouseup', handleEnd);
+    document.addEventListener('touchstart', handleStart);
+    document.addEventListener('touchend', handleEnd);
+
     if (!(typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function')) {
       window.addEventListener('devicemotion', handleMotion);
     }
@@ -106,9 +100,13 @@ export const EasterEggs = () => {
     return () => {
       document.removeEventListener('click', handleClick);
       document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleStart);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchstart', handleStart);
+      document.removeEventListener('touchend', handleEnd);
       window.removeEventListener('devicemotion', handleMotion);
     };
-  }, [konamiIndex, phoneIndex, showCookie]);
+  }, [konamiIndex, showCookie]);
 
   const [hintPlatform, setHintPlatform] = useState<"none" | "pc" | "phone">("none");
 
@@ -165,12 +163,12 @@ export const EasterEggs = () => {
               </p>
               <div className="bg-primary/10 p-4 rounded border border-primary/20 text-center space-y-3">
                 <div className="text-lg tracking-widest text-primary font-bold">
-                  {hintPlatform === "pc" ? "↑ ↑ ↓ ↓ ← → ← → B A" : "VOL_DOWN VOL_DOWN VOL_UP + SHAKE"}
+                  {hintPlatform === "pc" ? "↑ ↑ ↓ ↓ ← → ← → B A" : "HOLD SCREEN + SHAKE"}
                 </div>
                 <div className="text-[10px] text-primary/70 leading-relaxed uppercase">
                   {hintPlatform === "pc" 
                     ? "USE KEYBOARD ARROWS AND B/A KEYS" 
-                    : "USE HARDWARE BUTTONS & GESTURE"}
+                    : "LONG PRESS ANYWHERE & SHAKE"}
                 </div>
               </div>
               <button
