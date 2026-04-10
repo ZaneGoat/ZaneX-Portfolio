@@ -35,7 +35,6 @@ export const EasterEggs = () => {
       let gesture = "";
       const threshold = 50;
 
-      // Vertical swipes take priority for the new mobile code
       if (Math.abs(dy) > threshold && Math.abs(dy) > Math.abs(dx)) {
         gesture = dy > 0 ? "ArrowDown" : "ArrowUp";
       }
@@ -56,7 +55,6 @@ export const EasterEggs = () => {
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // PC Logic
       if (e.key === konamiCode[konamiIndex]) {
         const newIndex = konamiIndex + 1;
         setKonamiIndex(newIndex);
@@ -102,13 +100,13 @@ export const EasterEggs = () => {
 
   const KonamiHint = () => (
     <motion.div
-      initial={{ scale: 0.8, opacity: 0, y: 20 }}
-      animate={{ scale: 1, opacity: 1, y: 0 }}
-      exit={{ scale: 0.8, opacity: 0, y: 20 }}
-      className="fixed inset-x-4 bottom-24 md:inset-x-auto md:right-8 md:bottom-32 z-[10001] md:w-80"
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0.8, opacity: 0 }}
+      className="fixed inset-0 z-[10001] flex items-center justify-center p-4 pointer-events-none"
     >
-      <div className="bg-[#050816] border-2 border-primary p-6 rounded-xl shadow-[0_0_50px_hsl(var(--primary)/0.4)] font-mono max-w-sm mx-auto">
-        <div className="flex items-center gap-2 mb-4 text-primary border-b border-primary/30 pb-2">
+      <div className="bg-[#050816] border-2 border-primary p-6 md:p-8 rounded-2xl shadow-[0_0_80px_hsl(var(--primary)/0.5)] font-mono w-full max-w-sm pointer-events-auto">
+        <div className="flex items-center gap-2 mb-6 text-primary border-b border-primary/30 pb-3">
           <Zap className="w-4 h-4" />
           <span className="text-xs font-bold uppercase tracking-widest">ENCRYPTED_MEMO.txt</span>
         </div>
@@ -123,7 +121,7 @@ export const EasterEggs = () => {
               className="space-y-4"
             >
               <p className="text-primary/90 text-sm leading-relaxed">
-                [!] SELECT YOUR SYSTEM INTERFACE:
+                [!] SELECT SYSTEM INTERFACE:
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -153,7 +151,7 @@ export const EasterEggs = () => {
               </p>
               <div className="bg-primary/10 p-4 rounded border border-primary/20 text-center space-y-3">
                 <div className="text-lg tracking-widest text-primary font-bold">
-                  {hintPlatform === "pc" ? "↑ ↑ ↓ ↓ ← → ← → B A" : "↑ ↓ ↓ ↓ ↑"}
+                  {hintPlatform === "pc" ? "↑ ↑ ↓ ↓ ← → ← → B A" : "← → → → ←"}
                 </div>
                 <div className="text-[10px] text-primary/70 leading-relaxed uppercase">
                   {hintPlatform === "pc" 
@@ -173,7 +171,7 @@ export const EasterEggs = () => {
 
         <button 
           onClick={() => { setShowHint(false); setHintPlatform("none"); }}
-          className="mt-4 w-full py-1 text-[10px] text-primary/40 hover:text-primary transition-colors uppercase font-bold"
+          className="mt-6 w-full py-1 text-[10px] text-primary/40 hover:text-primary transition-colors uppercase font-bold"
         >
           [ CLOSE MEMO ]
         </button>
@@ -197,9 +195,9 @@ export const EasterEggs = () => {
       initial={{ scale: 0.5, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0.5, opacity: 0 }}
-      className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-[10001] flex items-center justify-center pointer-events-none"
+      className="fixed inset-0 z-[10001] flex items-center justify-center p-4 pointer-events-none"
     >
-      <div className="relative bg-[#050816]/90 backdrop-blur-xl border-2 border-primary p-8 md:p-12 rounded-3xl shadow-[0_0_100px_hsl(var(--primary)/0.5)] text-center w-full max-w-sm md:min-w-[400px] pointer-events-auto">
+      <div className="relative bg-[#050816]/95 backdrop-blur-2xl border-2 border-primary p-8 md:p-12 rounded-3xl shadow-[0_0_100px_hsl(var(--primary)/0.5)] text-center w-full max-w-sm md:min-w-[400px] pointer-events-auto">
         <div className="absolute inset-0 overflow-hidden rounded-3xl opacity-20 pointer-events-none">
           {Array.from({ length: 15 }).map((_, i) => (
             <motion.div
