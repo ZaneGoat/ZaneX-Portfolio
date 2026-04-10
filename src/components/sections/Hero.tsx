@@ -15,7 +15,7 @@ export const Hero = () => {
           className="animate-tilt"
         >
           <motion.h1
-            className="text-7xl md:text-9xl font-bold mb-6 text-primary"
+            className="text-6xl md:text-9xl font-bold mb-6 text-primary leading-tight"
             style={{ textShadow: "0 0 40px hsl(var(--primary) / 0.6)" }}
             animate={{ textShadow: ["0 0 30px hsl(var(--primary) / 0.5)", "0 0 50px hsl(var(--primary) / 0.9)", "0 0 30px hsl(var(--primary) / 0.5)"] }}
             transition={{ duration: 3, repeat: Infinity }}
@@ -23,7 +23,7 @@ export const Hero = () => {
             Zane Goat
           </motion.h1>
           <motion.p
-            className="text-2xl md:text-3xl mb-8 text-muted-foreground"
+            className="text-xl md:text-3xl mb-10 text-muted-foreground px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}

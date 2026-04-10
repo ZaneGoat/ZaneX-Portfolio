@@ -1,7 +1,11 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { navLinks } from "@/data/portfolio";
+import { Menu, X } from "lucide-react";
 
 export const Navigation = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <motion.nav
       initial={{ y: -100 }}
@@ -17,11 +21,13 @@ export const Navigation = () => {
         >
           Zane
         </motion.div>
+
+        {/* Desktop Links */}
         <div className="hidden md:flex gap-8">
           {navLinks.map((item, i) => (
             <motion.a
               key={item}
-              href={`#${item.toLowerCase()}`}
+              href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
               className="text-foreground/80 hover:text-primary transition-colors relative group"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -32,7 +38,44 @@ export const Navigation = () => {
             </motion.a>
           ))}
         </div>
+
+        {/* Mobile Toggle */}
+        <button 
+          className="md:hidden text-primary p-2"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          {isMenuOpen ? <X /> : <Menu />}
+        </button>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden bg-background/95 border-b border-primary/20 overflow-hidden backdrop-blur-2xl"
+          >
+            <div className="flex flex-col p-6 gap-6">
+              {navLinks.map((item, i) => (
+                <motion.a
+                  key={item}
+                  href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
+                  className="text-xl font-bold text-primary/80 hover:text-primary transition-colors flex items-center justify-between"
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: i * 0.05 }}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item}
+                  <span className="text-primary/20">{">"}</span>
+                </motion.a>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.nav>
   );
 };
