@@ -14,47 +14,36 @@ export const EasterEggs = () => {
   const [phoneIndex, setPhoneIndex] = useState(0);
 
   const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-  const phoneCode = ['ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowUp'];
+  const phoneCode = ['VolumeDown', 'VolumeDown', 'VolumeUp', 'Shake'];
 
   useEffect(() => {
-    let touchStartX = 0;
-    let touchStartY = 0;
+    let lastShakeTime = 0;
 
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartX = e.changedTouches[0].screenX;
-      touchStartY = e.changedTouches[0].screenY;
-    };
+    const handleMotion = (e: DeviceMotionEvent) => {
+      if (phoneIndex === 3) {
+        const acc = e.accelerationIncludingGravity;
+        if (!acc) return;
 
-    const handleTouchEnd = (e: TouchEvent) => {
-      const touchEndX = e.changedTouches[0].screenX;
-      const touchEndY = e.changedTouches[0].screenY;
-      
-      const dx = touchEndX - touchStartX;
-      const dy = touchEndY - touchStartY;
-      
-      let gesture = "";
-      const threshold = 50;
+        const threshold = 15;
+        const x = acc.x || 0;
+        const y = acc.y || 0;
+        const z = acc.z || 0;
+        
+        const acceleration = Math.sqrt(x * x + y * y + z * z);
+        const now = Date.now();
 
-      if (Math.abs(dy) > threshold && Math.abs(dy) > Math.abs(dx)) {
-        gesture = dy > 0 ? "ArrowDown" : "ArrowUp";
-      }
-
-      if (gesture) {
-        if (gesture === phoneCode[phoneIndex]) {
-          const nextIndex = phoneIndex + 1;
-          setPhoneIndex(nextIndex);
-          if (nextIndex === phoneCode.length) {
-            setShowTerminal(true);
-            setShowHint(false);
-            setPhoneIndex(0);
-          }
-        } else {
+        if (acceleration > 25 && now - lastShakeTime > 1000) {
+          lastShakeTime = now;
+          if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+          setShowTerminal(true);
+          setShowHint(false);
           setPhoneIndex(0);
         }
       }
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Desktop Konami
       if (e.key === konamiCode[konamiIndex]) {
         const newIndex = konamiIndex + 1;
         setKonamiIndex(newIndex);
@@ -67,9 +56,34 @@ export const EasterEggs = () => {
       } else {
         setKonamiIndex(0);
       }
+
+      // Mobile Volume Bridge
+      if (e.key === 'VolumeDown' || e.key === 'VolumeUp') {
+        if (e.key === phoneCode[phoneIndex]) {
+          const nextIndex = phoneIndex + 1;
+          setPhoneIndex(nextIndex);
+          if (navigator.vibrate) navigator.vibrate(50);
+        } else {
+          setPhoneIndex(0);
+        }
+      }
     };
 
     const handleClick = () => {
+      // Request permission for motion sensors on iOS
+      if (typeof DeviceMotionEvent !== 'undefined' && 
+          typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+        (DeviceMotionEvent as any).requestPermission()
+          .then((permissionState: string) => {
+            if (permissionState === 'granted') {
+              window.addEventListener('devicemotion', handleMotion);
+            }
+          })
+          .catch(console.error);
+      } else {
+        window.addEventListener('devicemotion', handleMotion);
+      }
+
       setClickCount(prev => {
         const newCount = prev + 1;
         if (newCount === 15 && !showCookie) {
@@ -85,14 +99,14 @@ export const EasterEggs = () => {
 
     document.addEventListener('click', handleClick);
     document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('touchstart', handleTouchStart);
-    document.addEventListener('touchend', handleTouchEnd);
+    if (!(typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function')) {
+      window.addEventListener('devicemotion', handleMotion);
+    }
 
     return () => {
       document.removeEventListener('click', handleClick);
       document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('devicemotion', handleMotion);
     };
   }, [konamiIndex, phoneIndex, showCookie]);
 
@@ -151,12 +165,12 @@ export const EasterEggs = () => {
               </p>
               <div className="bg-primary/10 p-4 rounded border border-primary/20 text-center space-y-3">
                 <div className="text-lg tracking-widest text-primary font-bold">
-                  {hintPlatform === "pc" ? "↑ ↑ ↓ ↓ ← → ← → B A" : "← → → → ←"}
+                  {hintPlatform === "pc" ? "↑ ↑ ↓ ↓ ← → ← → B A" : "VOL_DOWN VOL_DOWN VOL_UP + SHAKE"}
                 </div>
                 <div className="text-[10px] text-primary/70 leading-relaxed uppercase">
                   {hintPlatform === "pc" 
                     ? "USE KEYBOARD ARROWS AND B/A KEYS" 
-                    : "SWIPE DIRECTIONS IN SEQUENCE"}
+                    : "USE HARDWARE BUTTONS & GESTURE"}
                 </div>
               </div>
               <button
