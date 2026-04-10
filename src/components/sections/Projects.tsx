@@ -77,10 +77,19 @@ export const Projects = () => {
           <AnimatePresence>
             {showJoke && (
               <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.5 }}
-                animate={{ opacity: 1, y: -80, scale: 1 }}
+                initial={{ opacity: 0, scale: 0.5, y: 20 }}
+                animate={{ 
+                  opacity: 1, 
+                  scale: 1, 
+                  y: 0,
+                  // Centered on mobile viewport, but stays relative on desktop for better context
+                  top: window.innerWidth < 768 ? "50%" : "-80px",
+                  left: "50%",
+                  x: "-50%",
+                  position: window.innerWidth < 768 ? "fixed" : "absolute"
+                }}
                 exit={{ opacity: 0, scale: 0.5 }}
-                className="absolute left-1/2 -translate-x-1/2 top-0 bg-primary text-background px-6 py-3 rounded-full font-bold shadow-[0_0_30px_hsl(var(--primary)/0.5)] z-20 whitespace-nowrap"
+                className="bg-primary text-background px-8 py-4 rounded-full font-black shadow-[0_0_50px_hsl(var(--primary)/0.6)] z-[10002] whitespace-nowrap text-xl"
               >
                 Just kidding! 😂 There's no more.
               </motion.div>

@@ -9,9 +9,12 @@ export const EasterEggs = () => {
   const [showTerminal, setShowTerminal] = useState(false);
   const [showSecretButton, setShowSecretButton] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  
   const [konamiIndex, setKonamiIndex] = useState(0);
+  const [phoneIndex, setPhoneIndex] = useState(0);
 
   const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+  const phoneCode = ['ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowUp'];
 
   useEffect(() => {
     let touchStartX = 0;
@@ -29,31 +32,32 @@ export const EasterEggs = () => {
       const dx = touchEndX - touchStartX;
       const dy = touchEndY - touchStartY;
       
-      let key = "";
+      let gesture = "";
       const threshold = 50;
 
-      if (Math.abs(dx) > Math.abs(dy)) {
-        if (Math.abs(dx) > threshold) {
-          key = dx > 0 ? "ArrowRight" : "ArrowLeft";
-        }
-      } else {
-        if (Math.abs(dy) > threshold) {
-          key = dy > 0 ? "ArrowDown" : "ArrowUp";
-        }
+      // Vertical swipes take priority for the new mobile code
+      if (Math.abs(dy) > threshold && Math.abs(dy) > Math.abs(dx)) {
+        gesture = dy > 0 ? "ArrowDown" : "ArrowUp";
       }
 
-      // If no swipe detected, check for B/A taps on the bottom of the screen
-      if (!key && touchEndY > window.innerHeight * 0.7) {
-        key = touchEndX < window.innerWidth / 2 ? "b" : "a";
-      }
-
-      if (key) {
-        processKey(key);
+      if (gesture) {
+        if (gesture === phoneCode[phoneIndex]) {
+          const nextIndex = phoneIndex + 1;
+          setPhoneIndex(nextIndex);
+          if (nextIndex === phoneCode.length) {
+            setShowTerminal(true);
+            setShowHint(false);
+            setPhoneIndex(0);
+          }
+        } else {
+          setPhoneIndex(0);
+        }
       }
     };
 
-    const processKey = (key: string) => {
-      if (key === konamiCode[konamiIndex]) {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // PC Logic
+      if (e.key === konamiCode[konamiIndex]) {
         const newIndex = konamiIndex + 1;
         setKonamiIndex(newIndex);
         
@@ -65,10 +69,6 @@ export const EasterEggs = () => {
       } else {
         setKonamiIndex(0);
       }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      processKey(e.key);
     };
 
     const handleClick = () => {
@@ -96,7 +96,7 @@ export const EasterEggs = () => {
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [konamiIndex, showCookie]);
+  }, [konamiIndex, phoneIndex, showCookie]);
 
   const [hintPlatform, setHintPlatform] = useState<"none" | "pc" | "phone">("none");
 
@@ -105,9 +105,9 @@ export const EasterEggs = () => {
       initial={{ scale: 0.8, opacity: 0, y: 20 }}
       animate={{ scale: 1, opacity: 1, y: 0 }}
       exit={{ scale: 0.8, opacity: 0, y: 20 }}
-      className="fixed bottom-32 right-8 z-[10001] w-80"
+      className="fixed inset-x-4 bottom-24 md:inset-x-auto md:right-8 md:bottom-32 z-[10001] md:w-80"
     >
-      <div className="bg-[#050816] border-2 border-primary p-6 rounded-xl shadow-[0_0_50px_hsl(var(--primary)/0.4)] font-mono">
+      <div className="bg-[#050816] border-2 border-primary p-6 rounded-xl shadow-[0_0_50px_hsl(var(--primary)/0.4)] font-mono max-w-sm mx-auto">
         <div className="flex items-center gap-2 mb-4 text-primary border-b border-primary/30 pb-2">
           <Zap className="w-4 h-4" />
           <span className="text-xs font-bold uppercase tracking-widest">ENCRYPTED_MEMO.txt</span>
@@ -128,13 +128,13 @@ export const EasterEggs = () => {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setHintPlatform("pc")}
-                  className="p-3 border border-primary/30 rounded hover:bg-primary/20 transition-colors text-primary text-xs font-bold uppercase"
+                  className="p-3 border border-primary/30 rounded hover:bg-primary/20 transition-colors text-primary text-[10px] md:text-xs font-bold uppercase"
                 >
                   Desktop/PC
                 </button>
                 <button
                   onClick={() => setHintPlatform("phone")}
-                  className="p-3 border border-primary/30 rounded hover:bg-primary/20 transition-colors text-primary text-xs font-bold uppercase"
+                  className="p-3 border border-primary/30 rounded hover:bg-primary/20 transition-colors text-primary text-[10px] md:text-xs font-bold uppercase"
                 >
                   Mobile/Phone
                 </button>
@@ -153,12 +153,12 @@ export const EasterEggs = () => {
               </p>
               <div className="bg-primary/10 p-4 rounded border border-primary/20 text-center space-y-3">
                 <div className="text-lg tracking-widest text-primary font-bold">
-                  {hintPlatform === "pc" ? "↑ ↑ ↓ ↓ ← → ← → B A" : "↑↑ ↓↓ ← → ← → (B)(A)"}
+                  {hintPlatform === "pc" ? "↑ ↑ ↓ ↓ ← → ← → B A" : "↑ ↓ ↓ ↓ ↑"}
                 </div>
                 <div className="text-[10px] text-primary/70 leading-relaxed uppercase">
                   {hintPlatform === "pc" 
                     ? "USE KEYBOARD ARROWS AND B/A KEYS" 
-                    : "SWIPE DIRECTIONS, THEN TAP BOTTOM-LEFT FOR (B) AND BOTTOM-RIGHT FOR (A)"}
+                    : "SWIPE DIRECTIONS IN SEQUENCE"}
                 </div>
               </div>
               <button
@@ -184,7 +184,6 @@ export const EasterEggs = () => {
   const [hasClaimed, setHasClaimed] = useState(false);
 
   const claimCookie = () => {
-    // Set a real browser cookie for the meme
     document.cookie = "ZaneGoatReward=🍪; max-age=86400; path=/";
     setHasClaimed(true);
     setTimeout(() => {
@@ -198,10 +197,9 @@ export const EasterEggs = () => {
       initial={{ scale: 0.5, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0.5, opacity: 0 }}
-      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10001]"
+      className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-[10001] flex items-center justify-center pointer-events-none"
     >
-      <div className="relative bg-[#050816]/90 backdrop-blur-xl border-2 border-primary p-12 rounded-3xl shadow-[0_0_100px_hsl(var(--primary)/0.5)] text-center min-w-[400px]">
-        {/* Animated Background Particles */}
+      <div className="relative bg-[#050816]/90 backdrop-blur-xl border-2 border-primary p-8 md:p-12 rounded-3xl shadow-[0_0_100px_hsl(var(--primary)/0.5)] text-center w-full max-w-sm md:min-w-[400px] pointer-events-auto">
         <div className="absolute inset-0 overflow-hidden rounded-3xl opacity-20 pointer-events-none">
           {Array.from({ length: 15 }).map((_, i) => (
             <motion.div
@@ -224,17 +222,17 @@ export const EasterEggs = () => {
           <motion.div 
             animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
             transition={{ duration: 0.5, repeat: Infinity }}
-            className="text-8xl mb-6"
+            className="text-6xl md:text-8xl mb-6"
           >
             🍪
           </motion.div>
-          <h3 className="text-primary text-4xl font-black mb-2 tracking-tighter uppercase italic">
-            {hasClaimed ? "REWARD INJECTED" : "DATA DECRYPTED: COOKIE_CACHE.bin"}
+          <h3 className="text-primary text-2xl md:text-4xl font-black mb-2 tracking-tighter uppercase italic">
+            {hasClaimed ? "REWARD INJECTED" : "DATA DECRYPTED"}
           </h3>
-          <p className="text-primary/70 text-lg font-mono mb-8">
+          <p className="text-primary/70 text-sm md:text-lg font-mono mb-8">
             {hasClaimed 
               ? "[+] 1x COOKIE ADDED TO SYSTEM STORAGE" 
-              : "[+] EXPLOIT SUCCESSFUL. ENJOY YOUR REWARD, HUMAN."}
+              : "[+] EXPLOIT SUCCESSFUL. ENJOY YOUR REWARD."}
           </p>
           
           <AnimatePresence mode="wait">
@@ -245,7 +243,7 @@ export const EasterEggs = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 onClick={claimCookie}
-                className="bg-primary text-background px-8 py-3 rounded font-black text-xl hover:scale-110 transition-transform shadow-[0_0_30px_hsl(var(--primary)/0.5)]"
+                className="bg-primary text-background px-6 py-3 md:px-8 md:py-3 rounded font-black text-lg md:text-xl hover:scale-110 transition-transform shadow-[0_0_30px_hsl(var(--primary)/0.5)]"
               >
                 CLAIM_REWARD.exe
               </motion.button>
