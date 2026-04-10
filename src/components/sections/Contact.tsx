@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { contactLinks } from "@/data/portfolio";
 
 export const Contact = () => {
@@ -17,20 +18,36 @@ export const Contact = () => {
         <div className="flex flex-wrap justify-center gap-6 max-w-4xl mx-auto">
           {contactLinks.map((contact, i) => {
             const Icon = contact.icon;
+            const isInternal = contact.href.startsWith('/');
+            
+            const content = (
+              <>
+                <Icon className="w-6 h-6" />
+                <span className="font-semibold">{contact.label}</span>
+              </>
+            );
+
+            const className = "flex items-center gap-3 px-6 py-4 bg-primary/10 border border-primary/30 rounded-lg text-primary hover:bg-primary/20 transition-all duration-300 hover:shadow-[0_0_20px_hsl(var(--primary)/0.5)]";
+
             return (
-              <motion.a
+              <motion.div
                 key={i}
-                href={contact.href}
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
                 whileHover={{ scale: 1.1, rotate: 5 }}
-                className="flex items-center gap-3 px-6 py-4 bg-primary/10 border border-primary/30 rounded-lg text-primary hover:bg-primary/20 transition-all duration-300 hover:shadow-[0_0_20px_hsl(var(--primary)/0.5)]"
               >
-                <Icon className="w-6 h-6" />
-                <span className="font-semibold">{contact.label}</span>
-              </motion.a>
+                {isInternal ? (
+                  <Link to={contact.href} className={className}>
+                    {content}
+                  </Link>
+                ) : (
+                  <a href={contact.href} target="_blank" rel="noopener noreferrer" className={className}>
+                    {content}
+                  </a>
+                )}
+              </motion.div>
             );
           })}
         </div>

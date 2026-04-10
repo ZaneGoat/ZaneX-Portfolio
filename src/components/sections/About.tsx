@@ -21,8 +21,8 @@ export const About = () => {
             transition={{ delay: 0.2 }}
             className="space-y-4 text-lg text-muted-foreground"
           >
-            <p>Hey there! I'm that person who looks at a website and wonders "I wonder what happens if I click this 47 times..." Spoiler alert: interesting things happen.</p>
-            <p>I spend my time hunting bugs (not all of it ofc), solving CTF challenges at 3 AM, and occasionally remembering to touch grass. My idea of fun? Finding that one vulnerability everyone else missed.</p>
+            <p>Hey there its BatMan! I'm that person who looks at a website and wonders "I wonder what happens if I click this 47 times..." Spoiler alert: interesting things happen.</p>
+            <p>I spend my time spectating or obseriving / hunting (wep bugs ,human bugs ,logical bugs syntax bugs , souls) even real bugs (not all of it ofc), and occasionally remembering to touch grass , i admire Music human creations and earth creatures . My idea of fun? Living, surviving, Enjoying Good and Bad </p>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, x: 50 }}
@@ -31,8 +31,14 @@ export const About = () => {
             transition={{ delay: 0.4 }}
             className="space-y-4 text-lg text-muted-foreground"
           >
-            <p>When I'm not staring at Burp Suite or writing Python scripts that may or may not work, you'll find me competing in CTFs, exploring new attack vectors, or helping secure the internet one bug at a time.</p>
-            <p>My philosophy if it matters: If it's connected to the internet, it's probably hackable. My mission: Prove it (ethically, of course).</p>
+            <p>
+When I'm not observing systems or writing Python scripts that may or may not work, I'm exploring patterns—CTFs, attack surfaces, and the small details most people ignore. 
+I don't just look for vulnerabilities, I look for what breaks, what bends, and what reveals itself under pressure.
+</p>
+<p>
+My philosophy, if it matters: everything has flaws—code, logic, people.  
+My mission: understand them, find them, and sometimes prove they exist (ethically, of course). Mybe im just a Moonsick 
+</p>
           </motion.div>
         </div>
       </div>

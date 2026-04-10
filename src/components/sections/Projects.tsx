@@ -1,8 +1,26 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card3D } from "@/components/3DCard";
 import { projects } from "@/data/portfolio";
+import { Button } from "@/components/ui/button";
 
 export const Projects = () => {
+  const [clickCount, setClickCount] = useState(0);
+  const [showJoke, setShowJoke] = useState(false);
+
+  const handleSeeMore = () => {
+    const nextCount = clickCount + 1;
+    setClickCount(nextCount);
+    
+    if (nextCount >= 3) {
+      setShowJoke(true);
+      setTimeout(() => {
+        setShowJoke(false);
+        setClickCount(0);
+      }, 3000);
+    }
+  };
+
   return (
     <section id="projects" className="py-32 relative z-10">
       <div className="container mx-auto px-6">
@@ -15,7 +33,7 @@ export const Projects = () => {
         >
           Cool Stuff I've Done 
         </motion.h2>
-        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto mb-16">
           {projects.map((project, i) => (
             <motion.div
               key={i}
@@ -44,6 +62,30 @@ export const Projects = () => {
               </Card3D>
             </motion.div>
           ))}
+        </div>
+
+        <div className="text-center relative">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={handleSeeMore}
+            className="border-primary/50 text-primary hover:bg-primary/10 px-10 py-6 text-xl"
+          >
+            Click to see more...
+          </Button>
+
+          <AnimatePresence>
+            {showJoke && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.5 }}
+                animate={{ opacity: 1, y: -80, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                className="absolute left-1/2 -translate-x-1/2 top-0 bg-primary text-background px-6 py-3 rounded-full font-bold shadow-[0_0_30px_hsl(var(--primary)/0.5)] z-20 whitespace-nowrap"
+              >
+                Just kidding! 😂 There's no more.
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </section>

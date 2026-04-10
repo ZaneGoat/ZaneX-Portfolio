@@ -15,7 +15,7 @@ export const Navigation = () => {
           animate={{ textShadow: ["0 0 20px hsl(var(--primary) / 0.4)", "0 0 30px hsl(var(--primary) / 0.8)", "0 0 20px hsl(var(--primary) / 0.4)"] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          SecPort
+          Zane
         </motion.div>
         <div className="hidden md:flex gap-8">
           {navLinks.map((item, i) => (

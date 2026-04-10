@@ -1,130 +1,322 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { TerminalOverlay } from "./TerminalOverlay";
+import { ShieldAlert, Zap } from "lucide-react";
 
 export const EasterEggs = () => {
   const [clickCount, setClickCount] = useState(0);
   const [showCookie, setShowCookie] = useState(false);
-  const [showKonami, setShowKonami] = useState(false);
-  const [showSecret, setShowSecret] = useState(false);
+  const [showTerminal, setShowTerminal] = useState(false);
   const [showSecretButton, setShowSecretButton] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const [konamiIndex, setKonamiIndex] = useState(0);
 
   const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
 
   useEffect(() => {
-    const handleClick = () => {
-      setClickCount(prev => {
-        const newCount = prev + 1;
-        
-        // Cookie easter egg at 9 clicks
-        if (newCount === 9 && !showCookie) {
-          setShowCookie(true);
-          setTimeout(() => setShowCookie(false), 10000);
-        }
-        
-        // Secret button appears at 20 clicks
-        if (newCount === 20) {
-          setShowSecretButton(true);
-        }
-        
-        return newCount;
-      });
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
     };
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === konamiCode[konamiIndex]) {
+    const handleTouchEnd = (e: TouchEvent) => {
+      const touchEndX = e.changedTouches[0].screenX;
+      const touchEndY = e.changedTouches[0].screenY;
+      
+      const dx = touchEndX - touchStartX;
+      const dy = touchEndY - touchStartY;
+      
+      let key = "";
+      const threshold = 50;
+
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (Math.abs(dx) > threshold) {
+          key = dx > 0 ? "ArrowRight" : "ArrowLeft";
+        }
+      } else {
+        if (Math.abs(dy) > threshold) {
+          key = dy > 0 ? "ArrowDown" : "ArrowUp";
+        }
+      }
+
+      // If no swipe detected, check for B/A taps on the bottom of the screen
+      if (!key && touchEndY > window.innerHeight * 0.7) {
+        key = touchEndX < window.innerWidth / 2 ? "b" : "a";
+      }
+
+      if (key) {
+        processKey(key);
+      }
+    };
+
+    const processKey = (key: string) => {
+      if (key === konamiCode[konamiIndex]) {
         const newIndex = konamiIndex + 1;
         setKonamiIndex(newIndex);
         
         if (newIndex === konamiCode.length) {
-          setShowKonami(true);
-          setTimeout(() => setShowKonami(false), 20000);
+          setShowTerminal(true);
+          setShowHint(false);
           setKonamiIndex(0);
-          
-          // Add tilt effect to body
-          document.body.style.animation = 'tilt 2s ease-in-out';
-          setTimeout(() => {
-            document.body.style.animation = '';
-          }, 2000);
         }
       } else {
         setKonamiIndex(0);
       }
     };
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      processKey(e.key);
+    };
+
+    const handleClick = () => {
+      setClickCount(prev => {
+        const newCount = prev + 1;
+        if (newCount === 15 && !showCookie) {
+          setShowCookie(true);
+          setTimeout(() => setShowCookie(false), 10000);
+        }
+        if (newCount === 40) {
+          setShowSecretButton(true);
+        }
+        return newCount;
+      });
+    };
+
     document.addEventListener('click', handleClick);
     document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchend', handleTouchEnd);
 
     return () => {
       document.removeEventListener('click', handleClick);
       document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchend', handleTouchEnd);
     };
   }, [konamiIndex, showCookie]);
 
-  const handleSecretClick = () => {
-    setShowSecret(true);
-    setShowSecretButton(false);
-    setTimeout(() => setShowSecret(false), 3000);
+  const [hintPlatform, setHintPlatform] = useState<"none" | "pc" | "phone">("none");
+
+  const KonamiHint = () => (
+    <motion.div
+      initial={{ scale: 0.8, opacity: 0, y: 20 }}
+      animate={{ scale: 1, opacity: 1, y: 0 }}
+      exit={{ scale: 0.8, opacity: 0, y: 20 }}
+      className="fixed bottom-32 right-8 z-[10001] w-80"
+    >
+      <div className="bg-[#050816] border-2 border-primary p-6 rounded-xl shadow-[0_0_50px_hsl(var(--primary)/0.4)] font-mono">
+        <div className="flex items-center gap-2 mb-4 text-primary border-b border-primary/30 pb-2">
+          <Zap className="w-4 h-4" />
+          <span className="text-xs font-bold uppercase tracking-widest">ENCRYPTED_MEMO.txt</span>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {hintPlatform === "none" ? (
+            <motion.div
+              key="platform-select"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-4"
+            >
+              <p className="text-primary/90 text-sm leading-relaxed">
+                [!] SELECT YOUR SYSTEM INTERFACE:
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setHintPlatform("pc")}
+                  className="p-3 border border-primary/30 rounded hover:bg-primary/20 transition-colors text-primary text-xs font-bold uppercase"
+                >
+                  Desktop/PC
+                </button>
+                <button
+                  onClick={() => setHintPlatform("phone")}
+                  className="p-3 border border-primary/30 rounded hover:bg-primary/20 transition-colors text-primary text-xs font-bold uppercase"
+                >
+                  Mobile/Phone
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="platform-hint"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-4"
+            >
+              <p className="text-primary/90 text-sm leading-relaxed">
+                [!] INSTRUCTION DETECTED FOR {hintPlatform.toUpperCase()}:
+              </p>
+              <div className="bg-primary/10 p-4 rounded border border-primary/20 text-center space-y-3">
+                <div className="text-lg tracking-widest text-primary font-bold">
+                  {hintPlatform === "pc" ? "↑ ↑ ↓ ↓ ← → ← → B A" : "↑↑ ↓↓ ← → ← → (B)(A)"}
+                </div>
+                <div className="text-[10px] text-primary/70 leading-relaxed uppercase">
+                  {hintPlatform === "pc" 
+                    ? "USE KEYBOARD ARROWS AND B/A KEYS" 
+                    : "SWIPE DIRECTIONS, THEN TAP BOTTOM-LEFT FOR (B) AND BOTTOM-RIGHT FOR (A)"}
+                </div>
+              </div>
+              <button
+                onClick={() => setHintPlatform("none")}
+                className="text-[10px] text-primary/50 hover:text-primary transition-colors uppercase font-bold"
+              >
+                {"<"} Back to selection
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <button 
+          onClick={() => { setShowHint(false); setHintPlatform("none"); }}
+          className="mt-4 w-full py-1 text-[10px] text-primary/40 hover:text-primary transition-colors uppercase font-bold"
+        >
+          [ CLOSE MEMO ]
+        </button>
+      </div>
+    </motion.div>
+  );
+
+  const [hasClaimed, setHasClaimed] = useState(false);
+
+  const claimCookie = () => {
+    // Set a real browser cookie for the meme
+    document.cookie = "ZaneGoatReward=🍪; max-age=86400; path=/";
+    setHasClaimed(true);
+    setTimeout(() => {
+      setShowCookie(false);
+      setHasClaimed(false);
+    }, 7000);
   };
 
-  const PopupContent = ({ children }: { children: React.ReactNode }) => (
+  const CookieReward = () => (
     <motion.div
-      initial={{ scale: 0, opacity: 0 }}
+      initial={{ scale: 0.5, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0, opacity: 0 }}
-      transition={{ 
-        type: "spring",
-        stiffness: 260,
-        damping: 20 
-      }}
-      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary/95 backdrop-blur-sm px-12 py-8 rounded-2xl z-[10000] shadow-[0_0_80px_hsl(var(--primary)/0.9)] text-center border-2 border-primary"
+      exit={{ scale: 0.5, opacity: 0 }}
+      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10001]"
     >
-      {children}
+      <div className="relative bg-[#050816]/90 backdrop-blur-xl border-2 border-primary p-12 rounded-3xl shadow-[0_0_100px_hsl(var(--primary)/0.5)] text-center min-w-[400px]">
+        {/* Animated Background Particles */}
+        <div className="absolute inset-0 overflow-hidden rounded-3xl opacity-20 pointer-events-none">
+          {Array.from({ length: 15 }).map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute text-2xl"
+              initial={{ y: -20, x: Math.random() * 300 - 150 }}
+              animate={{ 
+                y: 400, 
+                rotate: 360,
+                x: (Math.random() * 300 - 150) + (Math.random() * 100 - 50)
+              }}
+              transition={{ duration: 2 + Math.random() * 2, repeat: Infinity, ease: "linear" }}
+            >
+              🍪
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="relative z-10">
+          <motion.div 
+            animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 0.5, repeat: Infinity }}
+            className="text-8xl mb-6"
+          >
+            🍪
+          </motion.div>
+          <h3 className="text-primary text-4xl font-black mb-2 tracking-tighter uppercase italic">
+            {hasClaimed ? "REWARD INJECTED" : "DATA DECRYPTED: COOKIE_CACHE.bin"}
+          </h3>
+          <p className="text-primary/70 text-lg font-mono mb-8">
+            {hasClaimed 
+              ? "[+] 1x COOKIE ADDED TO SYSTEM STORAGE" 
+              : "[+] EXPLOIT SUCCESSFUL. ENJOY YOUR REWARD, HUMAN."}
+          </p>
+          
+          <AnimatePresence mode="wait">
+            {!hasClaimed ? (
+              <motion.button
+                key="claim-btn"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                onClick={claimCookie}
+                className="bg-primary text-background px-8 py-3 rounded font-black text-xl hover:scale-110 transition-transform shadow-[0_0_30px_hsl(var(--primary)/0.5)]"
+              >
+                CLAIM_REWARD.exe
+              </motion.button>
+            ) : (
+              <motion.div
+                key="success-msg"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="space-y-4"
+              >
+                <div className="text-primary font-bold flex items-center justify-center gap-2">
+                  <Zap className="w-5 h-5 animate-pulse" />
+                  <span>LOCAL_STORAGE UPDATED</span>
+                </div>
+                <p className="text-[10px] text-primary/40 uppercase tracking-[0.2em] animate-pulse">
+                  System Note: There's still a secret button in the bottom right corner...
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="mt-8 flex justify-center gap-2">
+            <div className="w-2 h-2 bg-primary rounded-full animate-ping" />
+            <div className="w-2 h-2 bg-primary rounded-full animate-ping [animation-delay:0.2s]" />
+            <div className="w-2 h-2 bg-primary rounded-full animate-ping [animation-delay:0.4s]" />
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 
   return (
     <>
+      <TerminalOverlay isOpen={showTerminal} onClose={() => setShowTerminal(false)} />
+
       <AnimatePresence>
-        {showCookie && (
-          <PopupContent>
-            <div className="text-6xl mb-4 animate-bounce">🍪</div>
-            <div className="text-background text-2xl font-bold">here u go !</div>
-            <div className="text-background mt-2">curiocity pays off </div>
-          </PopupContent>
-        )}
+        {showCookie && <CookieReward />}
+      </AnimatePresence>
 
-        {showKonami && (
-          <PopupContent>
-            <div className="text-6xl mb-4 animate-pulse">🎮</div>
-            <div className="text-background text-2xl font-bold">KONAMI CODE ACTIVATED!</div>
-            <div className="text-background mt-2">You're a human : u can try click Linkedin or Tweet Buttons some intresting stuff there </div>
-          </PopupContent>
-        )}
-
-        {showSecret && (
-          <PopupContent>
-            <div className="text-6xl mb-4 animate-spin">🎉</div>
-            <div className="text-background text-2xl font-bold">SECRET UNLOCKED!</div>
-            <div className="text-background mt-2">now here is the trick but it only work on a pc : ⬆️⬆️⬇️⬇️⬅️➡️⬅️➡️🅱️🅰️</div>
-          </PopupContent>
-        )}
+      <AnimatePresence>
+        {showHint && <KonamiHint />}
       </AnimatePresence>
 
       <AnimatePresence>
         {showSecretButton && (
           <motion.button
-            initial={{ scale: 0, opacity: 0 }}
+            initial={{ y: 100, opacity: 0 }}
             animate={{ 
-              scale: 1, 
+              y: 0, 
               opacity: 1,
+              boxShadow: ["0 0 20px rgba(0,255,158,0.3)", "0 0 50px rgba(0,255,158,0.6)", "0 0 20px rgba(0,255,158,0.3)"]
             }}
-            exit={{ scale: 0, opacity: 0 }}
-            whileHover={{ scale: 1.1 }}
-            onClick={handleSecretClick}
-            className="fixed bottom-8 right-8 bg-primary text-background px-8 py-4 rounded-full font-bold cursor-pointer shadow-[0_0_40px_hsl(var(--primary)/0.7)] z-[9999] text-lg animate-pulse hover:animate-none"
+            exit={{ y: 100, opacity: 0 }}
+            whileHover={{ 
+              scale: 1.1, 
+              skew: [-1, 1, -1],
+              transition: { repeat: Infinity, duration: 0.1 }
+            }}
+            onClick={() => setShowHint(!showHint)}
+            className="fixed bottom-8 right-8 bg-black border-2 border-primary text-primary px-8 py-4 rounded-lg font-mono font-bold cursor-pointer z-[9999] group overflow-hidden"
           >
-            👀 Click Me!
+            <div className="absolute inset-0 bg-primary/10 group-hover:translate-x-full transition-transform duration-500" />
+            <div className="relative flex items-center gap-3">
+              <ShieldAlert className="w-5 h-5 animate-pulse" />
+              <span className="tracking-tighter uppercase italic">GET_HINT.txt</span>
+              <Zap className="w-4 h-4 text-yellow-400" />
+            </div>
+            
+            {/* Glitch Decorative Lines */}
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-primary/50" />
+            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-primary/50" />
           </motion.button>
         )}
       </AnimatePresence>

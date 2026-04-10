@@ -1,10 +1,10 @@
-import { Shield, Code, Lock, Terminal, Mail, Github, Linkedin, Twitter } from "lucide-react";
+import { Shield, Code, Lock, Terminal, Mail, Github, Linkedin, Twitter, MessageSquare } from "lucide-react";
 
 export const skills = [
   {
     icon: Shield,
     title: "Penetration Testing",
-    items: ["Web Application Testing", "Network Penetration Testing", "Mobile App Security", "API Security Testing"]
+    items: ["Web Application Testing", "Network Penetration Testing", "Mobile App Security", "WiFi Penetration Testing", "API Security Testing"]
   },
   {
     icon: Terminal,
@@ -25,38 +25,32 @@ export const skills = [
 
 export const projects = [
   {
-    title: "Vulnerability Assessment Framework",
-    description: "Developed an automated vulnerability scanning framework that integrates multiple security tools to identify and prioritize security risks across network infrastructure.",
-    tags: ["Python", "Nmap", "Automation"]
+    title: "LMA3za AI",
+    description: "An advanced AI interface built using Google's Gemini API, focusing on intuitive interaction and rapid response generation.",
+    tags: ["Google API", "React", "AI/ML"]
   },
   {
-    title: "Web App Security Testing",
-    description: "Conducted comprehensive security assessments for e-commerce platforms, identifying critical vulnerabilities including SQL injection and XSS flaws.",
-    tags: ["OWASP", "Burp Suite", "Pentesting"]
+    title: "Code-to-Music Translator",
+    description: "A creative project exploring the intersection of music and programming. Developed a system to generate musical patterns directly from code structures.",
+    tags: ["Audio API", "JavaScript", "Algorithms"]
   },
   {
-    title: "CTF Competitions",
-    description: "Active participant in Capture The Flag competitions, specializing in web exploitation, cryptography, and reverse engineering challenges.",
-    tags: ["CTF", "Binary Exploitation", "Forensics"]
+    title: "Multi-UI School Management",
+    description: "A comprehensive web application for schools featuring multiple UI versions tailored for students, teachers, and administrators.",
+    tags: ["Fullstack", "UI/UX", "Database"]
   },
   {
-    title: "Security Awareness Training",
-    description: "Created and delivered security awareness training programs for corporate employees, focusing on phishing prevention and secure coding practices.",
-    tags: ["Training", "Social Engineering", "Education"]
+    title: "ZaneX Cyber Portfolio",
+    description: "The interactive, easter-egg-filled portfolio you are currently exploring, designed with a focus on cybersecurity aesthetics.",
+    tags: ["Framer Motion", "Tailwind", "React"]
   }
-];
-
-export const certifications = [
-  { name: "OSCP", full: "Offensive Security Certified Professional" },
-  { name: "CEH", full: "Certified Ethical Hacker" },
-  { name: "CompTIA Security+", full: "Security+ Certification" },
-  { name: "CISSP", full: "Certified Information Systems Security Professional" }
 ];
 
 export const contactLinks = [
   { icon: Mail, label: "Email", href: "mailto:resandelgmin@gmail.com" },
   { icon: Linkedin, label: "LinkedIn", href: "https://pranx.com/fake-dos/" },
+  { icon: MessageSquare, label: "WhatsApp", href: "/404" },
   { icon: Github, label: "GitHub", href: "https://github.com/RESAndel" },
   { icon: Twitter, label: "Twitter", href: "https://pranx.com/bios/" }
 ];
-export const navLinks = ["About", "Skills", "Projects", "Certifications", "Contact"];
+export const navLinks = ["About", "Dev Skills", "Projects", "Philosophy", "Games", "Contact"];

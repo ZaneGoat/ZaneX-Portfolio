@@ -4,7 +4,7 @@ import { skills } from "@/data/portfolio";
 
 export const Skills = () => {
   return (
-    <section id="skills" className="py-32 relative z-10">
+    <section id="dev-skills" className="py-32 relative z-10">
       <div className="container mx-auto px-6">
         <motion.h2
           initial={{ opacity: 0, y: 30 }}
@@ -13,7 +13,7 @@ export const Skills = () => {
           className="text-5xl font-bold text-center mb-16 text-primary"
           style={{ textShadow: "0 0 30px hsl(var(--primary) / 0.4)" }}
         >
-          What I Actually Do (everything 0_0)
+          Dev Skills
         </motion.h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {skills.map((skill, i) => {
