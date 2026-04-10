@@ -28,7 +28,7 @@ export const Hero = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            Just a normal creature living life and wasting it 🔐
+            Just a normal creature living life and wasting it
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
