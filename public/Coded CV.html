@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Aziz Maaizate - Développeur Web & IA | ERP Specialist</title>
+    <style>
+        :root {
+            --primary-color: #0f172a;
+            --secondary-color: #334155;
+            --accent-color: #1e40af;
+            --accent-light: #3b82f6;
+            --accent-cyan: #0284c7;
+            --text-muted: #64748b;
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-sidebar: #f8fafc;
+            --border-color: #e2e8f0;
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-body);
+            color: var(--primary-color);
+            line-height: 1.55;
+            font-size: 9.5pt;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* A4 Container - Exactly 297mm Height */
+        .cv-container {
+            width: 210mm;
+            height: 297mm;
+            margin: 20px auto;
+            background: var(--bg-card);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        @media print {
+            body {
+                background: none;
+            }
+            .cv-container {
+                margin: 0;
+                box-shadow: none;
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+            }
+            @page {
+                size: A4;
+                margin: 0;
+            }
+            .live-portal-banner {
+                background: #0f172a !important;
+                color: #ffffff !important;
+                box-shadow: none !important;
+            }
+            .easter-egg-modal, .click-counter-toast {
+                display: none !important;
+            }
+        }
+
+        /* Top Signature Accent Bar */
+        .signature-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #1e40af 0%, #3b82f6 50%, #0284c7 100%);
+            flex-shrink: 0;
+        }
+
+        /* Header Banner */
+        .cv-header {
+            background-color: #0f172a;
+            color: #ffffff;
+            padding: 30px 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .header-main h1 {
+            font-size: 25pt;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .header-main .title {
+            font-size: 11.5pt;
+            color: #93c5fd;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+        .header-contact {
+            text-align: right;
+            font-size: 8.8pt;
+            color: #cbd5e1;
+            line-height: 1.7;
+        }
+
+        .header-contact a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* High-Impact Interactive Live Portal Callout Banner */
+        .live-portal-banner {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0284c7 100%);
+            color: #ffffff;
+            padding: 14px 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #38bdf8;
+            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
+            flex-shrink: 0;
+        }
+
+        .portal-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .portal-badge {
+            background: #10b981;
+            color: #ffffff;
+            font-size: 8pt;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+        }
+
+        .portal-title {
+            font-size: 10pt;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.2px;
+        }
+
+        .portal-subtitle {
+            font-size: 8.5pt;
+            color: #93c5fd;
+        }
+
+        .portal-btn {
+            background: #ffffff;
+            color: #1e40af;
+            font-size: 8.8pt;
+            font-weight: 800;
+            padding: 7px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .portal-btn:hover {
+            background: #38bdf8;
+            color: #ffffff;
+        }
+
+        .header-contact .divider {
+            color: #475569;
+            margin: 0 4px;
+        }
+
+        /* Executive Metrics Highlight Strip */
+        .metrics-strip {
+            background-color: #1e293b;
+            color: #f8fafc;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 25px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .metric-item {
+            font-size: 8.2pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .metric-item strong {
+            color: #38bdf8;
+            font-size: 10pt;
+            font-weight: 700;
+        }
+
+        /* Grid Body Layout - Expand Flex to Fill Container */
+        .cv-body {
+            display: grid;
+            grid-template-columns: 70mm 140mm;
+            flex: 1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            padding: 28px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+
+        .sidebar-title {
+            font-size: 9.8pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+        }
+
+        .skill-group {
+            margin-bottom: 12px;
+        }
+
+        .skill-group h4 {
+            font-size: 8.5pt;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        .tech-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .tech-pill {
+            background: #e2e8f0;
+            color: #1e293b;
+            font-size: 7.8pt;
+            font-weight: 500;
+            padding: 2.5px 7px;
+            border-radius: 3px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .simple-list {
+            list-style: none;
+        }
+
+        .simple-list li {
+            font-size: 8.5pt;
+            color: var(--secondary-color);
+            margin-bottom: 5px;
+            position: relative;
+            padding-left: 12px;
+            line-height: 1.4;
+        }
+
+        .simple-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 28px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .main-section {
+            margin-bottom: 22px;
+        }
+
+        .section-title {
+            font-size: 11pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--primary-color);
+            border-bottom: 1.5px solid var(--border-color);
+            padding-bottom: 4px;
+            margin-bottom: 12px;
+        }
+
+        .profile-text {
+            font-size: 9.2pt;
+            color: var(--secondary-color);
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        /* Timeline Items */
+        .entry-item {
+            margin-bottom: 15px;
+        }
+
+        .entry-header {
+            margin-bottom: 3px;
+        }
+
+        .entry-role {
+            font-size: 9.8pt;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .entry-company {
+            font-size: 8.5pt;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            font-style: italic;
+        }
+
+        .project-bullets {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .project-bullets li {
+            font-size: 8.7pt;
+            color: var(--secondary-color);
+            margin-bottom: 4.5px;
+            position: relative;
+            padding-left: 14px;
+            line-height: 1.45;
+        }
+
+        .project-bullets li::before {
+            content: "▪";
+            position: absolute;
+            left: 0;
+            color: var(--accent-light);
+            font-size: 7pt;
+            top: 1px;
+        }
+
+        .project-bullets strong {
+            color: var(--primary-color);
+        }
+
+        .edu-item {
+            margin-bottom: 8px;
+        }
+
+        .edu-degree {
+            font-size: 9.2pt;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .edu-school {
+            font-size: 8.5pt;
+            color: var(--text-muted);
+        }
+
+        /* Custom Signature Footer */
+        .footer-note {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 7.8pt;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-signature {
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        /* 20 Clicks Easter Egg Toast & Modal Styles */
+        .click-counter-toast {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid #38bdf8;
+            font-family: monospace;
+            font-size: 11px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            z-index: 9999;
+            display: none;
+            animation: pulseToast 0.5s ease;
+        }
+
+        @keyframes pulseToast {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .easter-egg-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .easter-egg-card {
+            background: #050816;
+            border: 2px solid #38bdf8;
+            border-radius: 16px;
+            padding: 35px;
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(56, 189, 248, 0.4);
+            font-family: monospace;
+            color: #f8fafc;
+            position: relative;
+        }
+
+        .easter-egg-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #38bdf8;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+
+        .easter-egg-desc {
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            background: rgba(30, 41, 59, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #10b981;
+        }
+
+        .easter-egg-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-portal-action {
+            background: linear-gradient(135deg, #1e40af 0%, #0284c7 100%);
+            color: #ffffff;
+            font-weight: 800;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 12px;
+            box-shadow: 0 0 25px rgba(2, 132, 199, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        .btn-portal-action:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 35px rgba(2, 132, 199, 0.8);
+        }
+
+        .btn-close-modal {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 11px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .btn-close-modal:hover {
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cv-container">
+        
+        <div>
+            <!-- Signature Top Gradient -->
+            <div class="signature-bar"></div>
+
+            <!-- Header Banner -->
+            <header class="cv-header" id="cvHeader">
+                <div class="header-main">
+                    <h1>Aziz Maaizate</h1>
+                    <div class="title">Développeur Web & IA | Spécialiste ERP & Systèmes</div>
+                </div>
+                <div class="header-contact">
+                    <div>Berrechid, Maroc <span class="divider">|</span> 0663118154</div>
+                    <div>azizmaaizat@outlook.com <span class="divider">|</span> Permis B</div>
+                    <div><a href="https://github.com/ZaneGoat/" target="_blank">github.com/ZaneGoat/</a></div>
+                </div>
+            </header>
+
+            <!-- Interactive Live Portal Callout Banner -->
+            <div class="live-portal-banner">
+                <div class="portal-info">
+                    <span class="portal-badge">Live System</span>
+                    <div>
+                        <div class="portal-title">Explorer Tous Les Projets En Direct sur le Hub Interactif</div>
+                        <div class="portal-subtitle">spinach-chevron-riverboat.ngrok-free.dev</div>
+                    </div>
+                </div>
+                <a href="https://spinach-chevron-riverboat.ngrok-free.dev/" target="_blank" class="portal-btn">
+                    Ouvrir Le Hub Live &rarr;
+                </a>
+            </div>
+
+            <!-- Executive Metrics Strip -->
+            <div class="metrics-strip">
+                <div class="metric-item"><strong>10+</strong> Projets Développés</div>
+                <div class="metric-item"><strong>5</strong> ERPs Sur Mesure</div>
+                <div class="metric-item"><strong>100%</strong> Code Professionnel</div>
+                <div class="metric-item"><strong>Docker & IA</strong> Deployed</div>
+            </div>
+        </div>
+
+        <!-- Body Layout -->
+        <div class="cv-body">
+            
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                
+                <div>
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-title">Expertise Tech</h3>
+                        
+                        <div class="skill-group">
+                            <h4>Développement Web</h4>
+                            <div class="tech-pills">
+                                <span class="tech-pill">Python</span>
+                                <span class="tech-pill">Flask</span>
+                                <span class="tech-pill">Django</span>
+                                <span class="tech-pill">JavaScript</span>
+                                <span class="tech-pill">HTML5</span>
+                                <span class="tech-pill">CSS3</span>
+                            </div>
+                        </div>
+
+                        <div class="skill-group">
+                            <h4>Bases de Données & APIs</h4>
+                            <div class="tech-pills">
+                                <span class="tech-pill">SQL</span>
+                                <span class="tech-pill">SQLite</span>
+                                <span class="tech-pill">SQLAlchemy</span>
+                                <span class="tech-pill">APIs REST</span>
+                                <span class="tech-pill">Java</span>
+                            </div>
+                        </div>
+
+                        <div class="skill-group">
+                            <h4>IA & Automation</h4>
+                            <div class="tech-pills">
+                                <span class="tech-pill">Ollama</span>
+                                <span class="tech-pill">DeepSeek CLI</span>
+                                <span class="tech-pill">Gemini API</span>
+                                <span class="tech-pill">Scripts WSL</span>
+                                <span class="tech-pill">Bash</span>
+                            </div>
+                        </div>
+
+                        <div class="skill-group">
+                            <h4>ERP & Desktop</h4>
+                            <div class="tech-pills">
+                                <span class="tech-pill">CustomTkinter</span>
+                                <span class="tech-pill">Modélisation ERD</span>
+                                <span class="tech-pill">Exports Docx/PDF</span>
+                                <span class="tech-pill">Gestion RBAC</span>
+                            </div>
+                        </div>
+
+                        <div class="skill-group">
+                            <h4>DevOps & Cloud</h4>
+                            <div class="tech-pills">
+                                <span class="tech-pill">Docker</span>
+                                <span class="tech-pill">Déploiement Vercel</span>
+                                <span class="tech-pill">Git / GitHub</span>
+                                <span class="tech-pill">Microservices</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-title">Atouts Spécifiques</h3>
+                        <ul class="simple-list">
+                            <li>Architecture ERP Complexe</li>
+                            <li>Intégration LLM Local & Cloud</li>
+                            <li>Modélisation de Données ERD</li>
+                            <li>Rédaction Cahiers des Charges</li>
+                        </ul>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <h3 class="sidebar-title">Langues</h3>
+                        <ul class="simple-list">
+                            <li><strong>Arabe :</strong> Langue maternelle</li>
+                            <li><strong>Anglais :</strong> Niveau professionnel</li>
+                            <li><strong>Français :</strong> Niveau intermédiaire</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="sidebar-section" style="margin-bottom: 0;">
+                    <h3 class="sidebar-title">Centres d'Intérêt</h3>
+                    <ul class="simple-list">
+                        <li>Programmation & IA</li>
+                        <li>Guitare Classique</li>
+                        <li>Basketball & Natation</li>
+                        <li>Gastronomie & Voyages</li>
+                    </ul>
+                </div>
+
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                
+                <div>
+                    <!-- Profil -->
+                    <section class="main-section">
+                        <h2 class="section-title">Profil Professionnel</h2>
+                        <p class="profile-text">
+                            Développeur Web & IA polyvalent, spécialisé dans la conception et l'architecture de systèmes ERP complets, d'applications web modernes et de pipelines d'automatisation IA. Compétent dans la gestion complète de projets logiciels—de la modélisation de bases de données (SQL, ERD) au développement backend/frontend et au déploiement conteneurisé (Docker, Vercel).
+                        </p>
+                    </section>
+
+                    <!-- Expériences & Projets -->
+                    <section class="main-section">
+                        <h2 class="section-title">Expériences & Projets Réalisés</h2>
+
+                        <div class="entry-item">
+                            <div class="entry-header">
+                                <div class="entry-role">Freelance – Développeur Web, ERP & IA</div>
+                            </div>
+                            <div class="entry-company">Conception & Architecture de Projets Informatiques</div>
+                            <ul class="project-bullets">
+                                <li><strong>OptiGest (ERP Optique) :</strong> Solution de gestion pour magasins d'optique (stocks verres/montures, suivi ordonnances, facturation et génération automatique de rapports).</li>
+                                <li><strong>AyaResto & Patisserie :</strong> Application ERP Flask pour restauration avec commande en ligne client, gestion des réservations et suivi de livraison.</li>
+                                <li><strong>KoraArena (Réservation de Terrain) :</strong> Plateforme web de réservation de terrains de sport avec calendrier interactif et rapport PFE.</li>
+                                <li><strong>IPIRNET & ScolarX :</strong> Système ERP scolaire complet (inscriptions, suivi des absences, bulletins et exports comptables CSV/Excel).</li>
+                                <li><strong>ZaneAI & Automation LLM :</strong> Intégration de modèles IA (Ollama, DeepSeek, Gemini API) pour l'automatisation d'analyses de données locales et cloud.</li>
+                                <li><strong>ZaneX Deployment Hub :</strong> Architecture d'applications conteneurisées via Docker et hébergement cloud sur Vercel.</li>
+                                <li><strong>Applications Dédiées :</strong> PizzaTime (commande en ligne), Traiteur Événements (devis automatique), Boutique POS (parfumerie) et Gestion Hôtelière.</li>
+                            </ul>
+                        </div>
+
+                        <div class="entry-item">
+                            <div class="entry-header">
+                                <div class="entry-role">PharmaGest – Application de Gestion de Pharmacie</div>
+                            </div>
+                            <div class="entry-company">Application Sur Mesure & Système de Gestion de Stock</div>
+                            <ul class="project-bullets">
+                                <li><strong>Gestion de Stock & Médicaments :</strong> Suivi automatisé de l'inventaire des médicaments, alertes de péremption et gestion des réapprovisionnements fournisseurs.</li>
+                                <li><strong>Vente & Ordonnances :</strong> Module de caisse (POS) pour la délivrance d'ordonnances, facturation client et rapports quotidiens de ventes.</li>
+                            </ul>
+                        </div>
+
+                        <div class="entry-item">
+                            <div class="entry-header">
+                                <div class="entry-role">Hôpital Razi – Assistant Administratif</div>
+                            </div>
+                            <p class="profile-text" style="font-size: 8.8pt;">
+                                Gestion des flux administratifs, archivage des dossiers patients et facturation hospitalière.
+                            </p>
+                        </div>
+
+                        <div class="entry-item">
+                            <div class="entry-header">
+                                <div class="entry-role">Parcours Opérations & Logistique</div>
+                            </div>
+                            <p class="profile-text" style="font-size: 8.8pt;">
+                                <strong>Plomberie Sanitaire :</strong> Maintenance des réseaux de tuyauterie et équipements sanitaires. <strong>Supeco & KFC :</strong> Logistique et service client.
+                            </p>
+                        </div>
+                    </section>
+
+                    <!-- Formation -->
+                    <section class="main-section">
+                        <h2 class="section-title">Formation</h2>
+                        
+                        <div class="edu-item">
+                            <div class="edu-degree">Diplôme en Développement Informatique</div>
+                            <div class="edu-school">IPERNET</div>
+                        </div>
+
+                        <div class="edu-item" style="margin-top: 6px;">
+                            <div class="edu-degree">Baccalauréat Scientifique</div>
+                            <div class="edu-school">Lycée Bno Rochd</div>
+                        </div>
+                    </section>
+                </div>
+
+                <footer class="footer-note">
+                    <span>CV Aziz Maaizate &bull; A4 Standard</span>
+                    <span class="footer-signature">ZaneX Engine Architecture</span>
+                </footer>
+
+            </main>
+
+        </div>
+
+    </div>
+
+    <!-- 20 Clicks Interactive Easter Egg Elements -->
+    <div id="clickCounterToast" class="click-counter-toast">
+        ⚡ OVERRIDE PROGRESS: <span id="clickCountNum">0</span>/20 CLICKS
+    </div>
+
+    <div id="easterEggModal" class="easter-egg-modal">
+        <div class="easter-egg-card">
+            <div class="easter-egg-title">🔓 Level 99 Security Access Granted</div>
+            <div class="easter-egg-desc">
+                <strong>Hint: 20 clicks unlock the path to the real secrets.</strong><br/><br/>
+                System override complete! You have unlocked direct access to the live deployed ecosystem and full project archives.
+            </div>
+            <div class="easter-egg-actions">
+                <a href="https://spinach-chevron-riverboat.ngrok-free.dev/" target="_blank" class="btn-portal-action">
+                    🚀 Enter Live Deployed Ecosystem
+                </a>
+                <a href="/Coded%20CV.pdf" target="_blank" download="Aziz_Maaizate_CV.pdf" class="btn-portal-action" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    📄 Download Verified PDF CV
+                </a>
+                <button class="btn-close-modal" onclick="closeEasterEggModal()">[ Close Override Shell ]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let clickCount = 0;
+        const toast = document.getElementById('clickCounterToast');
+        const countNum = document.getElementById('clickCountNum');
+        const modal = document.getElementById('easterEggModal');
+
+        document.addEventListener('click', (e) => {
+            // Ignore modal internal clicks
+            if (modal.contains(e.target)) return;
+
+            clickCount++;
+            countNum.innerText = clickCount;
+
+            if (clickCount >= 5 && clickCount < 20) {
+                toast.style.display = 'block';
+            }
+
+            if (clickCount >= 20) {
+                toast.style.display = 'none';
+                modal.style.display = 'flex';
+            }
+        });
+
+        function closeEasterEggModal() {
+            modal.style.display = 'none';
+            clickCount = 0;
+        }
+    </script>
+
+</body>
+</html>

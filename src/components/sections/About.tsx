@@ -11,7 +11,7 @@ export const About = () => {
           className="text-5xl font-bold text-center mb-16 text-primary"
           style={{ textShadow: "0 0 30px hsl(var(--primary) / 0.4)" }}
         >
-          Who's This Guy? 
+          About Aziz Maaizate
         </motion.h2>
         <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
           <motion.div
@@ -21,8 +21,12 @@ export const About = () => {
             transition={{ delay: 0.2 }}
             className="space-y-4 text-lg text-muted-foreground"
           >
-            <p>Hey there its BatMan! I'm that person who looks at a website and wonders "I wonder what happens if I click this 47 times..." Spoiler alert: interesting things happen.</p>
-            <p>I spend my time spectating or obseriving / hunting (wep bugs ,human bugs ,logical bugs syntax bugs , souls) even real bugs (not all of it ofc), and occasionally remembering to touch grass , i admire Music human creations and earth creatures . My idea of fun? Living, surviving, Enjoying Good and Bad </p>
+            <p>
+              I am a versatile Full-Stack Developer & AI Specialist based in Morocco. My passion lies in engineering end-to-end software solutions—ranging from complex desktop & web ERP systems (OptiGest, AyaResto, IPIRNET) to automated AI workflows using Ollama, DeepSeek CLI, and Google Gemini API.
+            </p>
+            <p>
+              Whether it's designing clean ERD database schemas, writing Python backend services, or building responsive UIs, I focus on code quality, performance, and real-world business value.
+            </p>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, x: 50 }}
@@ -32,13 +36,11 @@ export const About = () => {
             className="space-y-4 text-lg text-muted-foreground"
           >
             <p>
-When I'm not observing systems or writing Python scripts that may or may not work, I'm exploring patterns—CTFs, attack surfaces, and the small details most people ignore. 
-I don't just look for vulnerabilities, I look for what breaks, what bends, and what reveals itself under pressure.
-</p>
-<p>
-My philosophy, if it matters: everything has flaws—code, logic, people.  
-My mission: understand them, find them, and sometimes prove they exist (ethically, of course). Mybe im just a Moonsick 
-</p>
+              I take pride in transforming raw requirements into robust, containerized applications (Docker) ready for cloud deployment (Vercel). I also hold a strong background in project specification ("Cahiers des charges"), digital marketing strategy, and visual communication.
+            </p>
+            <p>
+              My philosophy: Build clean, automate the repetitive, and constantly innovate. Known online as <strong>Zane Goat</strong>.
+            </p>
           </motion.div>
         </div>
       </div>

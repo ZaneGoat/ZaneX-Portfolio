@@ -15,32 +15,52 @@ export const Hero = () => {
           className="animate-tilt"
         >
           <motion.h1
-            className="text-6xl md:text-9xl font-bold mb-6 text-primary leading-tight"
+            className="text-5xl md:text-8xl font-extrabold mb-4 text-primary leading-tight tracking-tight"
             style={{ textShadow: "0 0 40px hsl(var(--primary) / 0.6)" }}
             animate={{ textShadow: ["0 0 30px hsl(var(--primary) / 0.5)", "0 0 50px hsl(var(--primary) / 0.9)", "0 0 30px hsl(var(--primary) / 0.5)"] }}
             transition={{ duration: 3, repeat: Infinity }}
           >
-            Zane Goat
+            Aziz Maaizate
           </motion.h1>
+          
+          <motion.h2
+            className="text-xl md:text-3xl font-semibold mb-6 text-primary/80"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            Full-Stack Web & AI Developer | ERP Architect
+          </motion.h2>
+
           <motion.p
-            className="text-xl md:text-3xl mb-10 text-muted-foreground px-4"
+            className="text-base md:text-xl mb-10 text-muted-foreground max-w-3xl mx-auto leading-relaxed"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            Just a normal creature living life and wasting it
+            Building custom ERP platforms, local AI automation engines (Ollama, DeepSeek, Gemini API), and high-performance web applications. Known as <span className="text-primary font-semibold">Zane Goat</span> in the dev ecosystem.
           </motion.p>
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
+            className="flex flex-wrap justify-center gap-4"
           >
             <Button
               size="lg"
-              className="text-lg px-8 py-6 shadow-[0_0_30px_hsl(var(--primary)/0.5)] hover:shadow-[0_0_50px_hsl(var(--primary)/0.8)] transition-all duration-300 hover:scale-110"
+              className="text-lg px-8 py-6 shadow-[0_0_30px_hsl(var(--primary)/0.5)] hover:shadow-[0_0_50px_hsl(var(--primary)/0.8)] transition-all duration-300 hover:scale-105"
+              onClick={() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Explore Projects
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="text-lg px-8 py-6 border-primary/50 text-primary hover:bg-primary/10 transition-all duration-300 hover:scale-105"
               onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Let's Connect
+              Get In Touch
             </Button>
           </motion.div>
         </motion.div>
