@@ -93,8 +93,22 @@ const Index = () => {
             <p>&copy; {new Date().getFullYear()} Aziz Maaizate (Zane Goat)</p>
           </div>
           <p className="text-primary/60">
-            Try <kbd className="px-1.5 py-0.5 border border-primary/40 rounded text-primary">`</kbd> for the shell ·
-            {" "}↑↑↓↓←→←→BA for something else
+            Try{" "}
+            <kbd
+              onClick={openTerminal}
+              className="px-1.5 py-0.5 border border-primary/40 rounded text-primary hover:border-primary hover:bg-primary/10 cursor-pointer transition-colors"
+              title="Launch ZaneOS Shell"
+            >
+              `
+            </kbd>{" "}
+            for the shell ·{" "}
+            <button
+              onClick={openMatrix}
+              className="text-primary/70 hover:text-primary underline decoration-primary/40 hover:decoration-primary underline-offset-4 cursor-pointer transition-colors"
+              title="Unleash Matrix Construct"
+            >
+              ↑↑↓↓←→←→BA (or Shake) for Matrix
+            </button>
           </p>
         </div>
       </footer>

@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldAlert, Zap, Cookie } from "lucide-react";
+import { ShieldAlert, Zap, CheckCircle2, Smartphone, Sparkles } from "lucide-react";
 import { sound } from "@/lib/sound";
 
 interface EasterEggsProps {
@@ -24,35 +24,105 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
   const [hasClaimed, setHasClaimed] = useState(false);
   const [particles, setParticles] = useState<ClickParticle[]>([]);
 
+  // Mobile Sensor State
+  const [permissionStatus, setPermissionStatus] = useState<"idle" | "granted" | "denied">("idle");
+  const [isIosDevice, setIsIosDevice] = useState(false);
+  const [isHoldingVisual, setIsHoldingVisual] = useState(false);
+  const [holdCoord, setHoldCoord] = useState<{ x: number; y: number } | null>(null);
+
   const isHoldingRef = useRef(false);
+  const lastHoldEndTimeRef = useRef(0);
+  const holdTimerRef = useRef<number | null>(null);
   const konamiIndexRef = useRef(0);
+  const lastShakeTimeRef = useRef(0);
+  const lastAccRef = useRef({ x: 0, y: 0, z: 0 });
+
   const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
 
-  useEffect(() => {
-    let lastShakeTime = 0;
+  // Motion processor
+  const handleMotion = useCallback((e: DeviceMotionEvent) => {
+    const now = Date.now();
+    // Allow trigger if currently holding OR released within the last 1200ms
+    const isHolding = isHoldingRef.current || (now - lastHoldEndTimeRef.current < 1200);
+    if (!isHolding) return;
 
-    // Mobile Motion Handler (Shake while holding screen -> Unleash Matrix Construct)
-    const handleMotion = (e: DeviceMotionEvent) => {
-      if (!isHoldingRef.current) return;
-      const acc = e.accelerationIncludingGravity;
-      if (!acc) return;
+    const acc = e.acceleration || e.accelerationIncludingGravity;
+    if (!acc) return;
 
-      const x = acc.x || 0;
-      const y = acc.y || 0;
-      const z = acc.z || 0;
-      const acceleration = Math.sqrt(x * x + y * y + z * z);
-      const now = Date.now();
+    const x = acc.x || 0;
+    const y = acc.y || 0;
+    const z = acc.z || 0;
 
-      if (acceleration > 24 && now - lastShakeTime > 1200) {
-        lastShakeTime = now;
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-        sound.playMatrixDrop();
-        onOpenMatrixTakeover();
-        setShowHint(false);
+    let magnitude = 0;
+    if (e.acceleration && (e.acceleration.x !== null || e.acceleration.y !== null)) {
+      // Linear acceleration (excluding gravity)
+      magnitude = Math.hypot(x, y, z);
+    } else {
+      // Fallback: calculate delta between successive gravity readings
+      const dx = Math.abs(x - lastAccRef.current.x);
+      const dy = Math.abs(y - lastAccRef.current.y);
+      const dz = Math.abs(z - lastAccRef.current.z);
+      magnitude = dx + dy + dz;
+      lastAccRef.current = { x, y, z };
+    }
+
+    // Shake threshold: 13 for linear, ~16 for delta
+    if (magnitude > 13 && now - lastShakeTimeRef.current > 1500) {
+      lastShakeTimeRef.current = now;
+      if (navigator.vibrate) navigator.vibrate([100, 50, 150]);
+      sound.playMatrixDrop();
+      onOpenMatrixTakeover();
+      setShowHint(false);
+      setIsHoldingVisual(false);
+    }
+  }, [onOpenMatrixTakeover]);
+
+  // Request motion permission (specifically for iOS Safari 13+)
+  const requestMotionPermission = useCallback(async () => {
+    sound.playClick();
+    if (
+      typeof window !== "undefined" &&
+      typeof (DeviceMotionEvent as unknown as { requestPermission?: () => Promise<string> })?.requestPermission === "function"
+    ) {
+      try {
+        const response = await (DeviceMotionEvent as unknown as { requestPermission: () => Promise<string> }).requestPermission();
+        if (response === "granted") {
+          setPermissionStatus("granted");
+          window.addEventListener("devicemotion", handleMotion);
+          if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+          return true;
+        } else {
+          setPermissionStatus("denied");
+          return false;
+        }
+      } catch (err) {
+        console.warn("Sensor permission request error:", err);
+        setPermissionStatus("denied");
+        return false;
       }
-    };
+    } else {
+      // Non-iOS or Android: standard registration
+      setPermissionStatus("granted");
+      window.addEventListener("devicemotion", handleMotion);
+      return true;
+    }
+  }, [handleMotion]);
 
-    // Desktop Konami Code Handler -> Unleash Matrix Construct
+  // Check device capabilities on mount
+  useEffect(() => {
+    const isIos =
+      typeof window !== "undefined" &&
+      typeof (DeviceMotionEvent as unknown as { requestPermission?: () => Promise<string> })?.requestPermission === "function";
+
+    setIsIosDevice(isIos);
+
+    // If not iOS (e.g. Android), register motion listener immediately
+    if (!isIos && typeof window !== "undefined" && "DeviceMotionEvent" in window) {
+      window.addEventListener("devicemotion", handleMotion);
+      setPermissionStatus("granted");
+    }
+
+    // Desktop Konami Code listener
     const handleKeyDown = (e: KeyboardEvent) => {
       const idx = konamiIndexRef.current;
       if (e.key === konamiCode[idx]) {
@@ -69,19 +139,44 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
       }
     };
 
-    const handleHoldStart = () => { isHoldingRef.current = true; };
-    const handleHoldEnd = () => { isHoldingRef.current = false; };
+    // Hold handlers
+    const handleHoldStart = (e: MouseEvent | TouchEvent) => {
+      isHoldingRef.current = true;
+      let x = window.innerWidth / 2;
+      let y = window.innerHeight / 2;
+      if ("touches" in e && e.touches[0]) {
+        x = e.touches[0].clientX;
+        y = e.touches[0].clientY;
+      } else if ("clientX" in e) {
+        x = e.clientX;
+        y = e.clientY;
+      }
 
-    // Register Motion once
-    if (typeof window !== "undefined" && "DeviceMotionEvent" in window) {
-      window.addEventListener("devicemotion", handleMotion);
-    }
+      setHoldCoord({ x, y });
+
+      if (holdTimerRef.current) window.clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = window.setTimeout(() => {
+        if (isHoldingRef.current) {
+          setIsHoldingVisual(true);
+          if (navigator.vibrate) navigator.vibrate(40);
+        }
+      }, 350);
+    };
+
+    const handleHoldEnd = () => {
+      isHoldingRef.current = false;
+      lastHoldEndTimeRef.current = Date.now();
+      if (holdTimerRef.current) window.clearTimeout(holdTimerRef.current);
+      setIsHoldingVisual(false);
+      setHoldCoord(null);
+    };
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("mousedown", handleHoldStart);
     window.addEventListener("mouseup", handleHoldEnd);
     window.addEventListener("touchstart", handleHoldStart, { passive: true });
     window.addEventListener("touchend", handleHoldEnd, { passive: true });
+    window.addEventListener("touchcancel", handleHoldEnd, { passive: true });
 
     return () => {
       window.removeEventListener("devicemotion", handleMotion);
@@ -90,19 +185,20 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
       window.removeEventListener("mouseup", handleHoldEnd);
       window.removeEventListener("touchstart", handleHoldStart);
       window.removeEventListener("touchend", handleHoldEnd);
+      window.removeEventListener("touchcancel", handleHoldEnd);
+      if (holdTimerRef.current) window.clearTimeout(holdTimerRef.current);
     };
-  }, [onOpenTerminal]);
+  }, [handleMotion, onOpenMatrixTakeover]);
 
   // Click & Tap Counter with Binary Ripple Visuals
   useEffect(() => {
     const handlePointerClick = (e: MouseEvent | TouchEvent) => {
-      // Determine click coordinates
       let clientX = 0;
       let clientY = 0;
       if ("clientX" in e) {
         clientX = e.clientX;
         clientY = e.clientY;
-      } else if (e.touches && e.touches[0]) {
+      } else if ("touches" in e && e.touches && e.touches[0]) {
         clientX = e.touches[0].clientX;
         clientY = e.touches[0].clientY;
       }
@@ -120,13 +216,14 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
 
       setClickCount(prev => {
         const next = prev + 1;
+        // Secret hint button unlocks after just 8 clicks (or 15 for cookie)
+        if (next === 8) {
+          sound.playSuccess();
+          setShowSecretButton(true);
+        }
         if (next === 15) {
           sound.playSuccess();
           setShowCookie(true);
-        }
-        if (next === 40) {
-          sound.playSuccess();
-          setShowSecretButton(true);
         }
         return next;
       });
@@ -164,6 +261,40 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
         ))}
       </div>
 
+      {/* Visual Hold Feedback (Glow ring when finger held) */}
+      <AnimatePresence>
+        {isHoldingVisual && holdCoord && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.5, opacity: 0 }}
+            style={{ left: holdCoord.x - 45, top: holdCoord.y - 45 }}
+            className="fixed pointer-events-none z-[9999] flex items-center justify-center"
+          >
+            <div className="w-[90px] h-[90px] rounded-full border-2 border-primary/80 animate-ping absolute" />
+            <div className="w-[70px] h-[70px] rounded-full border border-primary bg-primary/20 backdrop-blur-sm flex items-center justify-center text-[10px] font-mono text-primary font-bold shadow-[0_0_20px_hsl(var(--primary)/0.6)]">
+              SHAKE!
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* iOS Floating Permission Chip (if on iPhone/iPad and permission not yet granted) */}
+      <AnimatePresence>
+        {isIosDevice && permissionStatus !== "granted" && (
+          <motion.button
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 20, opacity: 0 }}
+            onClick={requestMotionPermission}
+            className="fixed bottom-4 left-4 z-[9995] bg-black/90 border border-primary text-primary px-3 py-1.5 rounded-full font-mono text-[11px] font-bold flex items-center gap-1.5 shadow-[0_0_20px_hsl(var(--primary)/0.5)] cursor-pointer"
+          >
+            <Smartphone className="w-3.5 h-3.5 text-primary animate-pulse" />
+            <span>ALLOW MOTION SENSORS</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       {/* 15 Clicks: Cookie Reward Modal */}
       <AnimatePresence>
         {showCookie && (
@@ -186,14 +317,14 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
               {!hasClaimed ? (
                 <button
                   onClick={claimCookie}
-                  className="w-full bg-primary text-background font-bold py-3 rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_25px_hsl(var(--primary)/0.5)]"
+                  className="w-full bg-primary text-background font-bold py-3 rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_25px_hsl(var(--primary)/0.5)] cursor-pointer"
                 >
                   CLAIM_REWARD.exe
                 </button>
               ) : (
                 <div className="text-primary font-bold text-xs flex items-center justify-center gap-2">
                   <Zap className="w-4 h-4 animate-pulse" />
-                  <span>LOCAL_STORAGE UPDATED (Keep tapping for secret #2)</span>
+                  <span>LOCAL_STORAGE UPDATED</span>
                 </div>
               )}
             </div>
@@ -201,7 +332,7 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
         )}
       </AnimatePresence>
 
-      {/* 40 Clicks: Secret Hint Trigger Button */}
+      {/* Secret Hint Button (Floats at bottom right) */}
       <AnimatePresence>
         {showSecretButton && (
           <motion.button
@@ -240,36 +371,93 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
               {hintPlatform === "none" ? (
                 <div className="space-y-4">
                   <p className="text-muted-foreground text-xs leading-relaxed">
-                    [!] Select your system interface to view terminal ignition sequence:
+                    [!] Select your interface to initialize the secret terminal construct:
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => setHintPlatform("pc")}
-                      className="p-3 border border-primary/30 rounded-lg hover:bg-primary/20 text-primary text-xs font-bold"
+                      className="p-3 border border-primary/30 rounded-lg hover:bg-primary/20 text-primary text-xs font-bold cursor-pointer"
                     >
                       Desktop / PC
                     </button>
                     <button
                       onClick={() => setHintPlatform("phone")}
-                      className="p-3 border border-primary/30 rounded-lg hover:bg-primary/20 text-primary text-xs font-bold"
+                      className="p-3 border border-primary/30 rounded-lg hover:bg-primary/20 text-primary text-xs font-bold cursor-pointer"
                     >
                       Mobile / Phone
                     </button>
                   </div>
                 </div>
+              ) : hintPlatform === "pc" ? (
+                <div className="space-y-4">
+                  <div className="bg-primary/10 border border-primary/30 p-4 rounded-xl text-center">
+                    <div className="text-base text-primary font-bold tracking-widest mb-1">
+                      ↑ ↑ ↓ ↓ ← → ← → B A
+                    </div>
+                    <p className="text-[10px] text-primary/70 uppercase">
+                      Type Konami sequence to unleash Full Matrix Construct
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      sound.playMatrixDrop();
+                      onOpenMatrixTakeover();
+                      setShowHint(false);
+                    }}
+                    className="w-full py-2.5 bg-primary text-background font-bold text-xs rounded-lg hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                  >
+                    TRIGGER CONSTRUCT DIRECTLY →
+                  </button>
+                  <button
+                    onClick={() => setHintPlatform("none")}
+                    className="text-[11px] text-primary/60 hover:text-primary block cursor-pointer"
+                  >
+                    {"<"} Back to selection
+                  </button>
+                </div>
               ) : (
                 <div className="space-y-4">
                   <div className="bg-primary/10 border border-primary/30 p-4 rounded-xl text-center">
                     <div className="text-base text-primary font-bold tracking-widest mb-1">
-                      {hintPlatform === "pc" ? "↑ ↑ ↓ ↓ ← → ← → B A" : "HOLD SCREEN + SHAKE"}
+                      HOLD SCREEN + SHAKE
                     </div>
-                    <p className="text-[10px] text-primary/70 uppercase">
-                      {hintPlatform === "pc" ? "Type Konami Code to unleash Full Matrix Construct" : "Long press display & shake to unleash Matrix Construct"}
+                    <p className="text-[10px] text-primary/70 uppercase mb-3">
+                      Press & hold finger on display, then shake your device
                     </p>
+
+                    {/* Sensor Permission Button / Status */}
+                    {isIosDevice && permissionStatus !== "granted" ? (
+                      <button
+                        onClick={requestMotionPermission}
+                        className="w-full py-2.5 bg-primary text-background text-xs font-bold rounded-lg shadow-[0_0_15px_hsl(var(--primary)/0.5)] flex items-center justify-center gap-1.5 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                      >
+                        <Zap className="w-3.5 h-3.5" />
+                        <span>ALLOW SENSORS (TAP HERE)</span>
+                      </button>
+                    ) : (
+                      <div className="text-[11px] text-primary font-bold flex items-center justify-center gap-1.5 py-1">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        <span>SENSORS ONLINE · READY TO SHAKE</span>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Direct Launch Override */}
+                  <button
+                    onClick={() => {
+                      sound.playMatrixDrop();
+                      onOpenMatrixTakeover();
+                      setShowHint(false);
+                    }}
+                    className="w-full py-2.5 border border-primary/50 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+                    <span>LAUNCH MATRIX OVERRIDE NOW</span>
+                  </button>
+
                   <button
                     onClick={() => setHintPlatform("none")}
-                    className="text-[11px] text-primary/60 hover:text-primary block"
+                    className="text-[11px] text-primary/60 hover:text-primary block cursor-pointer"
                   >
                     {"<"} Back to selection
                   </button>
@@ -278,7 +466,7 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
 
               <button
                 onClick={() => setShowHint(false)}
-                className="mt-6 w-full py-2 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg"
+                className="mt-6 w-full py-2 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg cursor-pointer"
               >
                 CLOSE MEMO
               </button>
