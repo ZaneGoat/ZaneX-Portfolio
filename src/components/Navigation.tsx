@@ -1,82 +1,132 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Terminal, Volume2, VolumeX, Zap, Menu, X } from "lucide-react";
 import { navLinks } from "@/data/portfolio";
-import { Menu, X } from "lucide-react";
+import { sound } from "@/lib/sound";
 
-export const Navigation = () => {
+interface NavigationProps {
+  onOpenTerminal: () => void;
+  onOpenBreach: () => void;
+}
+
+export const Navigation = ({ onOpenTerminal, onOpenBreach }: NavigationProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(sound.isMuted());
+
+  const handleToggleSound = () => {
+    const newState = sound.toggleMute();
+    setIsMuted(newState);
+  };
 
   return (
     <>
       <motion.nav
-        initial={{ y: -100 }}
+        initial={{ y: -80 }}
         animate={{ y: 0 }}
         className="fixed top-0 w-full z-50 backdrop-blur-xl bg-background/80 border-b border-primary/20"
       >
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center relative">
-          {/* Zane - Centered on mobile, left on desktop */}
-          <motion.div
-            className="text-2xl font-bold text-primary md:static absolute left-1/2 -translate-x-1/2 md:translate-x-0"
-            style={{ textShadow: "0 0 20px hsl(var(--primary) / 0.6)" }}
-            animate={{ textShadow: ["0 0 20px hsl(var(--primary) / 0.4)", "0 0 30px hsl(var(--primary) / 0.8)", "0 0 20px hsl(var(--primary) / 0.4)"] }}
-            transition={{ duration: 2, repeat: Infinity }}
+        <div className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
+          {/* Logo / Brand */}
+          <a
+            href="#overview"
+            onClick={() => sound.playClick()}
+            className="flex items-center gap-2 group font-mono"
           >
-            Zane
-          </motion.div>
+            <span className="text-xl md:text-2xl font-black text-primary tracking-tighter group-hover:scale-105 transition-transform">
+              ZANE<span className="text-secondary">X</span>
+            </span>
+            <span className="text-[10px] bg-primary/10 text-primary border border-primary/30 px-2 py-0.5 rounded-full font-bold">
+              v4.2
+            </span>
+          </a>
 
           {/* Desktop Links */}
-          <div className="hidden md:flex gap-8 ml-auto">
-            {navLinks.map((item, i) => (
-              <motion.a
-                key={item}
-                href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
-                className="text-foreground/80 hover:text-primary transition-colors relative group"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
+          <div className="hidden md:flex items-center gap-6 font-mono text-sm">
+            {navLinks.map(link => (
+              <a
+                key={link.name}
+                href={link.href}
+                onClick={() => sound.playClick()}
+                className="text-foreground/80 hover:text-primary transition-colors relative py-1"
               >
-                {item}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
-              </motion.a>
+                {link.name}
+              </a>
             ))}
+          </div>
+
+          {/* Controls: Audio Toggle, Terminal Trigger, Minigame Trigger */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Audio Toggle */}
+            <button
+              onClick={handleToggleSound}
+              className={`p-2 rounded-lg border font-mono text-xs flex items-center gap-1.5 transition-all ${
+                isMuted
+                  ? "border-primary/20 text-primary/40 hover:text-primary"
+                  : "border-primary bg-primary/10 text-primary shadow-[0_0_15px_hsl(var(--primary)/0.4)]"
+              }`}
+              title={isMuted ? "Enable Cyber Sound FX" : "Mute Sound FX"}
+            >
+              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-primary animate-pulse" />}
+              <span className="hidden sm:inline text-[11px] font-bold">{isMuted ? "MUTED" : "AUDIO ON"}</span>
+            </button>
+
+            {/* Quick Terminal Trigger */}
+            <button
+              onClick={() => {
+                sound.playBoot();
+                onOpenTerminal();
+              }}
+              className="p-2 bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 rounded-lg transition-all"
+              title="Launch ZaneOS Shell"
+            >
+              <Terminal className="w-4 h-4" />
+            </button>
+
+            {/* Quick Breach Trigger */}
+            <button
+              onClick={() => {
+                sound.playBoot();
+                onOpenBreach();
+              }}
+              className="p-2 bg-secondary/10 border border-secondary/30 text-secondary hover:bg-secondary/20 rounded-lg transition-all"
+              title="Launch Breach Protocol Minigame"
+            >
+              <Zap className="w-4 h-4" />
+            </button>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 text-primary border border-primary/30 rounded-lg"
+            >
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
       </motion.nav>
 
-      {/* Floating Mobile Menu Button - Bottom Left */}
-      <motion.button 
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="md:hidden fixed bottom-8 left-8 z-[60] bg-primary text-background p-4 rounded-full shadow-[0_0_30px_hsl(var(--primary)/0.5)] border-2 border-primary/20"
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
-      >
-        {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-      </motion.button>
-
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Drawer */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, x: -100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -100 }}
-            className="md:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-2xl flex items-center justify-start p-12"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-x-0 top-14 z-40 bg-[#050816]/95 border-b border-primary/20 backdrop-blur-2xl p-6 md:hidden font-mono"
           >
-            <div className="flex flex-col gap-8">
-              <div className="text-primary/20 text-xs font-mono uppercase tracking-[0.5em] mb-4">Navigation_Menu</div>
-              {navLinks.map((item, i) => (
-                <motion.a
-                  key={item}
-                  href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="text-4xl font-black text-primary hover:text-primary/70 transition-colors flex items-center gap-4 group"
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: i * 0.1 }}
-                  onClick={() => setIsMenuOpen(false)}
+            <div className="flex flex-col gap-4">
+              {navLinks.map(link => (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  onClick={() => {
+                    sound.playClick();
+                    setIsMenuOpen(false);
+                  }}
+                  className="text-primary text-base font-bold py-2 border-b border-primary/10"
                 >
-                  <span className="text-sm font-mono text-primary/30 group-hover:text-primary transition-colors">0{i+1}</span>
-                  {item}
-                </motion.a>
+                  {link.name}
+                </a>
               ))}
             </div>
           </motion.div>

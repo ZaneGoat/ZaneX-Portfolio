@@ -1,62 +1,129 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card3D } from "@/components/3DCard";
-import { projects } from "@/data/portfolio";
-import { Button } from "@/components/ui/button";
+import { projectsData, Project } from "@/data/portfolio";
+import { sound } from "@/lib/sound";
+import { Layers, CheckCircle2, Terminal } from "lucide-react";
 
 export const Projects = () => {
+  const [filter, setFilter] = useState<string>("ALL");
   const [clickCount, setClickCount] = useState(0);
   const [showJoke, setShowJoke] = useState(false);
 
+  const categories = ["ALL", "ERP", "AI", "WEB"];
+
+  const filteredProjects = filter === "ALL" 
+    ? projectsData 
+    : projectsData.filter(p => p.category === filter);
+
   const handleSeeMore = () => {
+    sound.playClick();
     const nextCount = clickCount + 1;
     setClickCount(nextCount);
-    
+
     if (nextCount >= 3) {
+      sound.playSuccess();
       setShowJoke(true);
       setTimeout(() => {
         setShowJoke(false);
         setClickCount(0);
-      }, 3000);
+      }, 3500);
     }
   };
 
   return (
-    <section id="projects" className="py-32 relative z-10">
-      <div className="container mx-auto px-6">
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-5xl font-bold text-center mb-16 text-primary"
-          style={{ textShadow: "0 0 30px hsl(var(--primary) / 0.4)" }}
-        >
-          Cool Stuff I've Done 
-        </motion.h2>
-        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto mb-16">
-          {projects.map((project, i) => (
+    <section id="projects" className="py-24 relative z-10">
+      <div className="container mx-auto px-4 md:px-6">
+        {/* Section Heading */}
+        <div className="text-center mb-12">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-4xl md:text-5xl font-black text-primary uppercase tracking-tight mb-4"
+            style={{ textShadow: "0 0 30px hsl(var(--primary) / 0.4)" }}
+          >
+            Engineering Showcase
+          </motion.h2>
+          <p className="text-muted-foreground font-mono text-sm max-w-2xl mx-auto">
+            Architected enterprise ERP ecosystems, private AI pipelines, and responsive web platforms.
+          </p>
+
+          {/* Category Filter Pills */}
+          <div className="flex justify-center gap-2 mt-8 flex-wrap font-mono">
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => {
+                  sound.playClick();
+                  setFilter(cat);
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  filter === cat
+                    ? "bg-primary text-background shadow-[0_0_20px_hsl(var(--primary)/0.5)] scale-105"
+                    : "bg-primary/10 text-primary/70 hover:text-primary border border-primary/20"
+                }`}
+              >
+                {cat === "ALL" ? "ALL SYSTEMS" : `${cat} ARCHITECTURES`}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Project Cards Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto mb-16">
+          {filteredProjects.map((project, i) => (
             <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              key={project.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ delay: i * 0.08 }}
             >
               <Card3D>
-                <div className="bg-card border border-primary/20 rounded-lg overflow-hidden h-full backdrop-blur-sm hover:border-primary/50 transition-all duration-300 hover:shadow-[0_0_40px_hsl(var(--primary)/0.4)]">
-                  <div className="p-6">
-                    <h3 className="text-2xl font-bold mb-3 text-primary">{project.title}</h3>
-                    <p className="text-muted-foreground mb-4">{project.description}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {project.tags.map((tag, j) => (
-                        <span
-                          key={j}
-                          className="px-3 py-1 bg-primary/10 text-primary border border-primary/30 rounded-full text-sm"
-                        >
-                          {tag}
-                        </span>
+                <div className="bg-[#050816]/90 border border-primary/20 rounded-2xl p-6 h-full backdrop-blur-xl flex flex-col justify-between hover:border-primary/60 transition-all shadow-[0_0_30px_hsl(var(--primary)/0.1)] group">
+                  <div>
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="px-2.5 py-1 bg-primary/15 text-primary border border-primary/30 rounded-md text-[11px] font-mono font-bold">
+                        {project.category}
+                      </span>
+                      <span className="text-[11px] font-mono text-primary/60">
+                        {project.status}
+                      </span>
+                    </div>
+
+                    <h3 className="text-2xl font-bold text-primary group-hover:text-primary transition-colors mb-1">
+                      {project.title}
+                    </h3>
+                    <p className="text-primary/70 text-xs font-mono font-semibold mb-3">
+                      {project.subtitle}
+                    </p>
+                    <p className="text-muted-foreground text-xs leading-relaxed mb-4">
+                      {project.description}
+                    </p>
+
+                    {/* Architecture Highlights */}
+                    <div className="space-y-1.5 mb-6 bg-primary/5 p-3 rounded-xl border border-primary/10">
+                      {project.highlights.slice(0, 2).map((h, j) => (
+                        <div key={j} className="flex items-start gap-2 text-[11px] text-muted-foreground font-mono">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                          <span>{h}</span>
+                        </div>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-1.5 pt-2 border-t border-primary/10">
+                    {project.tags.map(tag => (
+                      <span
+                        key={tag}
+                        className="px-2 py-0.5 bg-primary/10 text-primary/80 border border-primary/20 rounded text-[10px] font-mono"
+                      >
+                        {tag}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </Card3D>
@@ -64,32 +131,30 @@ export const Projects = () => {
           ))}
         </div>
 
+        {/* Easter Egg Base Button */}
         <div className="text-center relative">
-          <Button
-            variant="outline"
-            size="lg"
+          <button
             onClick={handleSeeMore}
-            className="border-primary/50 text-primary hover:bg-primary/10 px-10 py-6 text-xl"
+            className="border-2 border-primary/40 text-primary font-mono font-bold hover:bg-primary/10 px-8 py-4 rounded-xl text-sm transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_hsl(var(--primary)/0.2)]"
           >
             Click to see more...
-          </Button>
+          </button>
 
           <AnimatePresence>
             {showJoke && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.5, y: 20 }}
-                animate={{ 
-                  opacity: 1, 
-                  scale: 1, 
+                animate={{
+                  opacity: 1,
+                  scale: 1,
                   y: 0,
-                  // Centered on mobile viewport, but stays relative on desktop for better context
-                  top: window.innerWidth < 768 ? "50%" : "-80px",
+                  top: typeof window !== "undefined" && window.innerWidth < 768 ? "50%" : "-70px",
                   left: "50%",
                   x: "-50%",
-                  position: window.innerWidth < 768 ? "fixed" : "absolute"
+                  position: typeof window !== "undefined" && window.innerWidth < 768 ? "fixed" : "absolute"
                 }}
                 exit={{ opacity: 0, scale: 0.5 }}
-                className="bg-primary text-background px-8 py-4 rounded-full font-black shadow-[0_0_50px_hsl(var(--primary)/0.6)] z-[10002] whitespace-nowrap text-xl"
+                className="bg-primary text-background px-8 py-3.5 rounded-full font-mono font-black shadow-[0_0_50px_hsl(var(--primary)/0.8)] z-[10002] whitespace-nowrap text-base"
               >
                 Just kidding! 😂 There's no more.
               </motion.div>

@@ -2,20 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
     --background: 228 80% 5%;
-    --foreground: 150 100% 88%;
+    --foreground: 150 100% 90%;
 
     --card: 228 60% 8%;
-    --card-foreground: 150 100% 88%;
+    --card-foreground: 150 100% 90%;
 
     --popover: 228 70% 6%;
-    --popover-foreground: 150 100% 88%;
+    --popover-foreground: 150 100% 90%;
 
     --primary: 158 100% 53%;
     --primary-foreground: 228 80% 5%;
@@ -39,17 +35,27 @@ All colors MUST be HSL.
     --radius: 0.75rem;
 
     --cyber-glow: 158 100% 53%;
-    --cyber-blue: 200 100% 60%;
-    --cyber-purple: 280 80% 60%;
-    --cyber-dark: 228 80% 5%;
-    --cyber-card: 228 60% 8%;
-    
-    --gradient-cyber: linear-gradient(135deg, hsl(var(--cyber-glow) / 0.2), hsl(var(--cyber-blue) / 0.2));
-    --shadow-glow: 0 0 40px hsl(var(--cyber-glow) / 0.4);
-    --shadow-glow-lg: 0 20px 60px hsl(var(--cyber-glow) / 0.6);
-    --shadow-card: 0 10px 30px hsl(228 80% 2% / 0.5);
-    
-    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --matrix-color: #00ff9e;
+  }
+
+  /* Cyberpunk Amber Theme */
+  [data-theme="amber"] {
+    --primary: 42 100% 52%;
+    --primary-foreground: 228 80% 5%;
+    --ring: 42 100% 52%;
+    --cyber-glow: 42 100% 52%;
+    --foreground: 42 100% 90%;
+    --matrix-color: #ffb703;
+  }
+
+  /* Synthwave Neon Cyan Theme */
+  [data-theme="cyan"] {
+    --primary: 185 100% 50%;
+    --primary-foreground: 228 80% 5%;
+    --ring: 185 100% 50%;
+    --cyber-glow: 185 100% 50%;
+    --foreground: 185 100% 90%;
+    --matrix-color: #00f0ff;
   }
 }
 
@@ -58,7 +64,44 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  body {
+  html, body {
     @apply bg-background text-foreground;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
   }
+}
+
+/* Custom Cyberpunk Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(5, 8, 22, 0.9);
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.4);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.8);
+}
+
+/* Cyber CRT Scanline Overlay */
+.scanlines {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.03),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 0, 255, 0.03)
+  );
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
 }

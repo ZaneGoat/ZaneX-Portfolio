@@ -10,55 +10,83 @@ export const MatrixRain = () => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    let animationFrameId: number;
+    let lastTime = 0;
+    const fps = 25; // Optimized cinematic 25 FPS
+    const frameInterval = 1000 / fps;
 
-    const matrix = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
+    const matrix = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンZANEX";
     const fontSize = 14;
-    const columns = canvas.width / fontSize;
-    const drops: number[] = [];
+    let columns = Math.floor(window.innerWidth / fontSize);
+    let drops: number[] = [];
 
-    for (let i = 0; i < columns; i++) {
-      drops[i] = Math.random() * -100;
-    }
+    const initDrops = () => {
+      columns = Math.floor(canvas.width / fontSize);
+      drops = [];
+      for (let i = 0; i < columns; i++) {
+        drops[i] = Math.random() * -100;
+      }
+    };
 
-    const draw = () => {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initDrops();
+    };
+
+    resize();
+
+    const draw = (currentTime: number) => {
+      animationFrameId = requestAnimationFrame(draw);
+
+      const elapsed = currentTime - lastTime;
+      if (elapsed < frameInterval) return;
+      lastTime = currentTime - (elapsed % frameInterval);
+
+      // Trailing fade
+      ctx.fillStyle = "rgba(5, 8, 22, 0.08)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = "#ffffff";
+      // Fetch dynamic theme color
+      const computedColor = getComputedStyle(document.documentElement).getPropertyValue("--matrix-color").trim() || "#00ff9e";
+      
       ctx.font = `${fontSize}px monospace`;
 
       for (let i = 0; i < drops.length; i++) {
+        // Random lead character is bright white for glowing tip effect
         const text = matrix[Math.floor(Math.random() * matrix.length)];
+        
+        if (Math.random() > 0.85) {
+          ctx.fillStyle = "#ffffff";
+        } else {
+          ctx.fillStyle = computedColor;
+        }
+
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.98) {
           drops[i] = 0;
         }
         drops[i]++;
       }
     };
 
-    const interval = setInterval(draw, 50);
+    animationFrameId = requestAnimationFrame(draw);
 
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", resize);
+    window.addEventListener("orientationchange", resize);
 
     return () => {
-      clearInterval(interval);
-      window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("orientationchange", resize);
     };
   }, []);
 
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none opacity-30 z-0"
+      className="fixed inset-0 pointer-events-none opacity-25 z-0"
     />
   );
 };
