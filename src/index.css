@@ -105,3 +105,71 @@
   background-size: 100% 4px, 6px 100%;
   pointer-events: none;
 }
+
+/* ---------- Presentation utilities ---------- */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Offset anchor jumps so the fixed navbar doesn't cover section titles */
+section[id] {
+  scroll-margin-top: 72px;
+}
+
+/* Shared HUD card look (no backdrop-filter: cards are ~opaque, blur was pure cost) */
+.hud-card {
+  background: rgba(5, 8, 22, 0.92);
+  border: 1px solid hsl(var(--primary) / 0.25);
+  border-radius: 1rem;
+  box-shadow: 0 0 30px hsl(var(--primary) / 0.08);
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+.hud-card:hover {
+  border-color: hsl(var(--primary) / 0.6);
+}
+
+.glow-text {
+  text-shadow: 0 0 28px hsl(var(--primary) / 0.35);
+}
+
+/* Skip layout/paint for below-the-fold sections until they approach the viewport */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
+/* Lightweight CSS reveal (replaces per-element JS animation observers) */
+.reveal {
+  animation: reveal-up 0.6s ease-out both;
+}
+@keyframes reveal-up {
+  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* CSS-only floating particles (compositor-only: transform + opacity) */
+.particle {
+  position: absolute;
+  border-radius: 9999px;
+  will-change: transform, opacity;
+  animation-name: particle-float;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes particle-float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.3; }
+  50%      { transform: translate3d(6px, -30px, 0) scale(1.4); opacity: 0.8; }
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* Respect users who ask the OS for less motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

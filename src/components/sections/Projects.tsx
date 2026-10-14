@@ -32,42 +32,36 @@ export const Projects = () => {
   };
 
   return (
-    <section id="projects" className="py-24 relative z-10">
+    <section id="projects" className="py-24 relative z-10 cv-auto">
       <div className="container mx-auto px-4 md:px-6">
-        {/* Section Heading */}
-        <div className="text-center mb-12">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-black text-primary uppercase tracking-tight mb-4"
-            style={{ textShadow: "0 0 30px hsl(var(--primary) / 0.4)" }}
-          >
-            Engineering Showcase
-          </motion.h2>
-          <p className="text-muted-foreground font-mono text-sm max-w-2xl mx-auto">
-            Real repositories covering enterprise ERPs, Wi-Fi CSI sensing radars, Dark Web OSINT scrapers, and EC hardware tuning.
-          </p>
+        <SectionHeader
+          index="01"
+          kicker="Repositories"
+          title="Engineering Showcase"
+          subtitle="Enterprise ERPs, Wi-Fi CSI radar, dark-web OSINT and EC hardware tuning, pulled from github.com/ZaneGoat."
+        />
 
-          {/* Category Filter Pills */}
-          <div className="flex justify-center gap-2 mt-8 flex-wrap font-mono">
-            {categories.map(cat => (
+        {/* Category Filter Pills */}
+        <div className="max-w-7xl mx-auto mb-10 flex gap-2 overflow-x-auto no-scrollbar font-mono">
+          {categories.map(cat => {
+            const count = cat === "ALL" ? projectsData.length : projectsData.filter(p => p.category.toUpperCase() === cat).length;
+            return (
               <button
                 key={cat}
                 onClick={() => {
                   sound.playClick();
                   setFilter(cat);
                 }}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                className={`shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-colors ${
                   filter === cat
-                    ? "bg-primary text-background shadow-[0_0_20px_hsl(var(--primary)/0.5)] scale-105"
+                    ? "bg-primary text-background"
                     : "bg-primary/10 text-primary/70 hover:text-primary border border-primary/20"
                 }`}
               >
-                {cat === "ALL" ? "ALL REPOSITORIES" : `${cat}`}
+                {cat} <span className="opacity-60">({count})</span>
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
         {/* Project Cards Grid */}

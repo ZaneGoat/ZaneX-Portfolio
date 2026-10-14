@@ -1,32 +1,43 @@
-import { motion } from "framer-motion";
+import { useMemo } from "react";
 
+/**
+ * CSS-only ambient particles.
+ * Previously 20 framer-motion nodes with blur() filters + box-shadows, re-randomized on every render.
+ * Now: positions are memoized once, animation runs on the compositor (transform/opacity only),
+ * and particles are skipped entirely on small screens.
+ */
 export const FloatingParticles = () => {
-  const particles = Array.from({ length: 20 });
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 14 }, () => {
+        const hue = Math.random() > 0.5 ? 158 : 200;
+        const size = 6 + Math.random() * 6;
+        return {
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          size,
+          background: `radial-gradient(circle, hsl(${hue} 100% 60%) 0%, transparent 70%)`,
+          duration: `${6 + Math.random() * 5}s`,
+          delay: `${Math.random() * 3}s`,
+        };
+      }),
+    []
+  );
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {particles.map((_, i) => (
-        <motion.div
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden hidden md:block" aria-hidden="true">
+      {particles.map((p, i) => (
+        <span
           key={i}
-          className="absolute w-2 h-2 rounded-full"
+          className="particle"
           style={{
-            background: `hsl(${Math.random() > 0.5 ? "158" : "200"}, 100%, ${50 + Math.random() * 20}%)`,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            filter: "blur(1px)",
-            boxShadow: "0 0 10px currentColor",
-          }}
-          animate={{
-            y: [0, -30, 0],
-            x: [0, Math.random() * 20 - 10, 0],
-            opacity: [0.3, 0.8, 0.3],
-            scale: [1, 1.5, 1],
-          }}
-          transition={{
-            duration: 5 + Math.random() * 5,
-            repeat: Infinity,
-            delay: Math.random() * 3,
-            ease: "easeInOut",
+            left: p.left,
+            top: p.top,
+            width: p.size,
+            height: p.size,
+            background: p.background,
+            animationDuration: p.duration,
+            animationDelay: p.delay,
           }}
         />
       ))}

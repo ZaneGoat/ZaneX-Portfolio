@@ -1,103 +1,101 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { MatrixRain } from "@/components/MatrixRain";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import { EasterEggs } from "@/components/EasterEggs";
 import { Navigation } from "@/components/Navigation";
 import { BentoGrid } from "@/components/BentoGrid";
-import { Skills } from "@/components/sections/Skills";
 import { Projects } from "@/components/sections/Projects";
+import { Skills } from "@/components/sections/Skills";
 import { Philosophy } from "@/components/sections/Philosophy";
 import { Games } from "@/components/sections/Games";
 import { Contact } from "@/components/sections/Contact";
-import { TerminalOverlay } from "@/components/TerminalOverlay";
-import { BreachProtocol } from "@/components/BreachProtocol";
-import { MatrixTakeover } from "@/components/MatrixTakeover";
+
+// Heavy overlays are split into their own chunks and only fetched the first time they're opened.
+const TerminalOverlay = lazy(() => import("@/components/TerminalOverlay").then(m => ({ default: m.TerminalOverlay })));
+const BreachProtocol = lazy(() => import("@/components/BreachProtocol").then(m => ({ default: m.BreachProtocol })));
+const MatrixTakeover = lazy(() => import("@/components/MatrixTakeover").then(m => ({ default: m.MatrixTakeover })));
+
+type Overlay = "terminal" | "breach" | "matrix";
 
 const Index = () => {
-  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
-  const [isBreachOpen, setIsBreachOpen] = useState(false);
-  const [isMatrixTakeoverOpen, setIsMatrixTakeoverOpen] = useState(false);
+  const [open, setOpen] = useState<Overlay | null>(null);
+  // Once an overlay has been opened, keep it mounted so its exit animation and state survive.
+  const [loaded, setLoaded] = useState<Record<Overlay, boolean>>({ terminal: false, breach: false, matrix: false });
+
+  const show = useCallback((o: Overlay) => {
+    setLoaded(prev => (prev[o] ? prev : { ...prev, [o]: true }));
+    setOpen(o);
+  }, []);
+  const close = useCallback(() => setOpen(null), []);
+  const openTerminal = useCallback(() => show("terminal"), [show]);
+  const openBreach = useCallback(() => show("breach"), [show]);
+  const openMatrix = useCallback(() => show("matrix"), [show]);
 
   useEffect(() => {
-    // Restore saved theme on mount
     const savedTheme = localStorage.getItem("zanex_theme");
     if (savedTheme === "amber" || savedTheme === "cyan") {
       document.documentElement.setAttribute("data-theme", savedTheme);
     }
   }, []);
 
+  // ` (backtick) toggles the terminal from anywhere, like a game console.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "`") return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      e.preventDefault();
+      setOpen(cur => (cur === "terminal" ? null : cur));
+      if (open !== "terminal") openTerminal();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, openTerminal]);
+
+  const matrixOpen = open === "matrix";
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-background text-foreground font-sans selection:bg-primary selection:text-background">
-      {/* Background FX Layers (Paused during Fullscreen Takeover) */}
-      {!isMatrixTakeoverOpen && <MatrixRain />}
-      {!isMatrixTakeoverOpen && <FloatingParticles />}
+      {/* Background FX — paused while the fullscreen construct owns the GPU */}
+      {!matrixOpen && <MatrixRain />}
+      {!matrixOpen && <FloatingParticles />}
       <div className="scanlines fixed inset-0 pointer-events-none z-10 opacity-30" />
 
-      {/* Global Interactive Easter Eggs */}
-      <EasterEggs 
-        onOpenTerminal={() => setIsTerminalOpen(true)} 
-        onOpenMatrixTakeover={() => setIsMatrixTakeoverOpen(true)}
-      />
+      <EasterEggs onOpenTerminal={openTerminal} onOpenMatrixTakeover={openMatrix} />
+      <Navigation onOpenTerminal={openTerminal} onOpenBreach={openBreach} />
 
-      {/* Navigation */}
-      <Navigation
-        onOpenTerminal={() => setIsTerminalOpen(true)}
-        onOpenBreach={() => setIsBreachOpen(true)}
-      />
-
-      {/* Main Content Sections */}
       <main className="relative z-10 pt-16">
-        {/* Bento Grid Command Hub */}
-        <BentoGrid
-          onOpenTerminal={() => setIsTerminalOpen(true)}
-          onOpenBreach={() => setIsBreachOpen(true)}
-        />
-
-        {/* Featured Projects Grid */}
+        <BentoGrid onOpenTerminal={openTerminal} onOpenBreach={openBreach} />
         <Projects />
-
-        {/* Categorized Skills Matrix */}
         <Skills />
-
-        {/* Cyber Arena & Minigames */}
-        <Games onOpenBreach={() => setIsBreachOpen(true)} />
-
-        {/* Philosophy */}
         <Philosophy />
-
-        {/* Contact Links */}
+        <Games onOpenBreach={openBreach} />
         <Contact />
       </main>
 
-      {/* Interactive Overlays */}
-      <TerminalOverlay
-        isOpen={isTerminalOpen}
-        onClose={() => setIsTerminalOpen(false)}
-        onOpenBreach={() => setIsBreachOpen(true)}
-        onOpenMatrixTakeover={() => setIsMatrixTakeoverOpen(true)}
-      />
+      <Suspense fallback={null}>
+        {loaded.terminal && (
+          <TerminalOverlay
+            isOpen={open === "terminal"}
+            onClose={close}
+            onOpenBreach={openBreach}
+            onOpenMatrixTakeover={openMatrix}
+          />
+        )}
+        {loaded.breach && <BreachProtocol isOpen={open === "breach"} onClose={close} />}
+        {loaded.matrix && <MatrixTakeover isOpen={matrixOpen} onClose={close} />}
+      </Suspense>
 
-      <BreachProtocol
-        isOpen={isBreachOpen}
-        onClose={() => setIsBreachOpen(false)}
-      />
-
-      <MatrixTakeover
-        isOpen={isMatrixTakeoverOpen}
-        onClose={() => setIsMatrixTakeoverOpen(false)}
-      />
-
-      {/* High-Tech Footer */}
-      <footer className="py-12 border-t border-primary/20 relative z-10 backdrop-blur-md bg-black/40 font-mono text-xs">
-        <div className="container mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-muted-foreground">
+      <footer className="py-10 border-t border-primary/20 relative z-10 bg-black/60 font-mono text-xs">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-muted-foreground">
           <div>
-            <p className="text-primary font-bold">ZANEX PORTFOLIO // ROOT CLEARANCE LEVEL 99</p>
-            <p>&copy; {new Date().getFullYear()} Aziz Maaizate (Zane Goat). Engineered for high performance.</p>
+            <p className="text-primary font-bold">ZANEX // ROOT CLEARANCE LEVEL 99</p>
+            <p>&copy; {new Date().getFullYear()} Aziz Maaizate (Zane Goat)</p>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-primary/70">ALL SYSTEMS DEPLOYED & MONITORED</span>
-          </div>
+          <p className="text-primary/60">
+            Try <kbd className="px-1.5 py-0.5 border border-primary/40 rounded text-primary">`</kbd> for the shell ·
+            {" "}↑↑↓↓←→←→BA for something else
+          </p>
         </div>
       </footer>
     </div>

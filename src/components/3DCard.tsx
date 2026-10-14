@@ -1,37 +1,43 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { ReactNode, useRef } from "react";
+import { ReactNode, useRef, useState } from "react";
 
 interface Card3DProps {
   children: ReactNode;
   className?: string;
 }
 
+const supportsTilt = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
+  !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 export const Card3D = ({ children, className = "" }: Card3DProps) => {
   const ref = useRef<HTMLDivElement>(null);
+  const rectRef = useRef<DOMRect | null>(null);
+  const [enabled] = useState(supportsTilt);
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
+  const mouseXSpring = useSpring(x, { stiffness: 200, damping: 20 });
+  const mouseYSpring = useSpring(y, { stiffness: 200, damping: 20 });
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["6deg", "-6deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-6deg", "6deg"]);
 
-  const mouseXSpring = useSpring(x);
-  const mouseYSpring = useSpring(y);
+  // Touch devices / reduced motion: plain wrapper, zero spring work.
+  if (!enabled) {
+    return <div className={`relative h-full ${className}`}>{children}</div>;
+  }
 
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["7.5deg", "-7.5deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7.5deg", "7.5deg"]);
+  // Cache the rect on enter instead of forcing layout on every mousemove.
+  const handleMouseEnter = () => {
+    rectRef.current = ref.current?.getBoundingClientRect() ?? null;
+  };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
-
-    const rect = ref.current.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
-
-    x.set(xPct);
-    y.set(yPct);
+    const rect = rectRef.current;
+    if (!rect) return;
+    x.set((e.clientX - rect.left) / rect.width - 0.5);
+    y.set((e.clientY - rect.top) / rect.height - 0.5);
   };
 
   const handleMouseLeave = () => {
@@ -42,16 +48,13 @@ export const Card3D = ({ children, className = "" }: Card3DProps) => {
   return (
     <motion.div
       ref={ref}
+      onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      style={{
-        rotateX,
-        rotateY,
-        transformStyle: "preserve-3d",
-      }}
-      className={`relative ${className}`}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+      className={`relative h-full ${className}`}
     >
-      <div style={{ transform: "translateZ(50px)", transformStyle: "preserve-3d" }}>
+      <div className="h-full" style={{ transform: "translateZ(30px)", transformStyle: "preserve-3d" }}>
         {children}
       </div>
     </motion.div>

@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { memo, useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { 
-  Terminal, Shield, Cpu, Database, Server, ExternalLink, 
-  Layers, Zap, Clock, Activity, Download, ChevronRight, CheckCircle2, Play
+import {
+  Terminal, Cpu, Database, ExternalLink, Zap, Clock, MapPin, Monitor, Play, Github, Keyboard
 } from "lucide-react";
 import { systemSpecs, projectsData, skillsData } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
@@ -12,207 +11,176 @@ interface BentoGridProps {
   onOpenBreach: () => void;
 }
 
-export const BentoGrid = ({ onOpenTerminal, onOpenBreach }: BentoGridProps) => {
-  const [time, setTime] = useState("");
-  const [activeProjectTab, setActiveProjectTab] = useState(0);
-
+/** Isolated so the 1s tick re-renders only this text node, not the whole grid. */
+const LiveClock = memo(() => {
+  const [time, setTime] = useState(() =>
+    new Date().toLocaleTimeString("en-GB", { timeZone: "Africa/Casablanca", hour12: false })
+  );
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setTime(now.toLocaleTimeString("en-US", { hour12: false }));
-    };
-    updateTime();
-    const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
+    const id = setInterval(() => {
+      if (document.hidden) return;
+      setTime(new Date().toLocaleTimeString("en-GB", { timeZone: "Africa/Casablanca", hour12: false }));
+    }, 1000);
+    return () => clearInterval(id);
   }, []);
+  return <span className="tabular-nums">{time}</span>;
+});
+LiveClock.displayName = "LiveClock";
+
+const stats = [
+  { value: `${projectsData.length}+`, label: "Shipped repos" },
+  { value: `${skillsData.reduce((n, c) => n + c.skills.length, 0)}`, label: "Core skills" },
+  { value: `${new Set(projectsData.map(p => p.category)).size}`, label: "Domains" },
+];
+
+const fadeUp = (delay: number) => ({
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.45, delay },
+});
+
+export const BentoGrid = ({ onOpenTerminal, onOpenBreach }: BentoGridProps) => {
+  const [activeTab, setActiveTab] = useState(0);
+  const flagships = projectsData.slice(0, 4);
+  const active = flagships[activeTab] ?? flagships[0];
 
   return (
-    <section id="overview" className="py-24 relative z-10 px-4 md:px-8 max-w-7xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <section id="overview" className="relative z-10 px-4 md:px-8 pt-10 pb-20 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
 
-        {/* 1. Main Telemetry & Bio Card (Spans 2 cols on tablet, 2 cols on desktop) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="md:col-span-2 lg:col-span-2 bg-[#050816]/90 border border-primary/30 rounded-2xl p-6 md:p-8 backdrop-blur-xl relative overflow-hidden group shadow-[0_0_40px_hsl(var(--primary)/0.15)] hover:border-primary/60 transition-all duration-300"
-        >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-          
-          {/* Header Badges */}
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-            <div className="flex items-center gap-2 bg-primary/10 border border-primary/30 px-3 py-1 rounded-full text-xs font-mono text-primary">
-              <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
-              <span>{systemSpecs.status}</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs font-mono text-primary/70">
-              <Clock className="w-3.5 h-3.5 text-primary" />
-              <span>LOCAL TIME: {time || "00:00:00"}</span>
-            </div>
-          </div>
+        {/* 1 — Identity (hero) */}
+        <motion.div {...fadeUp(0)} className="hud-card md:col-span-2 lg:row-span-2 p-7 md:p-10 relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
-          <h1 className="text-3xl md:text-5xl font-black text-primary tracking-tight mb-2 uppercase">
-            {systemSpecs.realName}
-          </h1>
-          <p className="text-primary/70 font-mono text-sm md:text-base font-semibold mb-4">
-            aka <span className="text-primary underline decoration-primary/40 underline-offset-4">{systemSpecs.handle}</span> • {systemSpecs.role}
-          </p>
-          <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-8">
-            {systemSpecs.bio}
-          </p>
-
-          <div className="flex flex-wrap gap-4 pt-2">
-            <button
-              onClick={() => {
-                sound.playBoot();
-                onOpenTerminal();
-              }}
-              className="flex items-center gap-2 bg-primary text-background font-mono font-bold px-5 py-3 rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_25px_hsl(var(--primary)/0.4)]"
-            >
-              <Terminal className="w-4 h-4" />
-              <span>LAUNCH ZANE_OS</span>
-            </button>
-            <a
-              href="https://github.com/ZaneGoat"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => sound.playClick()}
-              className="flex items-center gap-2 bg-primary/10 border border-primary/40 text-primary font-mono font-bold px-5 py-3 rounded-xl hover:bg-primary/20 transition-all"
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span>GITHUB PROFILE</span>
-            </a>
-          </div>
-        </motion.div>
-
-        {/* 2. System Architecture & Workstation Telemetry */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.1 }}
-          className="bg-[#050816]/90 border border-primary/30 rounded-2xl p-6 backdrop-blur-xl relative overflow-hidden flex flex-col justify-between hover:border-primary/60 transition-all shadow-[0_0_30px_hsl(var(--primary)/0.1)]"
-        >
           <div>
-            <div className="flex items-center gap-2 text-primary font-mono text-xs font-bold uppercase tracking-widest mb-4 border-b border-primary/20 pb-2">
-              <Activity className="w-4 h-4" />
-              <span>WORKSTATION SPECS</span>
+            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 px-3 py-1 rounded-full text-xs font-mono text-primary mb-8">
+              <span className="relative flex w-2 h-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 animate-ping" />
+                <span className="relative inline-flex rounded-full w-2 h-2 bg-primary" />
+              </span>
+              {systemSpecs.status}
             </div>
-            <div className="space-y-3 font-mono text-xs">
-              <div>
-                <span className="text-primary/50 block">OS PLATFORM:</span>
-                <span className="text-primary font-bold">{systemSpecs.os}</span>
-              </div>
-              <div>
-                <span className="text-primary/50 block">SHELL AUTOMATION:</span>
-                <span className="text-primary font-bold">{systemSpecs.shell}</span>
-              </div>
-              <div>
-                <span className="text-primary/50 block">SYSTEM AVAILABILITY:</span>
-                <span className="text-primary font-bold">{systemSpecs.uptime}</span>
-              </div>
-            </div>
-          </div>
 
-          <div className="mt-6 pt-4 border-t border-primary/20 flex items-center justify-between">
-            <span className="text-xs font-mono text-primary/60">KERNEL: AUDITED</span>
-            <span className="px-2 py-0.5 bg-primary/20 text-primary rounded text-[10px] font-mono font-bold">READY</span>
-          </div>
-        </motion.div>
-
-        {/* 3. Minigame Quick-Launcher */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.15 }}
-          className="bg-gradient-to-br from-[#050816]/95 to-[#150a21]/90 border border-secondary/40 rounded-2xl p-6 backdrop-blur-xl relative overflow-hidden flex flex-col justify-between hover:border-secondary transition-all shadow-[0_0_30px_hsl(var(--secondary)/0.15)]"
-        >
-          <div>
-            <div className="flex items-center gap-2 text-secondary font-mono text-xs font-bold uppercase tracking-widest mb-4 border-b border-secondary/20 pb-2">
-              <Zap className="w-4 h-4 text-secondary" />
-              <span>CYBER ARENA</span>
-            </div>
-            <h3 className="text-2xl font-black text-secondary uppercase tracking-tight mb-2">
-              BREACH PROTOCOL
-            </h3>
-            <p className="text-muted-foreground text-xs leading-relaxed mb-4">
-              Test your memory and cyber infiltration speed in a simulated 2077 hex puzzle.
+            <p className="font-mono text-sm text-primary/60 mb-2">&gt; whoami</p>
+            <h1 className="text-5xl md:text-7xl font-black text-primary tracking-tight leading-[0.95] uppercase glow-text">
+              {systemSpecs.realName.split(" ")[0]}
+              <br />
+              <span className="text-foreground/90">{systemSpecs.realName.split(" ").slice(1).join(" ")}</span>
+            </h1>
+            <p className="mt-5 font-mono text-sm md:text-base text-primary/80">
+              aka <span className="text-primary font-bold">{systemSpecs.handle}</span> — {systemSpecs.role}
+            </p>
+            <p className="mt-4 text-muted-foreground text-sm md:text-base leading-relaxed max-w-xl">
+              {systemSpecs.bio}
             </p>
           </div>
 
+          <div>
+            {/* Stats strip */}
+            <div className="grid grid-cols-3 gap-3 my-8 max-w-md">
+              {stats.map(s => (
+                <div key={s.label} className="border-l-2 border-primary/40 pl-3">
+                  <div className="text-2xl md:text-3xl font-black text-primary font-mono">{s.value}</div>
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-mono">{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => { sound.playBoot(); onOpenTerminal(); }}
+                className="flex items-center gap-2 bg-primary text-background font-mono font-bold px-5 py-3 rounded-xl hover:scale-105 active:scale-95 transition-transform shadow-[0_0_25px_hsl(var(--primary)/0.4)]"
+              >
+                <Terminal className="w-4 h-4" />
+                LAUNCH ZANE_OS
+              </button>
+              <a
+                href="#projects"
+                onClick={() => sound.playClick()}
+                className="flex items-center gap-2 border border-primary/40 text-primary font-mono font-bold px-5 py-3 rounded-xl hover:bg-primary/10 transition-colors"
+              >
+                VIEW PROJECTS
+              </a>
+              <a
+                href="https://github.com/ZaneGoat"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => sound.playClick()}
+                className="flex items-center gap-2 text-primary/80 hover:text-primary font-mono font-bold px-3 py-3 transition-colors"
+              >
+                <Github className="w-4 h-4" />
+                GitHub
+              </a>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* 2 — Live status strip */}
+        <motion.div {...fadeUp(0.08)} className="hud-card md:col-span-2 p-6 grid grid-cols-3 gap-4 font-mono">
+          <div>
+            <div className="flex items-center gap-1.5 text-[11px] text-primary/60 uppercase mb-1"><Clock className="w-3.5 h-3.5" />Local time</div>
+            <div className="text-lg md:text-xl font-bold text-primary"><LiveClock /></div>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 text-[11px] text-primary/60 uppercase mb-1"><MapPin className="w-3.5 h-3.5" />Base</div>
+            <div className="text-sm md:text-base font-bold text-primary">{systemSpecs.location}</div>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 text-[11px] text-primary/60 uppercase mb-1"><Monitor className="w-3.5 h-3.5" />Rig</div>
+            <div className="text-sm md:text-base font-bold text-primary">Kali / MSI GF65</div>
+          </div>
+        </motion.div>
+
+        {/* 3 — Terminal peek */}
+        <motion.button
+          {...fadeUp(0.14)}
+          onClick={() => { sound.playBoot(); onOpenTerminal(); }}
+          className="hud-card p-6 text-left font-mono group"
+        >
+          <div className="flex items-center justify-between text-xs text-primary/60 mb-4">
+            <span className="flex items-center gap-1.5 font-bold uppercase tracking-widest"><Terminal className="w-4 h-4" />Shell</span>
+            <span className="flex items-center gap-1"><Keyboard className="w-3.5 h-3.5" />press <kbd className="px-1.5 py-0.5 border border-primary/40 rounded text-primary">`</kbd></span>
+          </div>
+          <div className="text-xs space-y-1 text-primary/80">
+            <p><span className="text-primary">zane@kali</span>:~$ csi --scan</p>
+            <p className="text-muted-foreground">Doppler +3.8Hz · motion detected</p>
+            <p><span className="text-primary">zane@kali</span>:~$ <span className="inline-block w-2 h-3.5 bg-primary align-middle animate-pulse" /></p>
+          </div>
+          <p className="mt-4 text-[11px] text-primary/50 group-hover:text-primary transition-colors">Click to open ZaneOS →</p>
+        </motion.button>
+
+        {/* 4 — Breach Protocol */}
+        <motion.div {...fadeUp(0.2)} className="hud-card p-6 flex flex-col justify-between" style={{ borderColor: "hsl(var(--secondary) / 0.35)" }}>
+          <div>
+            <div className="flex items-center gap-1.5 text-secondary font-mono text-xs font-bold uppercase tracking-widest mb-3">
+              <Zap className="w-4 h-4" /> Cyber Arena
+            </div>
+            <h3 className="text-xl font-black text-secondary uppercase mb-1">Breach Protocol</h3>
+            <p className="text-muted-foreground text-xs leading-relaxed">Hex-matrix intrusion puzzle. 35 seconds on the clock.</p>
+          </div>
           <button
-            onClick={() => {
-              sound.playBoot();
-              onOpenBreach();
-            }}
-            className="w-full flex items-center justify-center gap-2 bg-secondary text-background font-mono font-bold py-3 rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_hsl(var(--secondary)/0.4)]"
+            onClick={() => { sound.playBoot(); onOpenBreach(); }}
+            className="mt-4 w-full flex items-center justify-center gap-2 bg-secondary text-background font-mono font-bold py-2.5 rounded-xl hover:scale-[1.03] active:scale-95 transition-transform"
           >
-            <Play className="w-4 h-4 fill-current" />
-            <span>START BREACH</span>
+            <Play className="w-4 h-4 fill-current" /> START
           </button>
         </motion.div>
 
-        {/* 4. AI & Local Agent Pipelines Showcase (Spans 2 cols) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-          className="md:col-span-2 bg-[#050816]/90 border border-primary/30 rounded-2xl p-6 md:p-8 backdrop-blur-xl hover:border-primary/60 transition-all shadow-[0_0_30px_hsl(var(--primary)/0.1)]"
-        >
-          <div className="flex items-center gap-2 text-primary font-mono text-xs font-bold uppercase tracking-widest mb-4 border-b border-primary/20 pb-2">
-            <Cpu className="w-4 h-4" />
-            <span>AI AGENT & LOCAL INFERENCE HUB</span>
-          </div>
-          <h3 className="text-2xl font-black text-primary uppercase mb-2">
-            Autonomous Local Pipelines
-          </h3>
-          <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-            Engineering private, latency-free developer workflows combining local models (DeepSeek CLI & Ollama) with Google Gemini API for automated documentation, refactoring, and file synthesis.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
-            <div className="bg-primary/5 border border-primary/20 p-3 rounded-xl">
-              <span className="text-primary font-bold block mb-1">DeepSeek CLI</span>
-              <span className="text-muted-foreground text-[11px]">Local code audits & bash automation</span>
-            </div>
-            <div className="bg-primary/5 border border-primary/20 p-3 rounded-xl">
-              <span className="text-primary font-bold block mb-1">Ollama Engine</span>
-              <span className="text-muted-foreground text-[11px]">Private offline inference agents</span>
-            </div>
-            <div className="bg-primary/5 border border-primary/20 p-3 rounded-xl">
-              <span className="text-primary font-bold block mb-1">Gemini Pro API</span>
-              <span className="text-muted-foreground text-[11px]">High-context structured payloads</span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* 5. Flagship Architectures Preview (Spans 2 cols) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.25 }}
-          className="md:col-span-2 bg-[#050816]/90 border border-primary/30 rounded-2xl p-6 md:p-8 backdrop-blur-xl hover:border-primary/60 transition-all shadow-[0_0_30px_hsl(var(--primary)/0.1)]"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-primary/20 pb-3 mb-4">
+        {/* 5 — Flagship architectures */}
+        <motion.div {...fadeUp(0.26)} className="hud-card md:col-span-2 lg:col-span-3 p-6 md:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/15 pb-4 mb-5">
             <div className="flex items-center gap-2 text-primary font-mono text-xs font-bold uppercase tracking-widest">
-              <Database className="w-4 h-4" />
-              <span>FLAGSHIP ARCHITECTURES</span>
+              <Database className="w-4 h-4" /> Flagship architectures
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {projectsData.slice(0, 4).map((p, idx) => (
+            <div className="flex flex-wrap gap-1.5" role="tablist">
+              {flagships.map((p, idx) => (
                 <button
                   key={p.id}
-                  onClick={() => {
-                    sound.playClick();
-                    setActiveProjectTab(idx);
-                  }}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all ${
-                    activeProjectTab === idx 
-                      ? "bg-primary text-background shadow-[0_0_15px_hsl(var(--primary)/0.4)]" 
-                      : "bg-primary/10 text-primary/70 hover:text-primary"
+                  role="tab"
+                  aria-selected={activeTab === idx}
+                  onClick={() => { sound.playClick(); setActiveTab(idx); }}
+                  className={`px-3 py-1 rounded-lg text-[11px] font-mono font-bold transition-colors ${
+                    activeTab === idx ? "bg-primary text-background" : "bg-primary/10 text-primary/70 hover:text-primary"
                   }`}
                 >
                   {p.title.split(" ")[0]}
@@ -221,43 +189,60 @@ export const BentoGrid = ({ onOpenTerminal, onOpenBreach }: BentoGridProps) => {
             </div>
           </div>
 
-          {/* Active Flagship Details */}
-          {(() => {
-            const p = projectsData[activeProjectTab] || projectsData[0];
-            return (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-xl font-bold text-primary">{p.title}</h4>
-                    <span className="px-2 py-0.5 bg-primary/20 text-primary rounded-full text-[10px] font-mono font-bold">
-                      [{p.category}]
-                    </span>
-                  </div>
-                  {p.github && (
-                    <a
-                      href={p.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => sound.playClick()}
-                      className="text-xs font-mono font-bold text-primary hover:underline flex items-center gap-1"
-                    >
-                      <span>REPO</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                </div>
-                <p className="text-primary/70 text-xs font-mono mb-2">{p.subtitle}</p>
-                <p className="text-muted-foreground text-xs leading-relaxed mb-4">{p.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {p.tags.map(t => (
-                    <span key={t} className="px-2.5 py-1 bg-primary/10 border border-primary/20 text-primary text-[11px] font-mono rounded-md">
-                      {t}
-                    </span>
+          <div className="grid md:grid-cols-5 gap-6">
+            <div className="md:col-span-3">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-2xl font-bold text-primary">{active.title}</h3>
+                <span className="px-2 py-0.5 bg-primary/15 text-primary rounded-full text-[10px] font-mono font-bold">{active.category}</span>
+              </div>
+              <p className="text-primary/70 text-xs font-mono mb-3">{active.subtitle}</p>
+              <p className="text-muted-foreground text-sm leading-relaxed">{active.description}</p>
+            </div>
+            <div className="md:col-span-2 flex flex-col justify-between gap-4">
+              <ul className="space-y-1.5 text-xs font-mono text-muted-foreground">
+                {active.highlights.slice(0, 3).map(h => (
+                  <li key={h} className="flex gap-2"><span className="text-primary">▸</span>{h}</li>
+                ))}
+              </ul>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-wrap gap-1.5">
+                  {active.tags.slice(0, 3).map(t => (
+                    <span key={t} className="px-2 py-0.5 bg-primary/10 border border-primary/20 text-primary text-[10px] font-mono rounded">{t}</span>
                   ))}
                 </div>
+                {active.github && (
+                  <a
+                    href={active.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => sound.playClick()}
+                    className="shrink-0 text-xs font-mono font-bold text-primary hover:underline flex items-center gap-1"
+                  >
+                    REPO <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
               </div>
-            );
-          })()}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* 6 — AI hub */}
+        <motion.div {...fadeUp(0.32)} className="hud-card md:col-span-2 lg:col-span-1 p-6 font-mono">
+          <div className="flex items-center gap-1.5 text-primary text-xs font-bold uppercase tracking-widest mb-4">
+            <Cpu className="w-4 h-4" /> AI stack
+          </div>
+          <ul className="space-y-3 text-xs">
+            {[
+              ["DeepSeek CLI", "Local code audits"],
+              ["Ollama", "Offline inference agents"],
+              ["Gemini API", "High-context pipelines"],
+            ].map(([name, desc]) => (
+              <li key={name} className="border-l-2 border-primary/40 pl-3">
+                <span className="block text-primary font-bold">{name}</span>
+                <span className="text-muted-foreground text-[11px]">{desc}</span>
+              </li>
+            ))}
+          </ul>
         </motion.div>
 
       </div>
