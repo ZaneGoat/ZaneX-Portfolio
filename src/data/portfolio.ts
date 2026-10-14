@@ -1,12 +1,12 @@
 import { 
   Shield, Code, Lock, Terminal, Mail, Github, Globe, FileText, 
-  Database, Cpu, Server, Layers, Wrench, Sparkles, Binary, CheckCircle2
+  Database, Cpu, Server, Layers, Wrench, Sparkles, Binary, CheckCircle2, Radio, Gamepad2, Wifi
 } from "lucide-react";
 
 export interface Project {
   id: string;
   title: string;
-  category: "ERP" | "AI" | "Security" | "Web";
+  category: "ERP" | "AI" | "Security" | "Systems" | "Web";
   subtitle: string;
   description: string;
   highlights: string[];
@@ -26,13 +26,13 @@ export interface SkillCategory {
 export const systemSpecs = {
   handle: "Zane Goat",
   realName: "Aziz Maaizate",
-  role: "Full-Stack ERP Architect & AI Specialist",
+  role: "Full-Stack ERP Architect, AI Specialist & Systems Engineer",
   location: "Morocco (GMT+1)",
   status: "Online / Ready for Deployments",
   os: "Kali Linux / Dual-Boot MSI GF65 Thin",
   shell: "zsh & bash automated workflows",
   uptime: "99.98% System Stability",
-  bio: "Engineering enterprise-grade desktop & web ERP systems, automating complex pipelines with local LLMs (DeepSeek CLI, Ollama) & Google Gemini API, and analyzing systems from a security-first perspective."
+  bio: "Engineering enterprise-grade desktop & web ERP systems, developing hardware EC control tools, Wi-Fi CSI sensing radars, and AI-powered OSINT platforms."
 };
 
 export const skillsData: SkillCategory[] = [
@@ -55,7 +55,7 @@ export const skillsData: SkillCategory[] = [
     skills: [
       { name: "Local LLMs (Ollama & DeepSeek)", level: 94, tag: "Private AI" },
       { name: "Google Gemini API Pipelines", level: 92, tag: "Model Integrations" },
-      { name: "Bash & WSL Automations", level: 90, tag: "CLI Scripting" },
+      { name: "Dark Web OSINT Scraping", level: 88, tag: "Recon & Tor" },
       { name: "Context Engineering & Tooling", level: 88, tag: "Agentic Systems" },
       { name: "Automated Docx/PDF Pipelines", level: 92, tag: "Report Engines" }
     ]
@@ -63,13 +63,13 @@ export const skillsData: SkillCategory[] = [
   {
     title: "Offensive Security & Systems",
     icon: Shield,
-    description: "Security-first development, system auditing, vulnerability research & hardware controls.",
+    description: "Low-level EC registers, Wi-Fi CSI Doppler radar, hardware telemetry & network auditing.",
     skills: [
+      { name: "Wi-Fi CSI Sensing & Radar", level: 90, tag: "RF Sensing" },
+      { name: "Embedded Controller (EC) I/O", level: 92, tag: "Hardware Tuning" },
       { name: "Kali Linux Environment", level: 92, tag: "OS & Tooling" },
       { name: "Network Auditing & Recon", level: 85, tag: "Pentest Fundamentals" },
-      { name: "Hardware & EC Telemetry", level: 88, tag: "Low-Level / ISW" },
-      { name: "Secure Authentication / JWT", level: 90, tag: "AppSec" },
-      { name: "Defensive Hardening & Firewalls", level: 86, tag: "SysAdmin" }
+      { name: "Gamepad & HID Drivers", level: 88, tag: "Device Input" }
     ]
   },
   {
@@ -87,11 +87,59 @@ export const skillsData: SkillCategory[] = [
 
 export const projectsData: Project[] = [
   {
+    id: "robin",
+    title: "Robin OSINT Suite",
+    category: "Security",
+    subtitle: "AI-Powered Dark Web Intelligence & Recon Tool",
+    description: "Autonomous threat intelligence and OSINT scraping suite operating over the Tor network. Crawls hidden onion services, parses PGP keys, extracts exposed artifacts, and synthesizes findings using local LLMs.",
+    highlights: [
+      "Automated multi-hop Tor proxy routing & hidden service crawler",
+      "LLM-powered threat summarization and entity extraction",
+      "Credential leak parsing and cross-referencing algorithms",
+      "CLI report export in Markdown, JSON, and encrypted bundles"
+    ],
+    tags: ["Python", "Tor Network", "AI / LLM", "OSINT", "Dark Web"],
+    status: "Active",
+    github: "https://github.com/ZaneGoat/robin"
+  },
+  {
+    id: "csi",
+    title: "CSI Wi-Fi Sensing Radar",
+    category: "Security",
+    subtitle: "Camera-Free Human Presence & Doppler Motion Recognition",
+    description: "Non-invasive physical motion recognition engine that extracts raw Channel State Information (CSI) from 802.11 Wi-Fi packets. Uses Doppler frequency shifts and subcarrier phase analysis to detect human movement through walls without optical cameras.",
+    highlights: [
+      "Subcarrier amplitude & phase sanitization pipeline",
+      "Doppler velocity profile calculation for gesture recognition",
+      "Privacy-preserving contactless presence verification",
+      "Real-time radar display and alert telemetry"
+    ],
+    tags: ["Python", "Wi-Fi CSI", "RF Sensing", "Signal Processing", "Radar"],
+    status: "Active",
+    github: "https://github.com/ZaneGoat/csi_project"
+  },
+  {
+    id: "zanemegacenter",
+    title: "Zane Mega Center",
+    category: "Systems",
+    subtitle: "Low-Level EC Hardware & Fan Curve Controller",
+    description: "Hardware telemetry and cooling management workstation built specifically for MSI GF65 laptops on Linux. Directly addresses Embedded Controller (EC) registers to override hardware fan speeds, monitor CPU/GPU thermal sensors, and bypass aggressive thermal throttling.",
+    highlights: [
+      "Direct EC register read/write operations (0x68-0x90 registers)",
+      "Dynamic custom fan curve algorithms based on CPU/GPU thermal delta",
+      "Modern CustomTkinter desktop interface with real-time gauges",
+      "Safe register readback validation preventing hardware stalls"
+    ],
+    tags: ["Python", "CustomTkinter", "Linux EC", "Hardware Tuning", "ISW"],
+    status: "Active",
+    github: "https://github.com/ZaneGoat/ZaneMegaCenter"
+  },
+  {
     id: "optigest",
     title: "OptiGest ERP",
     category: "ERP",
     subtitle: "Enterprise Optical Clinic & Stock Management System",
-    description: "Comprehensive desktop and web platform tailored for optometrists and optical retail centers. Manages client optical prescriptions, frames/lenses catalog with barcode support, billing engines, and one-click PDF/Docx medical reports.",
+    description: "Comprehensive desktop and web platform tailored for optometrists and optical retail centers. Manages client optical prescriptions, frames/lenses catalog with barcode support, billing engines, and automated Docx medical exports.",
     highlights: [
       "Custom relational database schema with complex ERD modeling",
       "Automated optical prescription calculation and invoice generation",
@@ -99,69 +147,75 @@ export const projectsData: Project[] = [
       "Zero-latency barcode scanning and stock alert telemetry"
     ],
     tags: ["Python", "CustomTkinter", "SQLite", "ERD Modeling", "Docx Exporter"],
-    status: "Production"
+    status: "Production",
+    github: "https://github.com/ZaneGoat/Gestion-optic"
+  },
+  {
+    id: "smart-appointments",
+    title: "Smart Appointment System",
+    category: "Web",
+    subtitle: "Automated Booking & Multi-Channel Reminder Platform",
+    description: "Comprehensive appointment reservation platform designed for medical clinics, consultancies, and service businesses. Features automated client notifications, conflict-free scheduling algorithms, and practitioner calendars.",
+    highlights: [
+      "Concurrency-safe slot reservation engine preventing overlapping bookings",
+      "Automated notification triggers via Email and Webhooks",
+      "Interactive multi-view calendar (Day, Week, Month) with quick reschedule",
+      "Admin dashboard with appointment attendance and cancellation metrics"
+    ],
+    tags: ["Python", "Flask", "SQLite", "Calendar Engine", "Notifications"],
+    status: "Production",
+    github: "https://github.com/ZaneGoat/smart-appointment-system"
   },
   {
     id: "ayaresto",
-    title: "AyaResto & Patisserie",
+    title: "AyaResto & Pizzeria POS",
     category: "ERP",
-    subtitle: "Real-Time Restaurant & Bakery POS Ecosystem",
-    description: "Modern POS and digital order system built for dining establishments and bakeries. Includes customer mobile QR menu, live kitchen display system (KDS), table booking engine, and daily financial reconciliation.",
+    subtitle: "Real-Time Restaurant & Pizzeria Management Platform",
+    description: "Modern POS and digital order system built for dining establishments. Includes live kitchen display system (KDS), table management, order queue matrix, and daily financial reconciliation.",
     highlights: [
       "Full-stack Flask + SQLAlchemy architecture with Glassmorphism UI",
       "Live order queuing and table allocation matrix",
       "Integrated daily cash flow analytics and inventory deduction",
       "Printable receipt generator with thermal POS printer support"
     ],
-    tags: ["Flask", "Python", "SQLAlchemy", "Jinja2", "Modern CSS"],
-    status: "Production"
+    tags: ["Python", "Flask", "SQLAlchemy", "Jinja2", "Modern CSS"],
+    status: "Production",
+    github: "https://github.com/ZaneGoat/Ousdi"
   },
   {
-    id: "zaneai",
-    title: "ZaneAI Automation Suite",
-    category: "AI",
-    subtitle: "Autonomous Local LLM & Pipeline Agent Hub",
-    description: "Modular AI orchestration suite bridging local models (Ollama, DeepSeek CLI) with the Google Gemini API. Automates code auditing, documentation synthesis, system telemetry monitoring, and file transformation.",
+    id: "highway-sys",
+    title: "Highway-Sys Flow Engine",
+    category: "Systems",
+    subtitle: "Toll Station Automation & Traffic Flow Management",
+    description: "High-throughput toll booth transit management system. Features vehicle classification telemetry, barrier gate controller logic, daily transit revenue ledgers, and traffic congestion analytics.",
     highlights: [
-      "Offline local inference with seamless fallback to cloud models",
-      "CLI tools for high-throughput batch prompt execution",
-      "Context-aware bash workflows integrated into Kali Linux",
-      "Multi-agent reasoning pipelines for software refactoring"
+      "Vehicle classification state machine (Light, Heavy, Emergency)",
+      "Automated toll ticket generation and barcode validation",
+      "Daily audit ledgers with shift supervisor reconciliation",
+      "Real-time lane throughput telemetry"
     ],
-    tags: ["Python", "Ollama", "DeepSeek CLI", "Gemini API", "Bash Automation"],
-    status: "Active"
+    tags: ["Python", "SQLite", "State Machine", "Hardware I/O", "Traffic"],
+    status: "Production",
+    github: "https://github.com/ZaneGoat/Highway-Sys"
   },
   {
-    id: "ipirnet",
-    title: "IPIRNET & ScolarX",
-    category: "ERP",
-    subtitle: "Institutional Academic ERP & Attendance Portal",
-    description: "Multi-role academic management system powering student enrollment, gradebook computation, attendance tracking ('Gestion-Absence'), and parent communications with strict RBAC permission matrices.",
+    id: "controllerspace",
+    title: "ControllerSpace Engine",
+    category: "Systems",
+    subtitle: "DualSense & Gamepad Custom Telemetry Suite",
+    description: "Low-latency gamepad remapping and calibration suite. Allows configuring deadzones, custom button bindings, haptic rumble feedback triggers, and virtual stick curves on Linux/Windows.",
     highlights: [
-      "Role-Based Access Control (Admin, Teachers, Students, Parents)",
-      "High-speed student attendance dashboard with exportable Excel ledgers",
-      "Automated grade weighting engine and report card generation",
-      "Enterprise SQL schema handling thousands of relational records"
+      "Direct raw HID input parsing with sub-millisecond polling",
+      "Interactive deadzone & stick curve visualizer",
+      "Custom vibration profiles and battery level telemetry",
+      "Zero-latency system tray background service"
     ],
-    tags: ["Django/Flask", "Python", "SQLite", "Excel Engine", "RBAC Security"],
-    status: "Production"
+    tags: ["Python", "PyQt/CustomTkinter", "HID API", "Gamepad Drivers"],
+    status: "Active",
+    github: "https://github.com/ZaneGoat/Controler-space"
   },
   {
-    id: "koraarena",
-    title: "KoraArena Platform",
-    category: "Web",
-    subtitle: "Stadium & Sports Facility Dynamic Booking Engine",
-    description: "End-to-end reservation platform connecting football players with private pitch facilities. Features real-time slot lock algorithms, manager analytics, and interactive venue scheduling.",
-    highlights: [
-      "Concurrency-safe slot reservation engine preventing double-bookings",
-      "Facility owner revenue dashboards with dynamic pricing rules",
-      "Responsive mobile-first interface designed for quick booking"
-    ],
-    tags: ["Flask", "Python", "SQLAlchemy", "JavaScript", "Responsive UI"],
-    status: "Active"
-  },
-  {
-    id: "pharmagest",
+    id: "pharmacie",
     title: "PharmaGest POS",
     category: "ERP",
     subtitle: "Pharmacy Inventory & Drug Expiry Protection",
@@ -172,7 +226,24 @@ export const projectsData: Project[] = [
       "Daily ledger tracking with profit-margin auditing"
     ],
     tags: ["Python", "SQL", "Custom POS UI", "Inventory Logic"],
-    status: "Production"
+    status: "Production",
+    github: "https://github.com/ZaneGoat/Pharmacie"
+  },
+  {
+    id: "school-hub",
+    title: "School Hub & ScolarX",
+    category: "Web",
+    subtitle: "TypeScript Academic Administration Dashboard",
+    description: "Modern institutional portal powering student enrollment, gradebook computation, attendance tracking, and parent communications with strict RBAC permission matrices.",
+    highlights: [
+      "TypeScript & React single-page administrative dashboard",
+      "Role-Based Access Control (Admin, Teachers, Students, Parents)",
+      "Automated grade weighting engine and report card generation",
+      "Excel/CSV export pipelines for governmental reporting"
+    ],
+    tags: ["TypeScript", "React", "TailwindCSS", "RBAC Security", "Dashboard"],
+    status: "Active",
+    github: "https://github.com/ZaneGoat/school-hub-dashboard"
   }
 ];
 
@@ -185,14 +256,24 @@ export const contactLinks = [
 export const terminalCommandsHelp = [
   { cmd: "help", desc: "List all available terminal commands" },
   { cmd: "neofetch", desc: "Display ZaneOS system telemetry and specs" },
+  { cmd: "whoami", desc: "Display operator identity & security clearance" },
+  { cmd: "projects", desc: "List all enterprise ERP, AI, Systems, and Security projects" },
+  { cmd: "cat [id]", desc: "Inspect architectural deep-dive of any project (e.g. cat robin, cat csi)" },
+  { cmd: "repo [id]", desc: "Open the GitHub repository for any project" },
+  { cmd: "robin", desc: "Simulate Robin AI Dark Web OSINT reconnaissance agent" },
+  { cmd: "csi", desc: "Simulate Wi-Fi CSI radar pulse & motion detection" },
+  { cmd: "hardware", desc: "Display MSI GF65 EC hardware fans & thermal telemetry" },
   { cmd: "skills", desc: "Inspect categorized technical proficiencies" },
-  { cmd: "projects", desc: "List enterprise ERP, AI, and Web projects" },
-  { cmd: "cat [project]", desc: "Inspect architectural deep-dive of a project" },
-  { cmd: "theme [emerald|amber|cyan]", desc: "Switch live Cyberpunk HUD color scheme" },
-  { cmd: "clear", desc: "Clear terminal buffer" },
+  { cmd: "theme [theme]", desc: "Switch HUD color scheme: emerald, amber, or cyan" },
+  { cmd: "matrix", desc: "Unleash full-screen Matrix Construct Takeover" },
   { cmd: "breach", desc: "Launch Cyberpunk Breach Protocol hacking minigame" },
-  { cmd: "matrix [speed]", desc: "Adjust matrix rain velocity" },
-  { cmd: "sudo", desc: "Request root access" },
+  { cmd: "fortune", desc: "Display a random hacker/dev quote" },
+  { cmd: "cowsay [msg]", desc: "Classic Linux cowsay ASCII art" },
+  { cmd: "ping [host]", desc: "Ping remote hosts with simulated latency" },
+  { cmd: "history", desc: "Show recent command history" },
+  { cmd: "time", desc: "Display current Morocco (GMT+1) local time" },
+  { cmd: "sudo", desc: "Request root elevation" },
+  { cmd: "clear", desc: "Clear terminal buffer" },
   { cmd: "exit", desc: "Close terminal session" }
 ];
 

@@ -3,18 +3,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card3D } from "@/components/3DCard";
 import { projectsData, Project } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
-import { Layers, CheckCircle2, Terminal } from "lucide-react";
+import { CheckCircle2, Github, ExternalLink } from "lucide-react";
 
 export const Projects = () => {
   const [filter, setFilter] = useState<string>("ALL");
   const [clickCount, setClickCount] = useState(0);
   const [showJoke, setShowJoke] = useState(false);
 
-  const categories = ["ALL", "ERP", "AI", "WEB"];
+  const categories = ["ALL", "ERP", "SECURITY", "SYSTEMS", "AI", "WEB"];
 
   const filteredProjects = filter === "ALL" 
     ? projectsData 
-    : projectsData.filter(p => p.category === filter);
+    : projectsData.filter(p => p.category.toUpperCase() === filter);
 
   const handleSeeMore = () => {
     sound.playClick();
@@ -46,7 +46,7 @@ export const Projects = () => {
             Engineering Showcase
           </motion.h2>
           <p className="text-muted-foreground font-mono text-sm max-w-2xl mx-auto">
-            Architected enterprise ERP ecosystems, private AI pipelines, and responsive web platforms.
+            Real repositories covering enterprise ERPs, Wi-Fi CSI sensing radars, Dark Web OSINT scrapers, and EC hardware tuning.
           </p>
 
           {/* Category Filter Pills */}
@@ -64,7 +64,7 @@ export const Projects = () => {
                     : "bg-primary/10 text-primary/70 hover:text-primary border border-primary/20"
                 }`}
               >
-                {cat === "ALL" ? "ALL SYSTEMS" : `${cat} ARCHITECTURES`}
+                {cat === "ALL" ? "ALL REPOSITORIES" : `${cat}`}
               </button>
             ))}
           </div>
@@ -78,7 +78,7 @@ export const Projects = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
+              transition={{ delay: i * 0.06 }}
             >
               <Card3D>
                 <div className="bg-[#050816]/90 border border-primary/20 rounded-2xl p-6 h-full backdrop-blur-xl flex flex-col justify-between hover:border-primary/60 transition-all shadow-[0_0_30px_hsl(var(--primary)/0.1)] group">
@@ -114,16 +114,34 @@ export const Projects = () => {
                     </div>
                   </div>
 
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1.5 pt-2 border-t border-primary/10">
-                    {project.tags.map(tag => (
-                      <span
-                        key={tag}
-                        className="px-2 py-0.5 bg-primary/10 text-primary/80 border border-primary/20 rounded text-[10px] font-mono"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                  {/* Footer: Tags & Direct GitHub Repo Link */}
+                  <div className="pt-3 border-t border-primary/10 flex flex-col gap-3">
+                    <div className="flex flex-wrap gap-1.5">
+                      {project.tags.map(tag => (
+                        <span
+                          key={tag}
+                          className="px-2 py-0.5 bg-primary/10 text-primary/80 border border-primary/20 rounded text-[10px] font-mono"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {project.github && (
+                      <div className="flex justify-end pt-1">
+                        <a
+                          href={project.github}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => sound.playClick()}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/15 hover:bg-primary/25 border border-primary/40 text-primary rounded-lg text-xs font-mono font-bold transition-all hover:scale-105 active:scale-95"
+                        >
+                          <Github className="w-3.5 h-3.5" />
+                          <span>VIEW CODE</span>
+                          <ExternalLink className="w-3 h-3 opacity-60" />
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
               </Card3D>

@@ -188,7 +188,7 @@ export const BentoGrid = ({ onOpenTerminal, onOpenBreach }: BentoGridProps) => {
           </div>
         </motion.div>
 
-        {/* 5. Enterprise ERP Systems Preview (Spans 2 cols) */}
+        {/* 5. Flagship Architectures Preview (Spans 2 cols) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -196,22 +196,22 @@ export const BentoGrid = ({ onOpenTerminal, onOpenBreach }: BentoGridProps) => {
           transition={{ delay: 0.25 }}
           className="md:col-span-2 bg-[#050816]/90 border border-primary/30 rounded-2xl p-6 md:p-8 backdrop-blur-xl hover:border-primary/60 transition-all shadow-[0_0_30px_hsl(var(--primary)/0.1)]"
         >
-          <div className="flex items-center justify-between gap-2 border-b border-primary/20 pb-3 mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-primary/20 pb-3 mb-4">
             <div className="flex items-center gap-2 text-primary font-mono text-xs font-bold uppercase tracking-widest">
               <Database className="w-4 h-4" />
-              <span>ENTERPRISE ERP SYSTEMS</span>
+              <span>FLAGSHIP ARCHITECTURES</span>
             </div>
-            <div className="flex gap-2">
-              {projectsData.slice(0, 3).map((p, idx) => (
+            <div className="flex flex-wrap gap-1.5">
+              {projectsData.slice(0, 4).map((p, idx) => (
                 <button
                   key={p.id}
                   onClick={() => {
                     sound.playClick();
                     setActiveProjectTab(idx);
                   }}
-                  className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all ${
                     activeProjectTab === idx 
-                      ? "bg-primary text-background" 
+                      ? "bg-primary text-background shadow-[0_0_15px_hsl(var(--primary)/0.4)]" 
                       : "bg-primary/10 text-primary/70 hover:text-primary"
                   }`}
                 >
@@ -221,16 +221,30 @@ export const BentoGrid = ({ onOpenTerminal, onOpenBreach }: BentoGridProps) => {
             </div>
           </div>
 
-          {/* Active ERP Details */}
+          {/* Active Flagship Details */}
           {(() => {
-            const p = projectsData[activeProjectTab];
+            const p = projectsData[activeProjectTab] || projectsData[0];
             return (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xl font-bold text-primary">{p.title}</h4>
-                  <span className="px-2 py-0.5 bg-primary/20 text-primary rounded-full text-[11px] font-mono font-semibold">
-                    {p.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-xl font-bold text-primary">{p.title}</h4>
+                    <span className="px-2 py-0.5 bg-primary/20 text-primary rounded-full text-[10px] font-mono font-bold">
+                      [{p.category}]
+                    </span>
+                  </div>
+                  {p.github && (
+                    <a
+                      href={p.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => sound.playClick()}
+                      className="text-xs font-mono font-bold text-primary hover:underline flex items-center gap-1"
+                    >
+                      <span>REPO</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
                 </div>
                 <p className="text-primary/70 text-xs font-mono mb-2">{p.subtitle}</p>
                 <p className="text-muted-foreground text-xs leading-relaxed mb-4">{p.description}</p>
