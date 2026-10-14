@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card3D } from "@/components/3DCard";
 import { projectsData, Project } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
+import { SectionHeader } from "@/components/SectionHeader";
 import { CheckCircle2, Github, ExternalLink } from "lucide-react";
 
 export const Projects = () => {
