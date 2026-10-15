@@ -33,6 +33,7 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
   const isHoldingRef = useRef(false);
   const lastHoldEndTimeRef = useRef(0);
   const holdTimerRef = useRef<number | null>(null);
+  const autoIgniteTimerRef = useRef<number | null>(null);
   const konamiIndexRef = useRef(0);
   const lastShakeTimeRef = useRef(0);
   const lastAccRef = useRef({ x: 0, y: 0, z: 0 });
@@ -139,7 +140,7 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
       }
     };
 
-    // Hold handlers
+    // Hold handlers with 2s Auto-Ignite fallback
     const handleHoldStart = (e: MouseEvent | TouchEvent) => {
       isHoldingRef.current = true;
       let x = window.innerWidth / 2;
@@ -158,15 +159,28 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
       holdTimerRef.current = window.setTimeout(() => {
         if (isHoldingRef.current) {
           setIsHoldingVisual(true);
-          if (navigator.vibrate) navigator.vibrate(40);
+          sound.haptic(35);
         }
       }, 350);
+
+      // Auto-ignite after 2s continuous hold (in case user cannot shake)
+      if (autoIgniteTimerRef.current) window.clearTimeout(autoIgniteTimerRef.current);
+      autoIgniteTimerRef.current = window.setTimeout(() => {
+        if (isHoldingRef.current) {
+          sound.playMatrixDrop();
+          sound.haptic([120, 60, 160]);
+          onOpenMatrixTakeover();
+          setIsHoldingVisual(false);
+          setHoldCoord(null);
+        }
+      }, 2000);
     };
 
     const handleHoldEnd = () => {
       isHoldingRef.current = false;
       lastHoldEndTimeRef.current = Date.now();
       if (holdTimerRef.current) window.clearTimeout(holdTimerRef.current);
+      if (autoIgniteTimerRef.current) window.clearTimeout(autoIgniteTimerRef.current);
       setIsHoldingVisual(false);
       setHoldCoord(null);
     };
@@ -187,6 +201,7 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
       window.removeEventListener("touchend", handleHoldEnd);
       window.removeEventListener("touchcancel", handleHoldEnd);
       if (holdTimerRef.current) window.clearTimeout(holdTimerRef.current);
+      if (autoIgniteTimerRef.current) window.clearTimeout(autoIgniteTimerRef.current);
     };
   }, [handleMotion, onOpenMatrixTakeover]);
 
@@ -261,19 +276,21 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
         ))}
       </div>
 
-      {/* Visual Hold Feedback (Glow ring when finger held) */}
+      {/* Visual Hold Feedback (Glow target lock when finger held) */}
       <AnimatePresence>
         {isHoldingVisual && holdCoord && (
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.5, opacity: 0 }}
-            style={{ left: holdCoord.x - 45, top: holdCoord.y - 45 }}
-            className="fixed pointer-events-none z-[9999] flex items-center justify-center"
+            style={{ left: holdCoord.x - 55, top: holdCoord.y - 55 }}
+            className="fixed pointer-events-none z-[9999] flex items-center justify-center font-mono"
           >
-            <div className="w-[90px] h-[90px] rounded-full border-2 border-primary/80 animate-ping absolute" />
-            <div className="w-[70px] h-[70px] rounded-full border border-primary bg-primary/20 backdrop-blur-sm flex items-center justify-center text-[10px] font-mono text-primary font-bold shadow-[0_0_20px_hsl(var(--primary)/0.6)]">
-              SHAKE!
+            <div className="w-[110px] h-[110px] rounded-full border-2 border-primary/60 animate-ping absolute" />
+            <div className="w-[90px] h-[90px] rounded-full border border-dashed border-primary animate-spin absolute opacity-70" />
+            <div className="w-[76px] h-[76px] rounded-full border border-primary bg-primary/25 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-[0_0_30px_hsl(var(--primary)/0.7)]">
+              <span className="text-[10px] font-black text-primary tracking-wider leading-none">CHARGED</span>
+              <span className="text-[8px] text-white/80 uppercase font-bold mt-0.5">SHAKE / 2S</span>
             </div>
           </motion.div>
         )}

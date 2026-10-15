@@ -3,6 +3,7 @@ import { MatrixRain } from "@/components/MatrixRain";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import { EasterEggs } from "@/components/EasterEggs";
 import { Navigation } from "@/components/Navigation";
+import { CyberdeckFAB } from "@/components/CyberdeckFAB";
 import { BentoGrid } from "@/components/BentoGrid";
 import { Projects } from "@/components/sections/Projects";
 import { Skills } from "@/components/sections/Skills";
@@ -63,6 +64,11 @@ const Index = () => {
 
       <EasterEggs onOpenTerminal={openTerminal} onOpenMatrixTakeover={openMatrix} />
       <Navigation onOpenTerminal={openTerminal} onOpenBreach={openBreach} />
+      <CyberdeckFAB
+        onOpenTerminal={openTerminal}
+        onOpenBreach={openBreach}
+        onOpenMatrixTakeover={openMatrix}
+      />
 
       <main className="relative z-10 pt-16">
         <BentoGrid onOpenTerminal={openTerminal} onOpenBreach={openBreach} />

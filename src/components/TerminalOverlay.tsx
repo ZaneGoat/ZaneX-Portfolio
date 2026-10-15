@@ -533,15 +533,22 @@ export const TerminalOverlay = ({ isOpen, onClose, onOpenBreach, onOpenMatrixTak
             </div>
 
             {/* Mobile / Touch Quick Chips */}
-            <div className="px-4 py-2 bg-primary/5 border-t border-primary/10 flex items-center gap-2 overflow-x-auto no-scrollbar">
-              <span className="text-[10px] text-primary/50 font-bold shrink-0">QUICK:</span>
+            <div className="px-3 md:px-4 py-2 bg-primary/5 border-t border-primary/20 flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
+              <span className="text-[9px] md:text-[10px] text-primary/60 font-bold tracking-wider shrink-0 mr-1 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                DECK:
+              </span>
               {quickChips.map(chip => (
                 <button
                   key={chip}
-                  onClick={() => handleCommand(chip)}
-                  className="px-2.5 py-1 bg-primary/10 hover:bg-primary/20 active:scale-95 text-primary rounded text-[11px] font-bold shrink-0 transition-all border border-primary/20"
+                  onClick={() => {
+                    sound.haptic(25);
+                    handleCommand(chip);
+                    setInput("");
+                  }}
+                  className="px-2.5 py-1 bg-primary/10 hover:bg-primary/25 active:bg-primary/35 active:scale-95 text-primary rounded-md text-[11px] font-bold shrink-0 transition-all border border-primary/30 shadow-[0_0_8px_hsl(var(--primary)/0.15)] flex items-center gap-1 cursor-pointer"
                 >
-                  {chip}
+                  <span>{chip}</span>
                 </button>
               ))}
             </div>

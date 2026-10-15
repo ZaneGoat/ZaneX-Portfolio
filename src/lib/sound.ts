@@ -41,8 +41,18 @@ class SoundManager {
     this.setMuted(!this.muted);
     if (!this.muted) {
       this.playBeep(880, 0.08);
+      this.haptic(40);
     }
     return this.muted;
+  }
+
+  // Tactile phone haptics (safe fallback if unsupported)
+  public haptic(pattern: number | number[] = 25) {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      try {
+        navigator.vibrate(pattern);
+      } catch {}
+    }
   }
 
   private cleanNode(osc: OscillatorNode, gain: GainNode) {
@@ -77,6 +87,7 @@ class SoundManager {
 
       osc.start();
       osc.stop(this.ctx.currentTime + 0.03);
+      this.haptic(12);
     } catch {}
   }
 
@@ -184,6 +195,7 @@ class SoundManager {
         osc.start(this.ctx!.currentTime + idx * 0.08);
         osc.stop(this.ctx!.currentTime + idx * 0.08 + 0.25);
       });
+      this.haptic([50, 40, 90]);
     } catch {}
   }
 
@@ -210,6 +222,7 @@ class SoundManager {
 
       osc.start();
       osc.stop(this.ctx.currentTime + 0.15);
+      this.haptic([100, 50, 100]);
     } catch {}
   }
 
@@ -236,6 +249,7 @@ class SoundManager {
 
       osc.start();
       osc.stop(this.ctx.currentTime + 0.6);
+      this.haptic([120, 60, 160]);
     } catch {}
   }
 
@@ -266,6 +280,7 @@ class SoundManager {
 
       osc.start();
       osc.stop(this.ctx.currentTime + 0.25);
+      this.haptic([40, 20, 70]);
     } catch {}
   }
 }

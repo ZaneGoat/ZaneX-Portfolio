@@ -49,6 +49,21 @@ export const MatrixRain = () => {
 
     resize();
 
+    // Gyroscope Tilt Physics (Smooth physical slanting on phone tilt)
+    let targetTilt = 0;
+    let currentTilt = 0;
+
+    const handleOrientation = (e: DeviceOrientationEvent) => {
+      if (typeof e.gamma === "number") {
+        // Clamp gamma (-25 to 25 degrees)
+        targetTilt = Math.max(-25, Math.min(25, e.gamma));
+      }
+    };
+
+    if (typeof window !== "undefined" && "DeviceOrientationEvent" in window) {
+      window.addEventListener("deviceorientation", handleOrientation, { passive: true });
+    }
+
     const draw = (currentTime: number) => {
       animationFrameId = requestAnimationFrame(draw);
 
@@ -59,11 +74,16 @@ export const MatrixRain = () => {
       if (elapsed < frameInterval) return;
       lastTime = currentTime - (elapsed % frameInterval);
 
+      // Smoothly interpolate current tilt
+      currentTilt += (targetTilt - currentTilt) * 0.08;
+
       // Hardware-accelerated trail fade
       ctx.fillStyle = "rgba(5, 8, 22, 0.08)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.font = `${fontSize}px monospace`;
+
+      const tiltRatio = currentTilt / 180;
 
       for (let i = 0; i < drops.length; i++) {
         const text = matrix[Math.floor(Math.random() * matrix.length)];
@@ -74,9 +94,11 @@ export const MatrixRain = () => {
           ctx.fillStyle = themeColor;
         }
 
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        const yPos = drops[i] * fontSize;
+        const xOffset = yPos * tiltRatio;
+        ctx.fillText(text, (i * fontSize) + xOffset, yPos);
 
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.98) {
+        if (yPos > canvas.height && Math.random() > 0.98) {
           drops[i] = 0;
         }
         drops[i]++;
@@ -93,6 +115,7 @@ export const MatrixRain = () => {
       observer.disconnect();
       window.removeEventListener("resize", resize);
       window.removeEventListener("orientationchange", resize);
+      window.removeEventListener("deviceorientation", handleOrientation);
     };
   }, []);
 

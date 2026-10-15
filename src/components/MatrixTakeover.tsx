@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Radio, X } from "lucide-react";
+import { Radio, X, Zap, Sparkles } from "lucide-react";
 import { sound } from "@/lib/sound";
 
 interface MatrixTakeoverProps {
@@ -75,10 +75,27 @@ export const MatrixTakeover = ({ isOpen, onClose }: MatrixTakeoverProps) => {
 
     window.addEventListener("resize", handleResize);
 
+    // Gyroscope Tilt Physics
+    let targetTilt = 0;
+    let currentTilt = 0;
+    const handleOrientation = (e: DeviceOrientationEvent) => {
+      if (typeof e.gamma === "number") {
+        targetTilt = Math.max(-25, Math.min(25, e.gamma));
+      }
+    };
+
+    if (typeof window !== "undefined" && "DeviceOrientationEvent" in window) {
+      window.addEventListener("deviceorientation", handleOrientation, { passive: true });
+    }
+
     const render = () => {
       // 1. Semi-transparent black background creates natural trails without overhead
       ctx.fillStyle = "rgba(5, 8, 22, 0.14)";
       ctx.fillRect(0, 0, width, height);
+
+      // Smoothly interpolate current tilt
+      currentTilt += (targetTilt - currentTilt) * 0.08;
+      const tiltRatio = currentTilt / 160;
 
       // 2. Draw Shockwave Ripples (Lightweight crisp vector circles)
       const ripples = ripplesRef.current;
@@ -101,7 +118,7 @@ export const MatrixTakeover = ({ isOpen, onClose }: MatrixTakeoverProps) => {
       }
       ctx.globalAlpha = 1;
 
-      // 3. Draw Matrix Rain with Forcefield Repulsion
+      // 3. Draw Matrix Rain with Forcefield Repulsion & Tilt
       ctx.font = `bold ${fontSize}px monospace`;
       const mouse = mousePosRef.current;
 
@@ -131,7 +148,8 @@ export const MatrixTakeover = ({ isOpen, onClose }: MatrixTakeoverProps) => {
           ctx.fillStyle = themeColor;
         }
 
-        ctx.fillText(char, renderX, renderY);
+        const tiltXOffset = renderY * tiltRatio;
+        ctx.fillText(char, renderX + tiltXOffset, renderY);
 
         if (drops[i] * fontSize > height && Math.random() > 0.975) {
           drops[i] = 0;
@@ -139,10 +157,10 @@ export const MatrixTakeover = ({ isOpen, onClose }: MatrixTakeoverProps) => {
         drops[i] += 1 * speedMultiplier;
       }
 
-      // 4. Draw Keystroke Bursts
+      // 4. Draw Keystroke & Slicing Bursts
       const bursts = burstsRef.current;
       if (bursts.length > 0) {
-        ctx.font = "bold 28px monospace";
+        ctx.font = "bold 26px monospace";
         for (let i = bursts.length - 1; i >= 0; i--) {
           const burst = bursts[i];
           if (burst.alpha <= 0.05) {
@@ -155,7 +173,7 @@ export const MatrixTakeover = ({ isOpen, onClose }: MatrixTakeoverProps) => {
           ctx.fillText(burst.char, burst.x, burst.y);
 
           burst.y += burst.vy;
-          burst.alpha *= 0.95;
+          burst.alpha *= 0.94;
         }
         ctx.globalAlpha = 1;
       }
@@ -168,16 +186,43 @@ export const MatrixTakeover = ({ isOpen, onClose }: MatrixTakeoverProps) => {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("deviceorientation", handleOrientation);
     };
   }, [isOpen, themeColor, speedMultiplier]);
 
-  // Mouse & Touch Tracking
+  // Helper to spawn slicing / keystroke rune bursts
+  const spawnRuneBurst = (x: number, y: number, char?: string) => {
+    if (burstsRef.current.length >= 14) {
+      burstsRef.current.shift();
+    }
+    const chars = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンZANEX";
+    const pickedChar = char || chars[Math.floor(Math.random() * chars.length)];
+    burstsRef.current.push({
+      x: x + (Math.random() * 24 - 12),
+      y: y + (Math.random() * 24 - 12),
+      char: pickedChar,
+      vy: 2 + Math.random() * 3,
+      alpha: 1
+    });
+  };
+
+  // Mouse & Touch Tracking with Blade Slicing on Touch Drag
+  const lastSliceTimeRef = useRef(0);
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     mousePosRef.current.x = e.clientX;
     mousePosRef.current.y = e.clientY;
+
+    if (e.pointerType === "touch" || e.buttons > 0) {
+      const now = Date.now();
+      if (now - lastSliceTimeRef.current > 65) {
+        lastSliceTimeRef.current = now;
+        spawnRuneBurst(e.clientX, e.clientY);
+        sound.haptic(15);
+      }
+    }
   };
 
-  // Trigger Shockwave with strict 200ms cooldown to protect CPU/GPU
+  // Trigger Shockwave with strict 180ms cooldown to protect CPU/GPU
   const triggerEmpShockwave = (x: number, y: number) => {
     const now = Date.now();
     if (now - lastShockwaveTime.current < 180) return;
@@ -198,9 +243,18 @@ export const MatrixTakeover = ({ isOpen, onClose }: MatrixTakeoverProps) => {
     });
   };
 
+  // Double-tap or tap anywhere for EMP shockwave
+  const lastTapTimeRef = useRef(0);
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    triggerEmpShockwave(e.clientX, e.clientY);
+    const now = Date.now();
+    if (now - lastTapTimeRef.current < 320) {
+      triggerEmpShockwave(e.clientX, e.clientY);
+      sound.haptic([40, 30, 90]);
+    } else {
+      triggerEmpShockwave(e.clientX, e.clientY);
+    }
+    lastTapTimeRef.current = now;
   };
 
   // Keystroke Magic Listener (Ignore repeats, throttle state updates)
@@ -237,11 +291,6 @@ export const MatrixTakeover = ({ isOpen, onClose }: MatrixTakeoverProps) => {
         });
       }
 
-      // Cap active bursts to max 10
-      if (burstsRef.current.length >= 10) {
-        burstsRef.current.shift();
-      }
-
       const spawnX = mousePosRef.current.x > 0 
         ? mousePosRef.current.x + (Math.random() * 40 - 20) 
         : Math.random() * window.innerWidth;
@@ -249,13 +298,7 @@ export const MatrixTakeover = ({ isOpen, onClose }: MatrixTakeoverProps) => {
         ? mousePosRef.current.y 
         : Math.random() * (window.innerHeight / 3);
 
-      burstsRef.current.push({
-        x: spawnX,
-        y: spawnY,
-        char: e.key.length === 1 ? e.key.toUpperCase() : "01",
-        vy: 2 + Math.random() * 3,
-        alpha: 1
-      });
+      spawnRuneBurst(spawnX, spawnY, e.key.length === 1 ? e.key.toUpperCase() : "01");
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -374,11 +417,49 @@ export const MatrixTakeover = ({ isOpen, onClose }: MatrixTakeoverProps) => {
             </div>
           </div>
 
-          {/* Bottom Floating Hint */}
-          <div className="absolute bottom-4 inset-x-0 flex justify-center pointer-events-none z-30 font-mono text-[11px] text-white/50 px-4 text-center">
-            <span className="bg-black/75 px-4 py-1.5 rounded-full border border-white/10 backdrop-blur-md">
-              TIP: Type any key to cast runes • Tap anywhere or press Space for EMP shockwave • Press [ESC] to exit
-            </span>
+          {/* Bottom Floating Cyber Controls & Mobile Action Bar */}
+          <div className="absolute bottom-4 inset-x-4 flex items-center justify-center gap-2 pointer-events-auto z-40 font-mono text-xs">
+            {/* Mobile EMP Pulse Trigger */}
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                const cx = window.innerWidth / 2;
+                const cy = window.innerHeight / 2;
+                triggerEmpShockwave(cx, cy);
+                sound.haptic([40, 20, 80]);
+              }}
+              className="px-3.5 py-2 rounded-xl bg-black/85 border border-primary/50 text-primary font-bold shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 backdrop-blur-md cursor-pointer"
+              style={{ borderColor: `${themeColor}80`, color: themeColor }}
+              title="Detonate EMP Shockwave"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span>EMP PULSE</span>
+            </button>
+
+            {/* Mobile Rune Burst Trigger */}
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                const cx = window.innerWidth / 2;
+                const cy = window.innerHeight / 3;
+                for (let b = 0; b < 5; b++) {
+                  spawnRuneBurst(cx + (Math.random() * 80 - 40), cy + (Math.random() * 80 - 40));
+                }
+                sound.playKeypress();
+                sound.haptic([25, 35]);
+              }}
+              className="px-3.5 py-2 rounded-xl bg-black/85 border border-primary/50 text-primary font-bold shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 backdrop-blur-md cursor-pointer"
+              style={{ borderColor: `${themeColor}80`, color: themeColor }}
+              title="Spawn Matrix Glyph Cascade"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>RUNE BURST</span>
+            </button>
+
+            {/* Hint Chip for desktop or tablet */}
+            <div className="hidden sm:flex bg-black/75 px-4 py-2 rounded-xl border border-white/10 text-[11px] text-white/60 backdrop-blur-md">
+              Drag finger to slice • Double-tap for EMP • Press [ESC] to exit
+            </div>
           </div>
         </motion.div>
       )}

@@ -83,6 +83,7 @@ export const BreachProtocol = ({ isOpen, onClose }: BreachProtocolProps) => {
     if (selectedCells.some(cell => cell.r === r && cell.c === c)) return;
 
     sound.playClick();
+    sound.haptic(25);
     const val = grid[r][c];
     const newBuffer = [...buffer, val];
     setBuffer(newBuffer);
@@ -103,10 +104,12 @@ export const BreachProtocol = ({ isOpen, onClose }: BreachProtocolProps) => {
     if (bufferStr.includes(targetStr)) {
       setIsWon(true);
       sound.playSuccess();
+      sound.haptic([50, 40, 80, 40, 140]);
     } else if (newBuffer.length >= 6) {
       // Buffer capacity exceeded without matching
       setIsFailed(true);
       sound.playError();
+      sound.haptic([120, 50, 120]);
     }
   };
 
@@ -172,7 +175,7 @@ export const BreachProtocol = ({ isOpen, onClose }: BreachProtocolProps) => {
             </div>
 
             {/* 5x5 Hex Matrix */}
-            <div className="grid grid-cols-5 gap-2 max-w-sm mx-auto mb-6">
+            <div className="grid grid-cols-5 gap-1.5 sm:gap-2 max-w-sm mx-auto mb-6">
               {grid.map((row, r) =>
                 row.map((val, c) => {
                   const isSelected = selectedCells.some(cell => cell.r === r && cell.c === c);
@@ -182,12 +185,12 @@ export const BreachProtocol = ({ isOpen, onClose }: BreachProtocolProps) => {
                       key={`${r}-${c}`}
                       onClick={() => handleCellClick(r, c)}
                       disabled={!isSelectable}
-                      className={`h-12 flex items-center justify-center font-bold text-sm rounded-lg transition-all ${
+                      className={`h-11 sm:h-12 flex items-center justify-center font-bold text-sm rounded-lg transition-all touch-manipulation select-none ${
                         isSelected
-                          ? "bg-secondary/20 text-secondary/30 border border-secondary/20 line-through"
+                          ? "bg-secondary/20 text-secondary/30 border border-secondary/20 line-through cursor-not-allowed"
                           : isSelectable
-                          ? "bg-secondary/20 border-2 border-secondary text-secondary hover:scale-105 active:scale-95 shadow-[0_0_15px_hsl(var(--secondary)/0.5)] animate-pulse"
-                          : "bg-black/40 border border-secondary/10 text-secondary/30"
+                          ? "bg-secondary/20 border-2 border-secondary text-secondary hover:scale-105 active:scale-95 shadow-[0_0_15px_hsl(var(--secondary)/0.5)] animate-pulse cursor-pointer"
+                          : "bg-black/40 border border-secondary/10 text-secondary/30 cursor-not-allowed"
                       }`}
                     >
                       {val}
