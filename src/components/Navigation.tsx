@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Volume2, VolumeX, Zap, Menu, X } from "lucide-react";
+import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert } from "lucide-react";
 import { navLinks } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
 
 interface NavigationProps {
   onOpenTerminal: () => void;
   onOpenBreach: () => void;
+  onOpenCtf?: () => void;
 }
 
-export const Navigation = ({ onOpenTerminal, onOpenBreach }: NavigationProps) => {
+export const Navigation = ({ onOpenTerminal, onOpenBreach, onOpenCtf }: NavigationProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
 
@@ -93,6 +94,21 @@ export const Navigation = ({ onOpenTerminal, onOpenBreach }: NavigationProps) =>
             >
               <Zap className="w-4 h-4" />
             </button>
+
+            {/* Quick CTF Bounty Trigger */}
+            {onOpenCtf && (
+              <button
+                onClick={() => {
+                  sound.playBoot();
+                  onOpenCtf();
+                }}
+                className="px-2.5 py-1.5 bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 rounded-lg transition-all font-mono text-xs font-bold flex items-center gap-1.5"
+                title="Open Hack My Portfolio CTF Bounty Board"
+              >
+                <ShieldAlert className="w-3.5 h-3.5 text-primary animate-pulse" />
+                <span className="hidden sm:inline">CTF</span>
+              </button>
+            )}
 
             {/* Mobile Menu Button */}
             <button

@@ -283,6 +283,33 @@ class SoundManager {
       this.haptic([40, 20, 70]);
     } catch {}
   }
+
+  // High-Precision Sonar / Radar Sweep Ping
+  public playRadarPing() {
+    if (this.muted) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(1760, this.ctx.currentTime); // A6
+      osc.frequency.exponentialRampToValueAtTime(1100, this.ctx.currentTime + 0.35);
+
+      gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.35);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      this.cleanNode(osc, gain);
+
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.35);
+      this.haptic(15);
+    } catch {}
+  }
 }
 
 export const sound = new SoundManager();

@@ -9,6 +9,10 @@ interface TerminalOverlayProps {
   onClose: () => void;
   onOpenBreach?: () => void;
   onOpenMatrixTakeover?: () => void;
+  onOpenCsi?: () => void;
+  onOpenCtf?: () => void;
+  onOpenThreatMap?: () => void;
+  onOpenMegaCenter?: () => void;
 }
 
 interface LogEntry {
@@ -25,7 +29,16 @@ const FORTUNES = [
   "\"Talk is cheap. Show me the code.\" – Linus Torvalds"
 ];
 
-export const TerminalOverlay = ({ isOpen, onClose, onOpenBreach, onOpenMatrixTakeover }: TerminalOverlayProps) => {
+export const TerminalOverlay = ({
+  isOpen,
+  onClose,
+  onOpenBreach,
+  onOpenMatrixTakeover,
+  onOpenCsi,
+  onOpenCtf,
+  onOpenThreatMap,
+  onOpenMegaCenter
+}: TerminalOverlayProps) => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
@@ -149,15 +162,33 @@ export const TerminalOverlay = ({ isOpen, onClose, onOpenBreach, onOpenMatrixTak
 
       case "csi":
       case "radar":
+        if (arg === "--gui" || arg === "gui" || cmd === "radar") {
+          onClose();
+          if (onOpenCsi) onOpenCsi();
+          return;
+        }
         sound.playBoot();
         newLogs.push({
           type: "output",
           content: (
             <div className="bg-primary/10 border border-primary/30 p-3.5 rounded-xl my-2 space-y-2 text-xs font-mono">
-              <p className="text-primary font-bold flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
-                [CSI_RADAR v1.4] WI-FI SUBCARRIER PHASE SENSING
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-primary font-bold flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                  [CSI_RADAR v1.4] WI-FI SUBCARRIER PHASE SENSING
+                </p>
+                {onOpenCsi && (
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onOpenCsi();
+                    }}
+                    className="px-2.5 py-1 bg-primary text-background font-bold text-[10px] rounded hover:scale-105 active:scale-95 transition-transform"
+                  >
+                    LAUNCH RADAR GUI
+                  </button>
+                )}
+              </div>
               <p className="text-muted-foreground text-[11px]">
                 Extracting raw 802.11n/ac Channel State Information on <code>wlan0mon</code>...
               </p>
@@ -167,9 +198,14 @@ export const TerminalOverlay = ({ isOpen, onClose, onOpenBreach, onOpenMatrixTak
                 <p>• Presence Target Confidence: 99.1% (Single Subject at 2.1m)</p>
                 <p>• Wall Penetration Attenuation: -4.2 dB [CLEAR SIGNAL]</p>
               </div>
-              <p className="text-[11px] text-primary/70">
-                Source Code: <a href="https://github.com/ZaneGoat/csi_project" target="_blank" rel="noopener noreferrer" className="underline font-bold text-primary">github.com/ZaneGoat/csi_project</a>
-              </p>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[11px] text-primary/70">
+                  Tip: run <code>csi --gui</code> to launch interactive oscilloscope CRT sweep
+                </span>
+                <a href="https://github.com/ZaneGoat/csi_project" target="_blank" rel="noopener noreferrer" className="underline font-bold text-primary text-[11px]">
+                  [GITHUB REPO]
+                </a>
+              </div>
             </div>
           )
         });
@@ -177,41 +213,120 @@ export const TerminalOverlay = ({ isOpen, onClose, onOpenBreach, onOpenMatrixTak
 
       case "robin":
       case "osint":
+        if (arg === "--map" || arg === "map") {
+          onClose();
+          if (onOpenThreatMap) onOpenThreatMap();
+          return;
+        }
+        if (arg === "--investigate" || arg === "investigate") {
+          sound.playSuccess();
+          newLogs.push({
+            type: "output",
+            content: (
+              <div className="bg-secondary/15 border-2 border-secondary/60 p-3.5 rounded-xl my-2 space-y-2 text-xs font-mono">
+                <div className="flex items-center gap-2 text-secondary font-bold">
+                  <span className="w-2 h-2 rounded-full bg-secondary animate-ping" />
+                  [ROBIN VAULT DECRYPTED] CLASSIFIED ONION EXPLOIT PAYLOAD
+                </div>
+                <p className="text-muted-foreground text-[11px]">
+                  Source: dread6x...onion / Robin Threat Vault artifact dump
+                </p>
+                <div className="p-2.5 bg-black/80 rounded border border-secondary/40 text-secondary">
+                  <span className="text-[10px] text-secondary/70 block uppercase font-bold">★ CTF FLAG #2 INTERCEPTED:</span>
+                  <code className="text-secondary font-black text-sm select-all">ZANEX&#123;DARK_ONION_EXTRACTOR_99&#125;</code>
+                </div>
+                <p className="text-[10px] text-secondary/70">
+                  Submit this flag in the CTF board via <code>ctf submit ZANEX&#123;...&#125;</code>
+                </p>
+              </div>
+            )
+          });
+          break;
+        }
         sound.playBoot();
         newLogs.push({
           type: "output",
           content: (
             <div className="bg-secondary/10 border border-secondary/30 p-3.5 rounded-xl my-2 space-y-2 text-xs font-mono">
-              <p className="text-secondary font-bold flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-secondary animate-ping" />
-                [ROBIN_OSINT v2.1] AI-POWERED DARK WEB RECON AGENT
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-secondary font-bold flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-secondary animate-ping" />
+                  [ROBIN_OSINT v2.1] AI DARK WEB RECON AGENT
+                </p>
+                <div className="flex gap-1.5">
+                  {onOpenThreatMap && (
+                    <button
+                      onClick={() => {
+                        onClose();
+                        onOpenThreatMap();
+                      }}
+                      className="px-2.5 py-1 bg-secondary text-background font-bold text-[10px] rounded hover:scale-105 active:scale-95 transition-transform"
+                    >
+                      THREAT MAP GUI
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleCommand("robin --investigate")}
+                    className="px-2 py-1 bg-secondary/20 border border-secondary/40 text-secondary font-bold text-[10px] rounded hover:bg-secondary/30 transition-colors"
+                  >
+                    INVESTIGATE
+                  </button>
+                </div>
+              </div>
               <div className="p-2 bg-black/60 rounded border border-secondary/20 text-secondary/90 text-[11px] space-y-0.5">
                 <p>• Tor SOCKS5 Proxy: 127.0.0.1:9050 [ACTIVE // 3-HOP RELAY]</p>
                 <p>• Onion Crawler: Multi-threaded async scraper initialized</p>
                 <p>• Threat Pipeline: PGP Key Extractor, Exposed Artifact Harvester</p>
                 <p>• AI Engine: Local Ollama / DeepSeek Threat Synthesis Core</p>
               </div>
-              <p className="text-[11px] text-secondary/70">
-                Source Code: <a href="https://github.com/ZaneGoat/robin" target="_blank" rel="noopener noreferrer" className="underline font-bold text-secondary">github.com/ZaneGoat/robin</a>
-              </p>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[11px] text-secondary/70">
+                  Tip: run <code>robin --map</code> or <code>robin --investigate</code>
+                </span>
+                <a href="https://github.com/ZaneGoat/robin" target="_blank" rel="noopener noreferrer" className="underline font-bold text-secondary text-[11px]">
+                  [GITHUB REPO]
+                </a>
+              </div>
             </div>
           )
         });
         break;
 
+      case "threatmap":
+        onClose();
+        if (onOpenThreatMap) onOpenThreatMap();
+        return;
+
       case "hardware":
       case "ec":
       case "megacenter":
+        if (arg === "--gui" || arg === "gui" || arg === "--live" || cmd === "megacenter") {
+          onClose();
+          if (onOpenMegaCenter) onOpenMegaCenter();
+          return;
+        }
         sound.playBoot();
         newLogs.push({
           type: "output",
           content: (
             <div className="bg-primary/10 border border-primary/30 p-3.5 rounded-xl my-2 space-y-2 text-xs font-mono">
-              <p className="text-primary font-bold flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
-                [ZANE_MEGA_CENTER] EMBEDDED CONTROLLER (EC) TELEMETRY
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-primary font-bold flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                  [ZANE_MEGA_CENTER] EMBEDDED CONTROLLER (EC) TELEMETRY
+                </p>
+                {onOpenMegaCenter && (
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onOpenMegaCenter();
+                    }}
+                    className="px-2.5 py-1 bg-primary text-background font-bold text-[10px] rounded hover:scale-105 active:scale-95 transition-transform"
+                  >
+                    LIVE EC STATION GUI
+                  </button>
+                )}
+              </div>
               <div className="p-2 bg-black/60 rounded border border-primary/20 text-primary/90 text-[11px] space-y-0.5">
                 <p>• Host Machine: MSI GF65 Thin (MS-16W1) [Dual-Boot Kali]</p>
                 <p>• CPU Temp: 52°C | Fan 1: 4200 RPM (Custom Curve)</p>
@@ -219,12 +334,90 @@ export const TerminalOverlay = ({ isOpen, onClose, onOpenBreach, onOpenMatrixTak
                 <p>• EC Port 0x68/0x6C: Direct Register I/O Verified [NO STALLS]</p>
                 <p>• Thermal Throttling: BYPASSED via Dynamic EC Governor</p>
               </div>
-              <p className="text-[11px] text-primary/70">
-                Source Code: <a href="https://github.com/ZaneGoat/ZaneMegaCenter" target="_blank" rel="noopener noreferrer" className="underline font-bold text-primary">github.com/ZaneGoat/ZaneMegaCenter</a>
-              </p>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[11px] text-primary/70">
+                  Tip: run <code>hardware --gui</code> to launch interactive fan tuner
+                </span>
+                <a href="https://github.com/ZaneGoat/ZaneMegaCenter" target="_blank" rel="noopener noreferrer" className="underline font-bold text-primary text-[11px]">
+                  [GITHUB REPO]
+                </a>
+              </div>
             </div>
           )
         });
+        break;
+
+      case "ctf":
+      case "bounty":
+        const flagCandidate = arg.startsWith("submit ") ? arg.replace("submit ", "").trim() : arg;
+        if (flagCandidate) {
+          const knownFlags: Record<string, string> = {
+            "zanex{dom_inspector_root_42}": "Flag 1: Subtle Inspector (+100 pts)",
+            "zanex{dark_onion_extractor_99}": "Flag 2: Robin's Leaked Vault (+250 pts)",
+            "zanex{hex_breach_buffer_master}": "Flag 3: ICE Breaker Protocol (+500 pts)"
+          };
+          const key = flagCandidate.toLowerCase();
+          if (knownFlags[key]) {
+            sound.playSuccess();
+            try {
+              const current = JSON.parse(localStorage.getItem("zanex_ctf_solved") || "[]");
+              const flagId = key.includes("dom") ? "flag1" : key.includes("onion") ? "flag2" : "flag3";
+              if (!current.includes(flagId)) {
+                localStorage.setItem("zanex_ctf_solved", JSON.stringify([...current, flagId]));
+              }
+            } catch {}
+            newLogs.push({
+              type: "output",
+              content: (
+                <div className="bg-emerald-500/15 border border-emerald-500/40 p-3 rounded-xl text-emerald-400 font-mono text-xs my-1 space-y-1">
+                  <p className="font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    [FLAG ACCEPTED // AUTHORIZATION GRANTED]
+                  </p>
+                  <p>{knownFlags[key]}</p>
+                  <p className="text-[10px] text-emerald-400/70">Type 'ctf' without arguments to view full bounty board.</p>
+                </div>
+              )
+            });
+          } else {
+            sound.playError();
+            newLogs.push({
+              type: "error",
+              content: `CTF Error: Flag '${flagCandidate}' is INVALID. Access denied.`
+            });
+          }
+        } else {
+          onClose();
+          if (onOpenCtf) onOpenCtf();
+          return;
+        }
+        break;
+
+      case "curl":
+        if (arg.includes("robots") || arg.includes("robot")) {
+          sound.playBoot();
+          newLogs.push({
+            type: "output",
+            content: (
+              <pre className="text-primary text-xs font-mono my-2 bg-black/60 p-3 rounded-lg border border-primary/20">
+{`HTTP/2 200 OK
+content-type: text/plain
+
+User-agent: *
+Allow: /
+
+# [ZANEX CTF TARGET 01 // ROBOTS RECON]
+# Disallow: /secret-classified-vault/
+# FLAG_01: ZANEX{DOM_INSPECTOR_ROOT_42}`}
+              </pre>
+            )
+          });
+        } else {
+          newLogs.push({
+            type: "output",
+            content: `curl: (28) Resolving host '${arg || "target"}'... Connection timed out or blocked by firewall.`
+          });
+        }
         break;
 
       case "fortune":
@@ -326,6 +519,14 @@ export const TerminalOverlay = ({ isOpen, onClose, onOpenBreach, onOpenMatrixTak
         break;
 
       case "cat":
+        if (arg === ".robin_secret" || arg === "secret" || arg === "secret.txt" || arg === ".secret" || arg === "robin_secret") {
+          handleCommand("robin --investigate");
+          return;
+        }
+        if (arg === "robots.txt" || arg === "/robots.txt") {
+          handleCommand("curl /robots.txt");
+          return;
+        }
         const target = projectsData.find(p => p.id === arg || p.title.toLowerCase().includes(arg));
         if (target) {
           newLogs.push({
@@ -477,8 +678,8 @@ export const TerminalOverlay = ({ isOpen, onClose, onOpenBreach, onOpenMatrixTak
   };
 
   const quickChips = [
-    "help", "neofetch", "whoami", "csi", "robin", "hardware", 
-    "projects", "fortune", "breach", "matrix", "clear"
+    "help", "ctf", "csi", "robin", "hardware", "whoami", "neofetch", 
+    "projects", "breach", "matrix", "clear"
   ];
 
   return (

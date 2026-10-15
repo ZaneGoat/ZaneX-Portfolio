@@ -4,9 +4,15 @@ import { Card3D } from "@/components/3DCard";
 import { projectsData, Project } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
 import { SectionHeader } from "@/components/SectionHeader";
-import { CheckCircle2, Github, ExternalLink } from "lucide-react";
+import { CheckCircle2, Github, ExternalLink, Radio, Globe, Wind } from "lucide-react";
 
-export const Projects = () => {
+interface ProjectsProps {
+  onOpenCsi?: () => void;
+  onOpenThreatMap?: () => void;
+  onOpenMegaCenter?: () => void;
+}
+
+export const Projects = ({ onOpenCsi, onOpenThreatMap, onOpenMegaCenter }: ProjectsProps = {}) => {
   const [filter, setFilter] = useState<string>("ALL");
   const [clickCount, setClickCount] = useState(0);
   const [showJoke, setShowJoke] = useState(false);
@@ -122,8 +128,38 @@ export const Projects = () => {
                       ))}
                     </div>
 
-                    {project.github && (
-                      <div className="flex justify-end pt-1">
+                    <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
+                      <div className="flex items-center gap-1.5">
+                        {project.id === "csi_project" && onOpenCsi && (
+                          <button
+                            onClick={() => { sound.playBoot(); onOpenCsi(); }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-400 rounded-lg text-xs font-mono font-bold transition-all hover:scale-105 active:scale-95"
+                          >
+                            <Radio className="w-3.5 h-3.5" />
+                            <span>LAUNCH RADAR</span>
+                          </button>
+                        )}
+                        {project.id === "robin" && onOpenThreatMap && (
+                          <button
+                            onClick={() => { sound.playBoot(); onOpenThreatMap(); }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-300 rounded-lg text-xs font-mono font-bold transition-all hover:scale-105 active:scale-95"
+                          >
+                            <Globe className="w-3.5 h-3.5" />
+                            <span>THREAT MAP</span>
+                          </button>
+                        )}
+                        {project.id === "zanemegacenter" && onOpenMegaCenter && (
+                          <button
+                            onClick={() => { sound.playBoot(); onOpenMegaCenter(); }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-primary/15 hover:bg-primary/25 border border-primary/40 text-primary rounded-lg text-xs font-mono font-bold transition-all hover:scale-105 active:scale-95"
+                          >
+                            <Wind className="w-3.5 h-3.5" />
+                            <span>LIVE EC STATION</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {project.github && (
                         <a
                           href={project.github}
                           target="_blank"
@@ -135,8 +171,8 @@ export const Projects = () => {
                           <span>VIEW CODE</span>
                           <ExternalLink className="w-3 h-3 opacity-60" />
                         </a>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               </Card3D>

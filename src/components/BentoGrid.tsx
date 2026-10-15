@@ -1,7 +1,8 @@
 import { memo, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Terminal, Cpu, Database, ExternalLink, Zap, Clock, MapPin, Monitor, Play, Github, Keyboard
+  Terminal, Cpu, Database, ExternalLink, Zap, Clock, MapPin, Monitor, Play, Github, Keyboard,
+  Radio, Globe, Wind, ShieldAlert
 } from "lucide-react";
 import { systemSpecs, projectsData, skillsData } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
@@ -9,6 +10,10 @@ import { sound } from "@/lib/sound";
 interface BentoGridProps {
   onOpenTerminal: () => void;
   onOpenBreach: () => void;
+  onOpenCsi?: () => void;
+  onOpenCtf?: () => void;
+  onOpenThreatMap?: () => void;
+  onOpenMegaCenter?: () => void;
 }
 
 /** Isolated so the 1s tick re-renders only this text node, not the whole grid. */
@@ -39,7 +44,14 @@ const fadeUp = (delay: number) => ({
   transition: { duration: 0.45, delay },
 });
 
-export const BentoGrid = ({ onOpenTerminal, onOpenBreach }: BentoGridProps) => {
+export const BentoGrid = ({
+  onOpenTerminal,
+  onOpenBreach,
+  onOpenCsi,
+  onOpenCtf,
+  onOpenThreatMap,
+  onOpenMegaCenter
+}: BentoGridProps) => {
   const [activeTab, setActiveTab] = useState(0);
   const flagships = projectsData.slice(0, 4);
   const active = flagships[activeTab] ?? flagships[0];
@@ -94,6 +106,15 @@ export const BentoGrid = ({ onOpenTerminal, onOpenBreach }: BentoGridProps) => {
                 <Terminal className="w-4 h-4" />
                 LAUNCH ZANE_OS
               </button>
+              {onOpenCtf && (
+                <button
+                  onClick={() => { sound.playBoot(); onOpenCtf(); }}
+                  className="flex items-center gap-1.5 border border-yellow-500/50 bg-yellow-500/10 text-yellow-400 font-mono font-bold px-4 py-3 rounded-xl hover:bg-yellow-500/20 active:scale-95 transition-all text-xs"
+                >
+                  <ShieldAlert className="w-4 h-4 animate-pulse" />
+                  CTF QUEST
+                </button>
+              )}
               <a
                 href="#projects"
                 onClick={() => sound.playClick()}
@@ -125,9 +146,24 @@ export const BentoGrid = ({ onOpenTerminal, onOpenBreach }: BentoGridProps) => {
             <div className="flex items-center gap-1.5 text-[11px] text-primary/60 uppercase mb-1"><MapPin className="w-3.5 h-3.5" />Base</div>
             <div className="text-sm md:text-base font-bold text-primary">{systemSpecs.location}</div>
           </div>
-          <div>
-            <div className="flex items-center gap-1.5 text-[11px] text-primary/60 uppercase mb-1"><Monitor className="w-3.5 h-3.5" />Rig</div>
-            <div className="text-sm md:text-base font-bold text-primary">Kali / MSI GF65</div>
+          <div
+            onClick={() => {
+              if (onOpenMegaCenter) {
+                sound.playBoot();
+                onOpenMegaCenter();
+              }
+            }}
+            className={onOpenMegaCenter ? "cursor-pointer group" : ""}
+          >
+            <div className="flex items-center gap-1.5 text-[11px] text-primary/60 uppercase mb-1">
+              <Monitor className="w-3.5 h-3.5" />Rig
+              {onOpenMegaCenter && (
+                <span className="text-[9px] text-primary/70 group-hover:text-primary font-bold ml-1 border border-primary/30 px-1 rounded">
+                  EC GUI
+                </span>
+              )}
+            </div>
+            <div className="text-sm md:text-base font-bold text-primary group-hover:underline">Kali / MSI GF65</div>
           </div>
         </motion.div>
 
@@ -146,7 +182,20 @@ export const BentoGrid = ({ onOpenTerminal, onOpenBreach }: BentoGridProps) => {
             <p className="text-muted-foreground">Doppler +3.8Hz · motion detected</p>
             <p><span className="text-primary">zane@kali</span>:~$ <span className="inline-block w-2 h-3.5 bg-primary align-middle animate-pulse" /></p>
           </div>
-          <p className="mt-4 text-[11px] text-primary/50 group-hover:text-primary transition-colors">Click to open ZaneOS →</p>
+          {onOpenCsi && (
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                sound.playBoot();
+                onOpenCsi();
+              }}
+              className="mt-3 py-1.5 px-2 bg-primary/10 hover:bg-primary/25 border border-primary/30 rounded-lg text-[10px] text-primary font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Radio className="w-3 h-3 text-primary animate-pulse" />
+              <span>LAUNCH CSI RADAR (GUI)</span>
+            </div>
+          )}
+          <p className="mt-3 text-[11px] text-primary/50 group-hover:text-primary transition-colors">Click to open ZaneOS →</p>
         </motion.button>
 
         {/* 4 — Breach Protocol */}
@@ -210,17 +259,46 @@ export const BentoGrid = ({ onOpenTerminal, onOpenBreach }: BentoGridProps) => {
                     <span key={t} className="px-2 py-0.5 bg-primary/10 border border-primary/20 text-primary text-[10px] font-mono rounded">{t}</span>
                   ))}
                 </div>
-                {active.github && (
-                  <a
-                    href={active.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => sound.playClick()}
-                    className="shrink-0 text-xs font-mono font-bold text-primary hover:underline flex items-center gap-1"
-                  >
-                    REPO <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
+                <div className="flex items-center gap-2">
+                  {active.id === "csi_project" && onOpenCsi && (
+                    <button
+                      onClick={() => { sound.playBoot(); onOpenCsi(); }}
+                      className="shrink-0 text-xs font-mono font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/40 px-2.5 py-1 rounded-lg hover:bg-emerald-500/25 flex items-center gap-1.5 transition-all hover:scale-105"
+                    >
+                      <Radio className="w-3 h-3 text-emerald-400" />
+                      LIVE RADAR
+                    </button>
+                  )}
+                  {active.id === "robin" && onOpenThreatMap && (
+                    <button
+                      onClick={() => { sound.playBoot(); onOpenThreatMap(); }}
+                      className="shrink-0 text-xs font-mono font-bold text-cyan-300 bg-cyan-500/15 border border-cyan-500/40 px-2.5 py-1 rounded-lg hover:bg-cyan-500/25 flex items-center gap-1.5 transition-all hover:scale-105"
+                    >
+                      <Globe className="w-3 h-3 text-cyan-400" />
+                      THREAT MAP
+                    </button>
+                  )}
+                  {active.id === "zanemegacenter" && onOpenMegaCenter && (
+                    <button
+                      onClick={() => { sound.playBoot(); onOpenMegaCenter(); }}
+                      className="shrink-0 text-xs font-mono font-bold text-primary bg-primary/15 border border-primary/40 px-2.5 py-1 rounded-lg hover:bg-primary/25 flex items-center gap-1.5 transition-all hover:scale-105"
+                    >
+                      <Wind className="w-3 h-3 text-primary" />
+                      LIVE EC STATION
+                    </button>
+                  )}
+                  {active.github && (
+                    <a
+                      href={active.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => sound.playClick()}
+                      className="shrink-0 text-xs font-mono font-bold text-primary hover:underline flex items-center gap-1"
+                    >
+                      REPO <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           </div>

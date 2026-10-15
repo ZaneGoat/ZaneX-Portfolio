@@ -20,6 +20,7 @@ export const BreachProtocol = ({ isOpen, onClose }: BreachProtocolProps) => {
   const [timer, setTimer] = useState(35);
   const [isWon, setIsWon] = useState(false);
   const [isFailed, setIsFailed] = useState(false);
+  const [copiedFlag, setCopiedFlag] = useState(false);
 
   const initGame = () => {
     // Generate 5x5 Matrix
@@ -205,16 +206,42 @@ export const BreachProtocol = ({ isOpen, onClose }: BreachProtocolProps) => {
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-center bg-secondary/10 border border-secondary p-4 rounded-xl space-y-2"
+                className="text-center bg-secondary/10 border border-secondary p-4 rounded-xl space-y-2.5"
               >
                 <div className="flex items-center justify-center gap-2 text-secondary font-bold text-lg">
                   <Trophy className="w-5 h-5 text-yellow-400" />
                   <span>BREACH SUCCESSFUL! ICE BYPASSED.</span>
                 </div>
                 <p className="text-xs text-secondary/80">Buffer match verified. Full authorization token granted.</p>
+
+                {/* CTF Flag 3 Reward */}
+                <div className="bg-black/80 border border-secondary/50 p-2.5 rounded-lg text-left text-xs my-2">
+                  <span className="text-[10px] text-secondary/70 block uppercase font-bold tracking-wider">
+                    ★ CTF FLAG #3 UNLOCKED (ICE BUFFER MASTER):
+                  </span>
+                  <div className="flex items-center justify-between gap-2 mt-1.5">
+                    <code className="text-secondary font-black select-all bg-secondary/15 px-2.5 py-1 rounded border border-secondary/40 text-xs sm:text-sm">
+                      ZANEX&#123;HEX_BREACH_BUFFER_MASTER&#125;
+                    </code>
+                    <button
+                      onClick={() => {
+                        if (typeof navigator !== "undefined" && navigator.clipboard) {
+                          navigator.clipboard.writeText("ZANEX{HEX_BREACH_BUFFER_MASTER}");
+                        }
+                        sound.playSuccess();
+                        setCopiedFlag(true);
+                        setTimeout(() => setCopiedFlag(false), 2200);
+                      }}
+                      className="px-3 py-1 bg-secondary text-background font-bold text-xs rounded hover:scale-105 active:scale-95 transition-transform shrink-0"
+                    >
+                      {copiedFlag ? "COPIED!" : "COPY FLAG"}
+                    </button>
+                  </div>
+                </div>
+
                 <button
                   onClick={initGame}
-                  className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-secondary text-background font-bold text-xs rounded hover:scale-105"
+                  className="mt-1 inline-flex items-center gap-2 px-4 py-2 bg-secondary text-background font-bold text-xs rounded hover:scale-105 active:scale-95 transition-transform"
                 >
                   <RotateCcw className="w-3.5 h-3.5" /> REPLAY MATRIX
                 </button>

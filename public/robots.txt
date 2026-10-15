@@ -12,3 +12,7 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# [ZANEX CTF TARGET 01 // ROBOTS RECON]
+# Disallow: /secret-classified-vault/
+# FLAG_01: ZANEX{DOM_INSPECTOR_ROOT_42}

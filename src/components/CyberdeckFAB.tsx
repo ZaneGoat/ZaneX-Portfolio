@@ -1,18 +1,26 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Zap, Radio, Palette, Volume2, VolumeX, X, Cpu } from "lucide-react";
+import { Terminal, Zap, Radio, Palette, Volume2, VolumeX, X, Cpu, Globe, ShieldAlert, Wind } from "lucide-react";
 import { sound } from "@/lib/sound";
 
 interface CyberdeckFABProps {
   onOpenTerminal: () => void;
   onOpenBreach: () => void;
   onOpenMatrixTakeover: () => void;
+  onOpenCsi?: () => void;
+  onOpenCtf?: () => void;
+  onOpenThreatMap?: () => void;
+  onOpenMegaCenter?: () => void;
 }
 
 export const CyberdeckFAB = ({
   onOpenTerminal,
   onOpenBreach,
-  onOpenMatrixTakeover
+  onOpenMatrixTakeover,
+  onOpenCsi,
+  onOpenCtf,
+  onOpenThreatMap,
+  onOpenMegaCenter
 }: CyberdeckFABProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
@@ -115,6 +123,82 @@ export const CyberdeckFAB = ({
                 <span className="text-[10px] text-secondary/60 font-mono">GAME</span>
               </button>
 
+              {/* CTF Bounty Board */}
+              {onOpenCtf && (
+                <button
+                  onClick={() => {
+                    sound.playBoot();
+                    sound.haptic(40);
+                    setIsOpen(false);
+                    onOpenCtf();
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 hover:bg-yellow-500/20 text-yellow-400 active:scale-95 transition-all text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 text-yellow-400" />
+                    <span className="font-bold">CTF Bounty Board</span>
+                  </div>
+                  <span className="text-[10px] text-yellow-400/60 font-mono">QUEST</span>
+                </button>
+              )}
+
+              {/* CSI Radar Doppler Sensor */}
+              {onOpenCsi && (
+                <button
+                  onClick={() => {
+                    sound.playBoot();
+                    sound.haptic(40);
+                    setIsOpen(false);
+                    onOpenCsi();
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 active:scale-95 transition-all text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <Radio className="w-4 h-4 text-emerald-400" />
+                    <span className="font-bold">CSI Wi-Fi Radar</span>
+                  </div>
+                  <span className="text-[10px] text-emerald-400/60 font-mono">RADAR</span>
+                </button>
+              )}
+
+              {/* Robin Threat Map */}
+              {onOpenThreatMap && (
+                <button
+                  onClick={() => {
+                    sound.playBoot();
+                    sound.haptic(40);
+                    setIsOpen(false);
+                    onOpenThreatMap();
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 text-cyan-300 active:scale-95 transition-all text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-cyan-400" />
+                    <span className="font-bold">Robin Threat Map</span>
+                  </div>
+                  <span className="text-[10px] text-cyan-400/60 font-mono">OSINT</span>
+                </button>
+              )}
+
+              {/* Zane Mega Center Live */}
+              {onOpenMegaCenter && (
+                <button
+                  onClick={() => {
+                    sound.playBoot();
+                    sound.haptic(40);
+                    setIsOpen(false);
+                    onOpenMegaCenter();
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 text-primary active:scale-95 transition-all text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <Wind className="w-4 h-4 text-primary" />
+                    <span className="font-bold">Mega Center Live</span>
+                  </div>
+                  <span className="text-[10px] text-primary/60 font-mono">EC</span>
+                </button>
+              )}
+
               {/* Matrix Construct Takeover */}
               <button
                 onClick={() => {
@@ -123,13 +207,13 @@ export const CyberdeckFAB = ({
                   setIsOpen(false);
                   onOpenMatrixTakeover();
                 }}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 active:scale-95 transition-all text-left"
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-primary/10 border border-primary/30 hover:bg-primary/20 text-primary active:scale-95 transition-all text-left"
               >
                 <div className="flex items-center gap-2">
-                  <Radio className="w-4 h-4 text-emerald-400" />
+                  <Radio className="w-4 h-4 text-primary" />
                   <span className="font-bold">Matrix Construct</span>
                 </div>
-                <span className="text-[10px] text-emerald-400/60 font-mono">FX</span>
+                <span className="text-[10px] text-primary/60 font-mono">FX</span>
               </button>
             </div>
 
