@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from "react";
+import { usePersona } from "@/context/PersonaContext";
 import { MatrixRain } from "@/components/MatrixRain";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import { EasterEggs } from "@/components/EasterEggs";
@@ -23,6 +24,7 @@ const ZaneMegaCenterModal = lazy(() => import("@/components/ZaneMegaCenterModal"
 type Overlay = "terminal" | "breach" | "matrix" | "csi" | "ctf" | "threatmap" | "megacenter";
 
 const Index = () => {
+  const { persona } = usePersona();
   const [open, setOpen] = useState<Overlay | null>(null);
   // Once an overlay has been opened, keep it mounted so its exit animation and state survive.
   const [loaded, setLoaded] = useState<Record<Overlay, boolean>>({
@@ -104,12 +106,20 @@ const Index = () => {
           onOpenThreatMap={openThreatMap}
           onOpenMegaCenter={openMegaCenter}
         />
-        <Projects
-          onOpenCsi={openCsi}
-          onOpenThreatMap={openThreatMap}
-          onOpenMegaCenter={openMegaCenter}
-        />
-        <Skills />
+
+        {/* Technical Showcase: Projects & Skills (Guest & Operator clearance only; hidden for Friends) */}
+        {persona !== "friend" && (
+          <>
+            <Projects
+              onOpenCsi={openCsi}
+              onOpenThreatMap={openThreatMap}
+              onOpenMegaCenter={openMegaCenter}
+            />
+            <Skills />
+          </>
+        )}
+
+        {/* Culture, Philosophy, Breach Protocol & Minigames */}
         <Philosophy />
         <Games onOpenBreach={openBreach} />
         <Contact />

@@ -121,13 +121,23 @@ export const BentoGrid = ({
                   CTF QUEST
                 </button>
               )}
-              <a
-                href="#projects"
-                onClick={() => sound.playClick()}
-                className="flex items-center gap-2 border border-primary/40 text-primary font-mono font-bold px-5 py-3 rounded-xl hover:bg-primary/10 transition-colors"
-              >
-                VIEW PROJECTS
-              </a>
+              {persona === "friend" ? (
+                <button
+                  onClick={() => { sound.playBoot(); onOpenBreach(); }}
+                  className="flex items-center gap-2 border border-secondary/50 bg-secondary/15 text-secondary font-mono font-bold px-5 py-3 rounded-xl hover:bg-secondary/25 active:scale-95 transition-all shadow-[0_0_20px_hsl(var(--secondary)/0.3)] cursor-pointer"
+                >
+                  <Zap className="w-4 h-4 fill-current" />
+                  PLAY BREACH
+                </button>
+              ) : (
+                <a
+                  href="#projects"
+                  onClick={() => sound.playClick()}
+                  className="flex items-center gap-2 border border-primary/40 text-primary font-mono font-bold px-5 py-3 rounded-xl hover:bg-primary/10 transition-colors"
+                >
+                  VIEW PROJECTS
+                </a>
+              )}
               <a
                 href="https://github.com/ZaneGoat"
                 target="_blank"
@@ -226,8 +236,10 @@ export const BentoGrid = ({
           {persona === "friend" && <FriendLoungeCard />}
         </AnimatePresence>
 
-        {/* 5 — Flagship architectures */}
-        <motion.div {...fadeUp(0.26)} className="hud-card md:col-span-2 lg:col-span-3 p-6 md:p-8">
+        {/* 5 & 6 — Flagship architectures & AI Stack (Guest & Operator only) */}
+        {persona !== "friend" && (
+          <>
+            <motion.div {...fadeUp(0.26)} className="hud-card md:col-span-2 lg:col-span-3 p-6 md:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/15 pb-4 mb-5">
             <div className="flex items-center gap-2 text-primary font-mono text-xs font-bold uppercase tracking-widest">
               <Database className="w-4 h-4" /> Flagship architectures
@@ -257,18 +269,6 @@ export const BentoGrid = ({
               </div>
               <p className="text-primary/70 text-xs font-mono mb-3">{active.subtitle}</p>
               <p className="text-muted-foreground text-sm leading-relaxed">{active.description}</p>
-
-              {/* Friend note callout */}
-              {persona === "friend" && active.friendNote && (
-                <div className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs">
-                  <span className="text-[10px] text-emerald-400 font-bold uppercase block mb-1">
-                    ☕ Zane's Real Take:
-                  </span>
-                  <p className="text-emerald-200/90 leading-relaxed italic">
-                    "{active.friendNote}"
-                  </p>
-                </div>
-              )}
             </div>
             <div className="md:col-span-2 flex flex-col justify-between gap-4">
               <ul className="space-y-1.5 text-xs font-mono text-muted-foreground">
@@ -345,6 +345,8 @@ export const BentoGrid = ({
             ))}
           </ul>
         </motion.div>
+          </>
+        )}
 
       </div>
     </section>

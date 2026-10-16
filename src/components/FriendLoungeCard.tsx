@@ -85,6 +85,7 @@ export const FriendLoungeCard: React.FC = () => {
 
   return (
     <motion.div
+      id="friend-lounge"
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       className="hud-card md:col-span-2 lg:col-span-4 p-6 md:p-8 relative overflow-hidden font-mono border-2 border-emerald-500/50 shadow-[0_0_50px_rgba(0,255,102,0.15)] bg-gradient-to-br from-[#040a08]/95 via-[#030611]/95 to-[#040a08]/95"

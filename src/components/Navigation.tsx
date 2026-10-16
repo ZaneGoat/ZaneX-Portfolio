@@ -4,6 +4,7 @@ import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert } from "lucide-re
 import { navLinks } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
+import { usePersona } from "@/context/PersonaContext";
 
 interface NavigationProps {
   onOpenTerminal: () => void;
@@ -12,8 +13,19 @@ interface NavigationProps {
 }
 
 export const Navigation = ({ onOpenTerminal, onOpenBreach, onOpenCtf }: NavigationProps) => {
+  const { persona } = usePersona();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
+
+  const activeNavLinks = persona === "friend"
+    ? [
+        { name: "Overview", href: "#overview" },
+        { name: "Homie Lounge", href: "#friend-lounge" },
+        { name: "Breach Protocol", href: "#games" },
+        { name: "Philosophy", href: "#philosophy" },
+        { name: "Contact", href: "#contact" }
+      ]
+    : navLinks;
 
   const handleToggleSound = () => {
     const newState = sound.toggleMute();
@@ -49,7 +61,7 @@ export const Navigation = ({ onOpenTerminal, onOpenBreach, onOpenCtf }: Navigati
 
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-6 font-mono text-sm">
-            {navLinks.map(link => (
+            {activeNavLinks.map(link => (
               <a
                 key={link.name}
                 href={link.href}
@@ -141,7 +153,7 @@ export const Navigation = ({ onOpenTerminal, onOpenBreach, onOpenCtf }: Navigati
                 <PersonaSwitcher variant="compact" />
               </div>
 
-              {navLinks.map(link => (
+              {activeNavLinks.map(link => (
                 <a
                   key={link.name}
                   href={link.href}

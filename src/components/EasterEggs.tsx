@@ -297,7 +297,8 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
             whileHover={{ scale: 1.05 }}
             onClick={() => {
               sound.playClick();
-              setShowHint(!showHint);
+              setShowSecretButton(false);
+              setShowHint(true);
             }}
             className="fixed bottom-6 right-6 bg-black/90 border-2 border-primary text-primary px-5 py-3 rounded-xl font-mono text-xs font-bold z-[9999] flex items-center gap-2 shadow-[0_0_30px_hsl(var(--primary)/0.6)] cursor-pointer"
           >
