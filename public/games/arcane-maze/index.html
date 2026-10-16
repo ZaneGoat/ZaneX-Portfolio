@@ -164,9 +164,31 @@
     .zane-overdrive-active {
       animation: zanePulse 6s infinite linear;
     }
+
+    /* Floating RPG Combat Numbers */
+    .combat-num-float {
+      position: absolute;
+      pointer-events: none;
+      font-family: 'Cinzel', serif;
+      font-weight: 800;
+      font-size: 14px;
+      text-shadow: 0 0 8px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.9);
+      animation: combatFloatUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      transform: translate(-50%, -50%);
+      z-index: 50;
+      white-space: nowrap;
+    }
+    @keyframes combatFloatUp {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
+      25% { transform: translate(-50%, -70px) scale(1.25); }
+      100% { opacity: 0; transform: translate(-50%, -100px) scale(0.9); }
+    }
   </style>
 </head>
 <body class="relative w-screen h-screen overflow-hidden select-none">
+
+  <!-- Floating Combat Numbers Layer -->
+  <div id="combat-nums-container" class="fixed inset-0 pointer-events-none z-30 overflow-hidden"></div>
 
   <!-- 3D WebGL Dungeon Canvas -->
   <canvas id="game-canvas"></canvas>
@@ -235,26 +257,36 @@
     </div>
   </div>
 
-  <!-- Top Utility Strip (FPS Monitor, Graphics Quality, Camera Switch, Cipher Shortcut, Sound) -->
-  <div class="fixed top-5 right-44 sm:right-52 z-20 hidden md:flex items-center gap-2">
-    <div id="fps-badge" class="px-2.5 py-1.5 rounded bg-slate-950/90 gold-border text-[11px] font-mono font-bold text-emerald-400 flex items-center gap-1.5" title="Real-Time Frame Rate">
-      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-      <span id="fps-val">60</span> <span>FPS</span>
+  <!-- Top Utility Strip (FPS Monitor, Graphics Quality, Camera Switch, Cipher Shortcut, Fullscreen, Sound) -->
+  <div class="fixed top-3 sm:top-5 right-40 sm:right-52 md:right-56 z-20 flex items-center gap-1 sm:gap-2 max-w-[calc(100vw-11rem)] sm:max-w-none overflow-x-auto no-scrollbar py-1">
+    <div id="fps-badge" class="px-2 py-1 rounded bg-slate-950/90 gold-border text-[10px] sm:text-[11px] font-mono font-bold text-emerald-400 flex items-center gap-1 shrink-0" title="Real-Time Frame Rate">
+      <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span id="fps-val">60</span><span class="hidden sm:inline"> FPS</span>
     </div>
-    <button id="btn-perf-mode" class="px-3 py-1.5 rounded bg-slate-950/85 gold-border text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1.5 cursor-pointer" title="Cycle Graphics Performance Mode [P]">
-      <span>GFX:</span> <span id="perf-label" class="text-emerald-300">BALANCED</span> <span class="text-[9px] text-slate-400">[P]</span>
+    <button id="btn-perf-mode" class="px-2 sm:px-3 py-1 rounded bg-slate-950/85 gold-border text-[10px] sm:text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1 shrink-0 cursor-pointer" title="Cycle Graphics Performance Mode [P]">
+      <span>GFX:</span> <span id="perf-label" class="text-emerald-300">BALANCED</span>
     </button>
-    <button id="btn-camera-mode" class="px-3 py-1.5 rounded bg-slate-950/85 gold-border text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1.5 cursor-pointer" title="Switch Camera Angle [C]">
-      <span>CAM:</span> <span id="cam-label" class="text-cyan-300">SHOULDER</span> <span class="text-[9px] text-slate-400">[C]</span>
+    <button id="btn-camera-mode" class="px-2 sm:px-3 py-1 rounded bg-slate-950/85 gold-border text-[10px] sm:text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1 shrink-0 cursor-pointer" title="Switch Camera Perspective [C]">
+      <span>CAM:</span> <span id="cam-label" class="text-cyan-300">SHOULDER</span>
     </button>
-    <button id="btn-cipher-modal" class="px-3 py-1.5 rounded bg-slate-950/85 gold-border text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1.5 cursor-pointer" title="Open Wall Cipher [E]">
-      <span>🔒 CIPHER</span> <span class="text-[9px] text-slate-400">[E]</span>
+    <button id="btn-cipher-modal" class="px-2 sm:px-3 py-1 rounded bg-slate-950/85 gold-border text-[10px] sm:text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1 shrink-0 cursor-pointer" title="Open Ancient Wall Cipher [E]">
+      <span>🔒 CIPHER</span>
     </button>
-    <button id="btn-audio-toggle" class="p-1.5 rounded bg-slate-950/85 gold-border text-amber-200 hover:text-white transition cursor-pointer" title="Toggle Audio">
-      <svg id="svg-audio-on" class="w-4 h-4 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <!-- In-Game Fullscreen Toggle Button -->
+    <button id="btn-fs-toggle" class="px-2 sm:px-2.5 py-1 rounded bg-slate-950/85 gold-border text-[10px] sm:text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1 shrink-0 cursor-pointer" title="Toggle Fullscreen">
+      <svg id="svg-fs-enter" class="w-3.5 h-3.5 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+      </svg>
+      <svg id="svg-fs-exit" class="w-3.5 h-3.5 text-amber-300 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 14h6m0 0v6m0-6L3 21m17-7h-6m0 0v6m0-6l7 7M10 10V4m0 6H4m6 0L3 3m10 7h6m-6 0V4m0 6l7-7" />
+      </svg>
+      <span class="hidden sm:inline" id="fs-label">FULL</span>
+    </button>
+    <button id="btn-audio-toggle" class="p-1 sm:p-1.5 rounded bg-slate-950/85 gold-border text-amber-200 hover:text-white transition cursor-pointer shrink-0" title="Toggle Audio">
+      <svg id="svg-audio-on" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
       </svg>
-      <svg id="svg-audio-off" class="w-4 h-4 text-rose-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg id="svg-audio-off" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l4-4m0 4l-4-4"/>
       </svg>
     </button>
@@ -421,63 +453,87 @@
   <!-- =====================================================================
        8. WALL CIPHER MODAL (TYPE "ZANE" FOR REALITY OVERDRIVE OR WARP SEED)
        ===================================================================== -->
-  <div id="cipher-modal" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-4">
-    <div class="max-w-lg w-full bg-[#0b101d] gold-border rounded-2xl p-6 sm:p-8 shadow-2xl relative text-slate-100">
+  <div id="cipher-modal" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-3 sm:p-4 overscroll-contain">
+    <div class="max-w-xl w-full max-h-[90vh] overflow-y-auto overscroll-contain bg-[#0b101d] gold-border rounded-2xl p-5 sm:p-7 shadow-2xl relative text-slate-100 custom-scrollbar">
       <button onclick="window.game && window.game.closeCipherModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-900 border border-amber-500/40 text-amber-300 hover:text-white flex items-center justify-center cursor-pointer">✕</button>
 
       <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-amber-300">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-amber-300 shrink-0">
           🔒
         </div>
         <div>
-          <h2 class="cinzel text-xl sm:text-2xl font-bold text-amber-300 tracking-wider">ANCIENT WALL CIPHER</h2>
-          <p class="text-xs text-slate-400">Inscribe an Elder Rune Word to alter the Labyrinth reality</p>
+          <h2 class="cinzel text-lg sm:text-2xl font-bold text-amber-300 tracking-wider">ANCIENT WALL CIPHER</h2>
+          <p class="text-[11px] sm:text-xs text-slate-400">Inscribe an Elder Rune Word to alter the Labyrinth reality</p>
         </div>
       </div>
 
-      <div class="my-5">
-        <label class="block text-[11px] cinzel uppercase tracking-widest text-amber-200/80 mb-2">Enter Rune Cipher or Custom Dungeon Seed:</label>
+      <div class="my-4">
+        <label class="block text-[11px] cinzel uppercase tracking-widest text-amber-200/80 mb-1.5">Enter Rune Cipher or Custom Dungeon Seed:</label>
         <div class="flex gap-2">
-          <input id="cipher-input" type="text" placeholder="Type ZANE, ASTRAL, GHOST, or any seed..." class="flex-1 bg-slate-950 border-2 border-amber-500/60 focus:border-cyan-400 rounded-xl px-4 py-3 text-base font-mono uppercase tracking-widest text-cyan-300 outline-none" />
-          <button onclick="window.game && window.game.submitCipherCode()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 cinzel font-extrabold text-sm tracking-wider hover:brightness-110 transition cursor-pointer">
+          <input id="cipher-input" type="text" placeholder="Type ZANE, GOD, HEAL, GHOST, NUKE..." class="flex-1 bg-slate-950 border-2 border-amber-500/60 focus:border-cyan-400 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base font-mono uppercase tracking-widest text-cyan-300 outline-none" />
+          <button onclick="window.game && window.game.submitCipherCode()" class="px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 cinzel font-extrabold text-xs sm:text-sm tracking-wider hover:brightness-110 transition cursor-pointer shrink-0">
             EVOKE
           </button>
         </div>
       </div>
 
-      <!-- Quick Clickable Cheat / Rune Presets -->
-      <div class="mb-5">
-        <div class="text-[11px] cinzel uppercase tracking-widest text-slate-400 mb-2">Quick Elder Glyphs (Click to Activate):</div>
+      <!-- Quick Clickable Cheat / Rune Presets (1-Tap for Mobile) -->
+      <div class="mb-4">
+        <div class="text-[11px] cinzel uppercase tracking-widest text-slate-400 mb-2">Elder Glyphs (1-Tap Activation):</div>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
           <button onclick="window.game && window.game.applyCipherWord('ZANE')" class="p-2.5 rounded-xl bg-gradient-to-r from-fuchsia-950/90 to-cyan-950/90 border border-fuchsia-400/60 text-fuchsia-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-fuchsia-300">ZANE</div>
-            <div class="text-[10px] text-slate-300">Rainbow Astral Overdrive</div>
+            <div class="font-mono text-fuchsia-300">⚡ ZANE</div>
+            <div class="text-[10px] text-slate-300">Astral Overdrive & Mana</div>
           </button>
           <button onclick="window.game && window.game.applyCipherWord('OPERATOR')" class="p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/90 to-cyan-950/90 border border-emerald-400/60 text-emerald-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-emerald-300">OPERATOR</div>
-            <div class="text-[10px] text-slate-300">Declassify Black-Ops Node</div>
+            <div class="font-mono text-emerald-300">🛡️ OPERATOR</div>
+            <div class="text-[10px] text-slate-300">Declassify Node 03</div>
+          </button>
+          <button onclick="window.game && window.game.applyCipherWord('GOD')" class="p-2.5 rounded-xl bg-gradient-to-r from-amber-950/90 to-yellow-950/90 border border-amber-400/60 text-amber-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
+            <div class="font-mono text-amber-300">👑 GOD</div>
+            <div class="text-[10px] text-slate-300">Invulnerability Ward</div>
+          </button>
+          <button onclick="window.game && window.game.applyCipherWord('HEAL')" class="p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-500/40 text-emerald-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
+            <div class="font-mono text-emerald-300">💚 HEAL</div>
+            <div class="text-[10px] text-slate-300">Restore 100% HP & Mana</div>
+          </button>
+          <button onclick="window.game && window.game.applyCipherWord('RADAR')" class="p-2.5 rounded-xl bg-gradient-to-r from-cyan-950/80 to-slate-900 border border-cyan-500/40 text-cyan-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
+            <div class="font-mono text-cyan-300">👁️ RADAR</div>
+            <div class="text-[10px] text-slate-300">Reveal Shards & Exit</div>
+          </button>
+          <button onclick="window.game && window.game.applyCipherWord('NUKE')" class="p-2.5 rounded-xl bg-gradient-to-r from-red-950/80 to-slate-900 border border-red-500/40 text-red-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
+            <div class="font-mono text-red-300">💥 NUKE</div>
+            <div class="text-[10px] text-slate-300">Annihilate All Monsters</div>
           </button>
           <button onclick="window.game && window.game.applyCipherWord('GHOST')" class="p-2.5 rounded-xl bg-slate-900 border border-cyan-500/40 text-cyan-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-cyan-300">GHOST</div>
-            <div class="text-[10px] text-slate-400">Phase Walk Through Walls</div>
+            <div class="font-mono text-cyan-300">👻 GHOST</div>
+            <div class="text-[10px] text-slate-400">Walk Through Walls</div>
           </button>
           <button onclick="window.game && window.game.applyCipherWord('ARCHMAGE')" class="p-2.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-amber-300">ARCHMAGE</div>
-            <div class="text-[10px] text-slate-400">Zero Cooldowns + Max Mana</div>
+            <div class="font-mono text-amber-300">✨ ARCHMAGE</div>
+            <div class="text-[10px] text-slate-400">0s Cooldown Spells</div>
+          </button>
+          <button onclick="window.game && window.game.applyCipherWord('SPEED')" class="p-2.5 rounded-xl bg-slate-900 border border-blue-500/40 text-blue-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
+            <div class="font-mono text-blue-300">🏃 SPEED</div>
+            <div class="text-[10px] text-slate-400">+150% Movement Sprint</div>
+          </button>
+          <button onclick="window.game && window.game.applyCipherWord('CHAPTER1')" class="p-2.5 rounded-xl bg-slate-900 border border-sky-500/40 text-sky-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
+            <div class="font-mono text-sky-300">CHAPTER 1</div>
+            <div class="text-[10px] text-slate-400">Sanctum of the Elder</div>
           </button>
           <button onclick="window.game && window.game.applyCipherWord('CHAPTER2')" class="p-2.5 rounded-xl bg-slate-900 border border-orange-500/40 text-orange-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-orange-300">CHAPTER2</div>
+            <div class="font-mono text-orange-300">CHAPTER 2</div>
             <div class="text-[10px] text-slate-400">Catacombs of Cinder</div>
           </button>
           <button onclick="window.game && window.game.applyCipherWord('CHAPTER3')" class="p-2.5 rounded-xl bg-slate-900 border border-indigo-500/40 text-indigo-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-indigo-300">CHAPTER3</div>
+            <div class="font-mono text-indigo-300">CHAPTER 3</div>
             <div class="text-[10px] text-slate-400">The Astral Spire</div>
           </button>
         </div>
       </div>
 
       <div class="text-[11px] text-slate-400 flex justify-between items-center border-t border-slate-800 pt-3">
-        <span>Controls: <strong>WASD / Arrows</strong> Move • <strong>1-4</strong> Spells • <strong>Space</strong> Staff Bolt • <strong>Q/E</strong> Rotate</span>
+        <span>WASD Move • 1-4 Spells • Space Bolt • C Cam</span>
         <button onclick="window.game && window.game.closeCipherModal()" class="text-amber-300 hover:underline font-semibold cursor-pointer">Resume</button>
       </div>
     </div>
@@ -868,6 +924,9 @@
         this.zaneMode = false;
         this.ghostMode = false;
         this.archmageMode = false;
+        this.godMode = false;
+        this.speedBoost = false;
+        this.clairvoyance = false;
 
         // Performance & Graphics Quality State ('BALANCED' | 'TURBO' | 'ULTRA')
         this.perfModes = ['BALANCED', 'TURBO', 'ULTRA'];
@@ -917,6 +976,7 @@
         this.keys = {};
         this.joyVec = { x: 0, y: 0, active: false };
         this.isMouseDragging = false;
+        this.isPointerLocked = false;
         this.lastMousePos = { x: 0, y: 0 };
 
         // Cached DOM Elements for Fast Access
@@ -929,6 +989,11 @@
           joyPuck: document.getElementById('joystick-puck'),
           fpsVal: document.getElementById('fps-val'),
           perfLabel: document.getElementById('perf-label'),
+          combatNums: document.getElementById('combat-nums-container'),
+          fsBtn: document.getElementById('btn-fs-toggle'),
+          fsLabel: document.getElementById('fs-label'),
+          svgFsEnter: document.getElementById('svg-fs-enter'),
+          svgFsExit: document.getElementById('svg-fs-exit'),
           cdOverlays: {
             1: document.getElementById('cd-overlay-1'),
             2: document.getElementById('cd-overlay-2'),
@@ -1244,6 +1309,19 @@
 
         this.rightArmGroup.add(this.staffGroup);
         this.wizardGroup.add(this.rightArmGroup);
+
+        // 10. Golden Mandala Aegis Ward (Spell 4)
+        const shieldGeo = new THREE.SphereGeometry(1.45, 16, 16);
+        const shieldMat = new THREE.MeshBasicMaterial({
+          color: 0xfde047,
+          transparent: true,
+          opacity: 0.38,
+          wireframe: true
+        });
+        this.shieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
+        this.shieldMesh.position.set(0, 1.1, 0);
+        this.shieldMesh.visible = false;
+        this.wizardGroup.add(this.shieldMesh);
 
         this.scene.add(this.wizardGroup);
       }
@@ -1771,10 +1849,11 @@
         }
 
         if (slot === 1) {
-          // SPELL 1: BLINK (Teleport forward along facing direction)
+          // SPELL 1: BLINK (Teleport forward along facing direction + Phase Ripple)
           audio.playBlink();
           const forward = new THREE.Vector3(-Math.sin(this.playerYaw), 0, -Math.cos(this.playerYaw));
-          const stepDist = 1.2;
+          this.spawnImpactBurst(this.playerPos.clone().add(new THREE.Vector3(0, 1.0, 0)), 0x38bdf8);
+          const stepDist = 1.35;
           for (let s = 0; s < 5; s++) {
             const testPos = this.playerPos.clone().addScaledVector(forward, stepDist);
             if (!this.checkCollisionAt(testPos.x, testPos.z)) {
@@ -1783,6 +1862,7 @@
               break;
             }
           }
+          this.spawnImpactBurst(this.playerPos.clone().add(new THREE.Vector3(0, 1.0, 0)), 0x00f0ff);
           this.showTopBanner('SPELL 1: Phase Blink Evoked', '#38bdf8');
         } else if (slot === 2) {
           // SPELL 2: FLAME (Launch explosive scorching fireball down the corridor)
@@ -1797,9 +1877,11 @@
         } else if (slot === 4) {
           // SPELL 4: SHIELD (Golden Mandala Aegis Ward + Heal HP)
           audio.playCastMandala();
-          this.shieldWardTimer = 6.0;
-          this.hp = Math.min(this.maxHp, this.hp + 30);
-          this.showTopBanner('SPELL 4: Golden Mandala Aegis Active (+30 HP)', '#fde047');
+          this.shieldWardTimer = 7.0;
+          this.hp = Math.min(this.maxHp, this.hp + 35);
+          if (this.shieldMesh) this.shieldMesh.visible = true;
+          this.spawnCombatNumber(this.playerPos, '+35 HP', '#4ade80');
+          this.showTopBanner('SPELL 4: Golden Mandala Aegis Active (+35 HP)', '#fde047');
         }
 
         this.updateStatusBars();
@@ -1831,8 +1913,9 @@
         }
         // Pull nearby shards or damage nearby enemies
         this.enemies.forEach(en => {
-          if (en.alive && en.group.position.distanceTo(this.playerPos) < 6.5) {
+          if (en.alive && en.group.position.distanceTo(this.playerPos) < 7.5) {
             en.hp -= 35;
+            this.spawnCombatNumber(en.group.position, '-35', '#00f0ff');
             if (en.hp <= 0) this.killEnemy(en);
           }
         });
@@ -1866,7 +1949,7 @@
 
       triggerFreezeNova() {
         // Expanding icy ring mesh
-        const ringGeo = new THREE.RingGeometry(0.4, 5.5, 32);
+        const ringGeo = new THREE.RingGeometry(0.4, 6.0, 32);
         const ringMat = new THREE.MeshBasicMaterial({
           color: 0x38bdf8,
           transparent: true,
@@ -1880,13 +1963,65 @@
         setTimeout(() => this.scene.remove(ringMesh), 650);
 
         this.enemies.forEach(en => {
-          if (en.alive && en.group.position.distanceTo(this.playerPos) < 8.5) {
+          if (en.alive && en.group.position.distanceTo(this.playerPos) < 9.0) {
             en.frozenTimer = 6.0;
             en.iceCage.visible = true;
-            en.hp -= 20;
+            en.hp -= 25;
+            this.spawnCombatNumber(en.group.position, 'FROZEN! -25', '#38bdf8', true);
             if (en.hp <= 0) this.killEnemy(en);
           }
         });
+      }
+
+      spawnImpactBurst(pos, colorHex = 0x00f0ff) {
+        const burstGeo = new THREE.SphereGeometry(0.55, 8, 8);
+        const burstMat = new THREE.MeshBasicMaterial({
+          color: colorHex,
+          transparent: true,
+          opacity: 0.85,
+          wireframe: true
+        });
+        const burstMesh = new THREE.Mesh(burstGeo, burstMat);
+        burstMesh.position.copy(pos);
+        this.scene.add(burstMesh);
+
+        const startTime = performance.now();
+        const anim = () => {
+          const t = (performance.now() - startTime) / 220;
+          if (t >= 1) {
+            this.scene.remove(burstMesh);
+            burstGeo.dispose();
+            burstMat.dispose();
+          } else {
+            burstMesh.scale.setScalar(1 + t * 2.2);
+            burstMat.opacity = 0.85 * (1 - t);
+            requestAnimationFrame(anim);
+          }
+        };
+        requestAnimationFrame(anim);
+      }
+
+      spawnCombatNumber(worldPos, text, color = '#fde047', isCrit = false) {
+        if (!this.dom.combatNums) return;
+        this._vWorldPrompt.copy(worldPos);
+        this._vWorldPrompt.y += 1.8;
+        this._vWorldPrompt.project(this.camera);
+        if (this._vWorldPrompt.z > 1) return; // Behind camera
+        const x = (this._vWorldPrompt.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (-this._vWorldPrompt.y * 0.5 + 0.5) * window.innerHeight;
+
+        const el = document.createElement('div');
+        el.className = 'combat-num-float';
+        el.style.left = `${x}px`;
+        el.style.top = `${y}px`;
+        el.style.color = color;
+        if (isCrit) {
+          el.style.fontSize = '18px';
+          el.style.textShadow = '0 0 12px ' + color;
+        }
+        el.innerText = text;
+        this.dom.combatNums.appendChild(el);
+        setTimeout(() => el.remove(), 750);
       }
 
       killEnemy(en) {
@@ -1895,6 +2030,8 @@
         this.enemiesDefeated++;
         this.mp = Math.min(this.maxMp, this.mp + 20);
         this.updateStatusBars();
+        this.spawnImpactBurst(en.group.position.clone().add(new THREE.Vector3(0, 1.0, 0)), 0xfde047);
+        this.spawnCombatNumber(en.group.position, 'VANQUISHED! +20 MP', '#fde047', true);
         this.showTopBanner(`${en.name} Vanquished! (+20 Mana)`, '#fde047');
       }
 
@@ -1987,6 +2124,47 @@
           this.mp = this.maxMp;
           this.updateStatusBars();
           this.showTopBanner('✨ ARCHMAGE MODE: Infinite Mana & Zero Cooldowns!', '#fde047');
+        } else if (code === 'GOD' || code === 'IMMORTAL' || code === 'INVINCIBLE') {
+          this.godMode = !this.godMode;
+          this.hp = this.maxHp;
+          this.updateStatusBars();
+          this.showTopBanner(
+            this.godMode ? '👑 GOD MODE: Complete Invulnerability from Monsters!' : 'God Mode Disabled',
+            '#f59e0b'
+          );
+        } else if (code === 'HEAL' || code === 'POTION' || code === 'LIFE') {
+          this.hp = this.maxHp;
+          this.mp = this.maxMp;
+          this.updateStatusBars();
+          audio.playCastMandala();
+          this.spawnImpactBurst(this.playerPos.clone().add(new THREE.Vector3(0, 1.0, 0)), 0x10b981);
+          this.spawnCombatNumber(this.playerPos, 'FULL RESTORE +100 HP', '#10b981', true);
+          this.showTopBanner('💚 FULL VITALITY: 100% HP & Arcane Mana Restored!', '#10b981');
+        } else if (code === 'RADAR' || code === 'MAP' || code === 'REVEAL') {
+          this.clairvoyance = !this.clairvoyance;
+          this.showTopBanner(
+            this.clairvoyance ? '👁️ CLAIRVOYANCE: Entire Labyrinth Secrets & Exit Revealed!' : 'Clairvoyance Deactivated',
+            '#06b6d4'
+          );
+        } else if (code === 'NUKE' || code === 'EXTERMINATE' || code === 'KILLALL') {
+          audio.playFireball();
+          let count = 0;
+          this.enemies.forEach(en => {
+            if (en.alive) {
+              this.killEnemy(en);
+              count++;
+            }
+          });
+          this.showTopBanner(`💥 CATACLYSMIC NUKE: ${count} Monsters Obliterated!`, '#ef4444');
+        } else if (code === 'SPEED' || code === 'SANIC') {
+          this.speedBoost = !this.speedBoost;
+          this.showTopBanner(
+            this.speedBoost ? '🏃 SPEED BOOST: +150% Movement Velocity Active!' : 'Speed Boost Disabled',
+            '#3b82f6'
+          );
+        } else if (code === 'CHAPTER1') {
+          this.loadChapter(1, 'SANCTUM-1');
+          this.showTopBanner('Warped to Chapter I: Sanctum of the Blind Elder', '#38bdf8');
         } else if (code === 'CHAPTER2') {
           this.loadChapter(2, 'CINDER-2');
           this.showTopBanner('Warped to Chapter II: Catacombs of Cinder', '#f97316');
@@ -2049,19 +2227,88 @@
           document.getElementById('svg-audio-off').classList.toggle('hidden', on);
         });
 
-        // Smooth Mouse Drag Look on Canvas
+        // Fullscreen Toggle & Change Listeners
+        if (this.dom.fsBtn) {
+          this.dom.fsBtn.addEventListener('click', () => this.toggleFullscreen());
+        }
+        const onFsChange = () => {
+          const isFs = Boolean(
+            document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement
+          );
+          if (this.dom.svgFsEnter) this.dom.svgFsEnter.classList.toggle('hidden', isFs);
+          if (this.dom.svgFsExit) this.dom.svgFsExit.classList.toggle('hidden', !isFs);
+          if (this.dom.fsLabel) this.dom.fsLabel.innerText = isFs ? 'EXIT' : 'FULL';
+        };
+        document.addEventListener('fullscreenchange', onFsChange);
+        document.addEventListener('webkitfullscreenchange', onFsChange);
+        document.addEventListener('mozfullscreenchange', onFsChange);
+        document.addEventListener('MSFullscreenChange', onFsChange);
+
+        // Canvas Look & Perspective Controls (Mobile Touch + Desktop Drag/PointerLock)
         const canvas = document.getElementById('game-canvas');
+
+        // Touch Drag Look for Mobile Phones (Right side of screen)
+        let touchLookId = null;
+        let lastTouchPos = { x: 0, y: 0 };
+
+        canvas.addEventListener('touchstart', (e) => {
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i];
+            // If touch starts on the right 62% of the screen (away from joystick)
+            if (t.clientX > window.innerWidth * 0.35 && touchLookId === null) {
+              touchLookId = t.identifier;
+              lastTouchPos = { x: t.clientX, y: t.clientY };
+              break;
+            }
+          }
+        }, { passive: true });
+
+        canvas.addEventListener('touchmove', (e) => {
+          if (touchLookId === null) return;
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i];
+            if (t.identifier === touchLookId) {
+              const dx = t.clientX - lastTouchPos.x;
+              const dy = t.clientY - lastTouchPos.y;
+              lastTouchPos = { x: t.clientX, y: t.clientY };
+              this.playerYaw -= dx * 0.0065;
+              this.cameraPitch = Math.max(-0.65, Math.min(0.65, this.cameraPitch + dy * 0.0045));
+              break;
+            }
+          }
+        }, { passive: true });
+
+        const endTouchLook = (e) => {
+          if (touchLookId === null) return;
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === touchLookId) {
+              touchLookId = null;
+              break;
+            }
+          }
+        };
+        canvas.addEventListener('touchend', endTouchLook, { passive: true });
+        canvas.addEventListener('touchcancel', endTouchLook, { passive: true });
+
+        // Smooth Mouse Drag Look on Canvas
         canvas.addEventListener('mousedown', (e) => {
           this.isMouseDragging = true;
           this.lastMousePos = { x: e.clientX, y: e.clientY };
         });
         window.addEventListener('mousemove', (e) => {
-          if (!this.isMouseDragging) return;
-          const dx = e.clientX - this.lastMousePos.x;
-          const dy = e.clientY - this.lastMousePos.y;
-          this.lastMousePos = { x: e.clientX, y: e.clientY };
-          this.playerYaw -= dx * 0.0045;
-          this.cameraPitch = Math.max(-0.25, Math.min(0.45, this.cameraPitch + dy * 0.003));
+          if (this.isPointerLocked) {
+            this.playerYaw -= e.movementX * 0.003;
+            this.cameraPitch = Math.max(-0.65, Math.min(0.65, this.cameraPitch + e.movementY * 0.0025));
+          } else if (this.isMouseDragging) {
+            const dx = e.clientX - this.lastMousePos.x;
+            const dy = e.clientY - this.lastMousePos.y;
+            this.lastMousePos = { x: e.clientX, y: e.clientY };
+            this.playerYaw -= dx * 0.0045;
+            this.cameraPitch = Math.max(-0.65, Math.min(0.65, this.cameraPitch + dy * 0.003));
+          }
         });
         window.addEventListener('mouseup', () => {
           this.isMouseDragging = false;
@@ -2123,8 +2370,10 @@
       cycleCameraMode() {
         this.cameraMode = (this.cameraMode + 1) % 3;
         const labels = ['SHOULDER', 'TACTICAL', 'FIRST-PERSON'];
-        document.getElementById('cam-label').innerText = labels[this.cameraMode];
-        this.wizardGroup.visible = this.cameraMode !== 2;
+        const labelEl = document.getElementById('cam-label');
+        if (labelEl) labelEl.innerText = labels[this.cameraMode];
+        this.wizardGroup.visible = (this.cameraMode !== 2);
+        this.showTopBanner(`Camera Perspective: ${labels[this.cameraMode]}`, '#38bdf8');
       }
 
       showTopBanner(text, dotColor = '#fde047') {
@@ -2221,7 +2470,7 @@
         }
 
         const isMoving = Math.hypot(moveX, moveZ) > 0.05;
-        const speed = (this.zaneMode ? 9.5 : 5.8) * dt;
+        const speed = (this.zaneMode ? 9.5 : this.speedBoost ? 10.5 : 5.8) * dt;
 
         if (isMoving) {
           const len = Math.hypot(moveX, moveZ);
@@ -2319,6 +2568,8 @@
             const en = this.enemies[j];
             if (en.alive && en.group.position.distanceToSquared(p.mesh.position) < 1.82) {
               en.hp -= p.damage;
+              const isFlame = (p.damage > 30);
+              this.spawnCombatNumber(en.group.position, `-${p.damage}`, isFlame ? '#fb923c' : '#38bdf8', isFlame);
               if (en.hp <= 0) this.killEnemy(en);
               hit = true;
               break;
@@ -2326,6 +2577,9 @@
           }
 
           if (hit || p.life <= 0) {
+            if (hit) {
+              this.spawnImpactBurst(p.mesh.position, (p.damage > 30) ? 0xf97316 : 0x00f0ff);
+            }
             this.scene.remove(p.mesh);
             this.projectiles.splice(i, 1);
           }
@@ -2344,13 +2598,25 @@
           en.group.position.x = en.patrolOrigin.x + Math.sin(en.patrolPhase) * 1.4;
           en.group.lookAt(this.playerPos.x, 0, this.playerPos.z);
 
-          if (en.group.position.distanceToSquared(this.playerPos) < 1.82 && this.shieldWardTimer <= 0 && !this.zaneMode) {
+          if (en.group.position.distanceToSquared(this.playerPos) < 1.82 && this.shieldWardTimer <= 0 && !this.zaneMode && !this.godMode) {
             this.hp = Math.max(10, this.hp - dt * 12);
+            if (this.frameCounter % 24 === 0) {
+              this.spawnCombatNumber(this.playerPos, '-6', '#ef4444');
+            }
             this.updateStatusBars();
           }
         }
 
-        if (this.shieldWardTimer > 0) this.shieldWardTimer -= dt;
+        if (this.shieldWardTimer > 0) {
+          this.shieldWardTimer = Math.max(0, this.shieldWardTimer - dt);
+          if (this.shieldMesh) {
+            this.shieldMesh.visible = true;
+            this.shieldMesh.rotation.y += dt * 2.5;
+            this.shieldMesh.rotation.z += dt * 1.5;
+          }
+        } else if (this.shieldMesh) {
+          this.shieldMesh.visible = false;
+        }
 
         // Update Elder Soul Shards
         for (let idx = 0; idx < this.shards.length; idx++) {
@@ -2392,39 +2658,95 @@
 
       updateCamera() {
         if (this.cameraMode === 0) {
-          // OVER-THE-SHOULDER CAMERA (Zero vector allocations)
-          const backDist = 3.15;
+          // OVER-THE-SHOULDER CAMERA (With wall-collision pull-in)
+          let backDist = 3.15;
           const rightShift = 0.42;
           const heightOffset = 1.72;
 
           this._vForward.set(-Math.sin(this.playerYaw), 0, -Math.cos(this.playerYaw));
           this._vRight.set(Math.cos(this.playerYaw), 0, -Math.sin(this.playerYaw));
 
+          // Test if camera would penetrate a wall directly behind player
+          const testBackX = this.playerPos.x - this._vForward.x * backDist;
+          const testBackZ = this.playerPos.z - this._vForward.z * backDist;
+          if (this.checkCollisionAt(testBackX, testBackZ)) {
+            backDist = 1.35; // Pull in close so camera never clips into black void
+          }
+
           this._vDesiredCam.copy(this.playerPos)
             .addScaledVector(this._vForward, -backDist)
             .addScaledVector(this._vRight, rightShift);
           this._vDesiredCam.y += heightOffset;
 
-          this.camera.position.lerp(this._vDesiredCam, 0.18);
+          this.camera.position.lerp(this._vDesiredCam, 0.2);
 
           this._vLookTarget.copy(this.playerPos)
             .addScaledVector(this._vForward, 6.5)
             .addScaledVector(this._vRight, 0.55);
-          this._vLookTarget.y += 1.35 - this.cameraPitch * 3.0;
+          this._vLookTarget.y += 1.35 + Math.sin(this.cameraPitch) * 4.0;
 
           this.camera.lookAt(this._vLookTarget);
         } else if (this.cameraMode === 1) {
-          // TACTICAL TOP-DOWN CAMERA
-          this._vDesiredCam.set(this.playerPos.x, this.playerPos.y + 14, this.playerPos.z + 7);
-          this.camera.position.lerp(this._vDesiredCam, 0.15);
-          this._vLookTarget.set(this.playerPos.x, this.playerPos.y + 1, this.playerPos.z - 2);
+          // TACTICAL TOP-DOWN / ISOMETRIC CAMERA
+          this._vDesiredCam.set(
+            this.playerPos.x - Math.sin(this.playerYaw) * 6.5,
+            this.playerPos.y + 12.0,
+            this.playerPos.z - Math.cos(this.playerYaw) * 6.5
+          );
+          this.camera.position.lerp(this._vDesiredCam, 0.16);
+          this._vLookTarget.set(this.playerPos.x, this.playerPos.y + 1, this.playerPos.z);
           this.camera.lookAt(this._vLookTarget);
         } else {
-          // FIRST-PERSON CAMERA
-          this._vForward.set(-Math.sin(this.playerYaw), 0, -Math.cos(this.playerYaw));
-          this.camera.position.set(this.playerPos.x, this.playerPos.y + 1.65, this.playerPos.z);
+          // FIRST-PERSON CAMERA (Accurate 3D Pitch and Yaw Look)
+          const cp = Math.cos(this.cameraPitch);
+          const sp = Math.sin(this.cameraPitch);
+          this._vForward.set(-Math.sin(this.playerYaw) * cp, sp, -Math.cos(this.playerYaw) * cp);
+          this.camera.position.set(this.playerPos.x, this.playerPos.y + 1.62, this.playerPos.z);
           this._vLookTarget.copy(this.camera.position).add(this._vForward);
           this.camera.lookAt(this._vLookTarget);
+        }
+      }
+
+      toggleFullscreen() {
+        const doc = document;
+        const isFs = Boolean(
+          doc.fullscreenElement ||
+          doc.webkitFullscreenElement ||
+          doc.mozFullScreenElement ||
+          doc.msFullscreenElement
+        );
+
+        const notifyParent = (action) => {
+          try {
+            if (window.parent && window.parent !== window) {
+              window.parent.postMessage({ source: 'ZANEX_ARCANE_MAZE', action }, '*');
+            }
+          } catch (e) {}
+        };
+
+        if (!isFs) {
+          const el = document.documentElement;
+          const rfs =
+            el.requestFullscreen ||
+            el.webkitRequestFullscreen ||
+            el.mozRequestFullScreen ||
+            el.msRequestFullscreen;
+
+          if (rfs) {
+            rfs.call(el).catch(() => {
+              notifyParent('TOGGLE_FULLSCREEN');
+            });
+          } else {
+            notifyParent('TOGGLE_FULLSCREEN');
+          }
+        } else {
+          const efs =
+            doc.exitFullscreen ||
+            doc.webkitExitFullscreen ||
+            doc.mozCancelFullScreen ||
+            doc.msExitFullscreen;
+          if (efs) efs.call(doc).catch(() => {});
+          notifyParent('EXIT_FULLSCREEN');
         }
       }
 
@@ -2480,10 +2802,15 @@
         // Draw Portal Icon on Radar
         const px = (this.portalPos.x - this.playerPos.x) * scale;
         const pz = (this.portalPos.z - this.playerPos.z) * scale;
-        ctx.fillStyle = '#38bdf8';
+        ctx.fillStyle = this.portalUnlocked ? '#00f0ff' : '#38bdf8';
         ctx.beginPath();
-        ctx.arc(px, pz, 5, 0, Math.PI * 2);
+        ctx.arc(px, pz, this.clairvoyance ? 7 : 5, 0, Math.PI * 2);
         ctx.fill();
+        if (this.clairvoyance) {
+          ctx.strokeStyle = '#00f0ff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
 
         // Draw Soul Shards (Green/Gold markers)
         ctx.fillStyle = '#4ade80';
@@ -2493,8 +2820,13 @@
           const sx = (s.group.position.x - this.playerPos.x) * scale;
           const sz = (s.group.position.z - this.playerPos.z) * scale;
           ctx.beginPath();
-          ctx.arc(sx, sz, 3.8, 0, Math.PI * 2);
+          ctx.arc(sx, sz, this.clairvoyance ? 5.5 : 3.8, 0, Math.PI * 2);
           ctx.fill();
+          if (this.clairvoyance) {
+            ctx.strokeStyle = '#fde047';
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+          }
         }
 
         // Draw Enemies (Orange/Red dots)
@@ -2510,6 +2842,15 @@
         }
 
         ctx.restore();
+
+        // Clairvoyance Radar Sweep Ring
+        if (this.clairvoyance) {
+          ctx.strokeStyle = 'rgba(6, 182, 212, 0.65)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(cx, cy, (performance.now() * 0.04) % (w / 2), 0, Math.PI * 2);
+          ctx.stroke();
+        }
 
         // Draw Green FOV Cone
         if (!this._radarConeGrad) {

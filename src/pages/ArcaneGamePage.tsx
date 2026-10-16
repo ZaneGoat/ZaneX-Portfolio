@@ -49,6 +49,17 @@ export const ArcaneGamePage: React.FC = () => {
         toast("⚡ ZANE OVERDRIVE ENGAGED", {
           description: "Astral rainbow dimension active. Infinite mana & zero cooldowns!"
         });
+      } else if (action === "TOGGLE_FULLSCREEN") {
+        toggleFullscreen();
+      } else if (action === "EXIT_FULLSCREEN") {
+        const doc = document as any;
+        const efs =
+          doc.exitFullscreen ||
+          doc.webkitExitFullscreen ||
+          doc.mozCancelFullScreen ||
+          doc.msExitFullscreen;
+        if (efs) efs.call(doc).catch(() => {});
+        setIsFullscreen(false);
       }
     };
 
@@ -58,21 +69,63 @@ export const ArcaneGamePage: React.FC = () => {
 
   const toggleFullscreen = () => {
     sound.playClick();
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen?.().catch(() => {});
+    const doc = document as any;
+    const isFs = Boolean(
+      doc.fullscreenElement ||
+      doc.webkitFullscreenElement ||
+      doc.mozFullScreenElement ||
+      doc.msFullscreenElement
+    );
+
+    if (!isFs) {
+      const el = (containerRef.current || document.documentElement) as any;
+      const rfs =
+        el.requestFullscreen ||
+        el.webkitRequestFullscreen ||
+        el.mozRequestFullScreen ||
+        el.msRequestFullscreen;
+
+      if (rfs) {
+        rfs.call(el).catch(() => {
+          document.documentElement.requestFullscreen?.().catch(() => {});
+        });
+      }
       setIsFullscreen(true);
     } else {
-      document.exitFullscreen?.().catch(() => {});
+      const efs =
+        doc.exitFullscreen ||
+        doc.webkitExitFullscreen ||
+        doc.mozCancelFullScreen ||
+        doc.msExitFullscreen;
+      if (efs) efs.call(doc).catch(() => {});
       setIsFullscreen(false);
     }
   };
 
   useEffect(() => {
     const onFsChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
+      const doc = document as any;
+      setIsFullscreen(
+        Boolean(
+          doc.fullscreenElement ||
+          doc.webkitFullscreenElement ||
+          doc.mozFullScreenElement ||
+          doc.msFullscreenElement
+        )
+      );
     };
+
     document.addEventListener("fullscreenchange", onFsChange);
-    return () => document.removeEventListener("fullscreenchange", onFsChange);
+    document.addEventListener("webkitfullscreenchange", onFsChange);
+    document.addEventListener("mozfullscreenchange", onFsChange);
+    document.addEventListener("MSFullscreenChange", onFsChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", onFsChange);
+      document.removeEventListener("webkitfullscreenchange", onFsChange);
+      document.removeEventListener("mozfullscreenchange", onFsChange);
+      document.removeEventListener("MSFullscreenChange", onFsChange);
+    };
   }, []);
 
   return (
@@ -146,6 +199,7 @@ export const ArcaneGamePage: React.FC = () => {
           title="Elder Catalyzer 3D Arcane Realm Standalone"
           className="w-full h-full border-0 block"
           allow="autoplay; fullscreen; accelerometer; gyroscope"
+          allowFullScreen={true}
         />
       </div>
     </div>
