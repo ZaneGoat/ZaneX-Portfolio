@@ -68,7 +68,7 @@ const NotFound = () => {
             </Link>
 
             <p className="text-[11px] text-primary/60 font-mono mt-2">
-              Hint: 15 taps trigger the cookie exploit, 40 taps reveal root memo.
+              Hint: 15 taps trigger the speed-click exploit, 40 taps reveal root memo.
             </p>
           </div>
         </motion.div>

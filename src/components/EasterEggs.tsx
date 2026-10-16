@@ -17,7 +17,7 @@ interface ClickParticle {
 
 export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsProps) => {
   const [clickCount, setClickCount] = useState(0);
-  const [showCookie, setShowCookie] = useState(false);
+  const [showClickExploit, setShowClickExploit] = useState(false);
   const [showSecretButton, setShowSecretButton] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [hintPlatform, setHintPlatform] = useState<"none" | "pc" | "phone">("none");
@@ -196,7 +196,7 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
         }
         if (next === 15) {
           sound.playSuccess();
-          setShowCookie(true);
+          setShowClickExploit(true);
         }
         return next;
       });
@@ -206,14 +206,14 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
     return () => window.removeEventListener("click", handlePointerClick);
   }, []);
 
-  const claimCookie = () => {
+  const claimExploit = () => {
     sound.playSuccess();
-    document.cookie = "ZaneGoatReward=🍪; max-age=86400; path=/";
+    document.cookie = "ZaneClickExploit=15_CLICKS_MASTER; max-age=86400; path=/";
     setHasClaimed(true);
     setTimeout(() => {
-      setShowCookie(false);
+      setShowClickExploit(false);
       setHasClaimed(false);
-    }, 4000);
+    }, 3000);
   };
 
   return (
@@ -250,36 +250,41 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
         )}
       </AnimatePresence>
 
-      {/* 15 Clicks: Cookie Reward Modal */}
+      {/* 15 Clicks: Speed Clicker Exploit Modal */}
       <AnimatePresence>
-        {showCookie && (
+        {showClickExploit && (
           <motion.div
             initial={{ scale: 0.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.6, opacity: 0 }}
-            className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md"
+            className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md font-mono"
           >
-            <div className="bg-[#050816] border-2 border-primary p-6 sm:p-8 rounded-3xl shadow-[0_0_80px_hsl(var(--primary)/0.5)] text-center max-w-sm w-full font-mono relative">
-              <div className="text-6xl mb-4 animate-bounce">🍪</div>
-              <h3 className="text-2xl font-black text-primary uppercase mb-2">
-                {hasClaimed ? "REWARD INJECTED" : "DATA DECRYPTED"}
+            <div className="bg-[#050816] border-2 border-primary p-6 sm:p-8 rounded-3xl shadow-[0_0_80px_hsl(var(--primary)/0.5)] text-center max-w-sm w-full relative">
+              <div className="w-14 h-14 rounded-2xl bg-primary/15 border border-primary/40 text-primary mx-auto mb-4 flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
+                <Zap className="w-7 h-7 text-primary animate-pulse" />
+              </div>
+              <h3 className="text-xl font-black text-primary uppercase mb-2">
+                {hasClaimed ? "CLEARANCE LOGGED" : "CLICK EXPLOIT UNLOCKED"}
               </h3>
+              <p className="text-foreground text-sm font-bold leading-relaxed mb-3">
+                &quot;Wow u good at clicking like me u clicked 15 times&quot;
+              </p>
               <p className="text-muted-foreground text-xs mb-6">
                 {hasClaimed
-                  ? "[+] 1x COOKIE ADDED TO SYSTEM STORAGE"
-                  : "[+] 15 Clicks Verified! Exploit Successful."}
+                  ? "[+] 15-CLICK FLEX RECORDED IN SYSTEM MEMORY"
+                  : "[+] Pointer Overclocking Detected · Zane Respect Level +100"}
               </p>
               {!hasClaimed ? (
                 <button
-                  onClick={claimCookie}
-                  className="w-full bg-primary text-background font-bold py-3 rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_25px_hsl(var(--primary)/0.5)] cursor-pointer"
+                  onClick={claimExploit}
+                  className="w-full bg-primary text-background font-bold py-3 rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_25px_hsl(var(--primary)/0.5)] cursor-pointer text-xs uppercase tracking-wider"
                 >
-                  CLAIM_REWARD.exe
+                  CLAIM_FLEX.exe
                 </button>
               ) : (
                 <div className="text-primary font-bold text-xs flex items-center justify-center gap-2">
-                  <Zap className="w-4 h-4 animate-pulse" />
-                  <span>LOCAL_STORAGE UPDATED</span>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span>FLEX CONFIRMED · BUFFER SECURED</span>
                 </div>
               )}
             </div>
