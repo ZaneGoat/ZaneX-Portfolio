@@ -111,6 +111,25 @@
       pointer-events: none;
     }
 
+    /* Mobile Phone Ergonomics */
+    @media (max-width: 640px) {
+      .spell-card {
+        width: 48px;
+        height: 64px;
+        border-radius: 4px;
+      }
+      .spell-card .spell-icon-box {
+        height: 34px !important;
+      }
+      .spell-card svg {
+        width: 20px !important;
+        height: 20px !important;
+      }
+      .spell-card span {
+        font-size: 8px !important;
+      }
+    }
+
     /* Bottom-Right Circular Combat Buttons */
     .combat-round-btn {
       background: radial-gradient(circle at 35% 30%, rgba(30, 41, 59, 0.92), rgba(7, 10, 19, 0.96));
@@ -263,14 +282,14 @@
 
   <!-- =====================================================================
        4. MIDDLE-RIGHT: 4 ORNATE SPELL CARDS (SPELL 1 - SPELL 4)
-       (Exact match to Blink, Flame, Freeze, Shield cards in screenshot)
+       (Responsive: Stacked cleanly on mobile, row on desktop)
        ===================================================================== -->
-  <div class="fixed right-4 sm:right-6 top-1/2 -translate-y-1/3 z-20 flex flex-row gap-2 sm:gap-2.5 items-center">
+  <div class="fixed right-2 sm:right-6 top-1/2 -translate-y-1/2 z-20 flex flex-col sm:flex-row gap-1.5 sm:gap-2.5 items-center">
     <!-- SPELL 1: BLINK -->
     <div class="flex flex-col items-center">
-      <span class="cinzel text-[9px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-1 drop-shadow">SPELL 1</span>
-      <button id="spell-card-1" onclick="window.game && window.game.castSpell(1)" class="spell-card flex flex-col items-center justify-between p-1.5">
-        <div class="w-full h-14 rounded bg-gradient-to-b from-sky-950 via-blue-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-sky-400/30">
+      <span class="cinzel text-[8px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-0.5 sm:mb-1 drop-shadow">SPELL 1</span>
+      <button id="spell-card-1" onclick="window.game && window.game.castSpell(1)" class="spell-card flex flex-col items-center justify-between p-1 sm:p-1.5">
+        <div class="spell-icon-box w-full h-14 rounded bg-gradient-to-b from-sky-950 via-blue-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-sky-400/30">
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,240,255,0.35),transparent_70%)]"></div>
           <!-- Dashing Blink Silhouette Icon -->
           <svg class="w-9 h-9 text-cyan-300 drop-shadow-[0_0_8px_#00f0ff]" viewBox="0 0 24 24" fill="currentColor">
@@ -278,56 +297,56 @@
             <path d="M2 11h4v1.5H2zm1 3h5v1.5H3zm-2 3h6v1.5H1z" opacity="0.75"/>
           </svg>
         </div>
-        <span class="cinzel text-[11px] font-bold text-amber-100 tracking-wide">Blink</span>
-        <div id="cd-overlay-1" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-xs font-bold text-cyan-300"></div>
+        <span class="cinzel text-[9px] sm:text-[11px] font-bold text-amber-100 tracking-wide">Blink</span>
+        <div id="cd-overlay-1" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-[10px] sm:text-xs font-bold text-cyan-300"></div>
       </button>
     </div>
 
     <!-- SPELL 2: FLAME -->
     <div class="flex flex-col items-center">
-      <span class="cinzel text-[9px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-1 drop-shadow">SPELL 2</span>
-      <button id="spell-card-2" onclick="window.game && window.game.castSpell(2)" class="spell-card flex flex-col items-center justify-between p-1.5">
-        <div class="w-full h-14 rounded bg-gradient-to-b from-amber-950 via-red-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-orange-400/30">
+      <span class="cinzel text-[8px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-0.5 sm:mb-1 drop-shadow">SPELL 2</span>
+      <button id="spell-card-2" onclick="window.game && window.game.castSpell(2)" class="spell-card flex flex-col items-center justify-between p-1 sm:p-1.5">
+        <div class="spell-icon-box w-full h-14 rounded bg-gradient-to-b from-amber-950 via-red-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-orange-400/30">
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,146,60,0.45),transparent_70%)]"></div>
           <!-- Flame Fireball Icon -->
           <svg class="w-9 h-9 text-amber-400 drop-shadow-[0_0_10px_#f97316]" viewBox="0 0 24 24" fill="currentColor">
             <path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/>
           </svg>
         </div>
-        <span class="cinzel text-[11px] font-bold text-amber-100 tracking-wide">Flame</span>
-        <div id="cd-overlay-2" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-xs font-bold text-orange-300"></div>
+        <span class="cinzel text-[9px] sm:text-[11px] font-bold text-amber-100 tracking-wide">Flame</span>
+        <div id="cd-overlay-2" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-[10px] sm:text-xs font-bold text-orange-300"></div>
       </button>
     </div>
 
     <!-- SPELL 3: FREEZE -->
     <div class="flex flex-col items-center">
-      <span class="cinzel text-[9px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-1 drop-shadow">SPELL 3</span>
-      <button id="spell-card-3" onclick="window.game && window.game.castSpell(3)" class="spell-card flex flex-col items-center justify-between p-1.5">
-        <div class="w-full h-14 rounded bg-gradient-to-b from-cyan-950 via-sky-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-cyan-300/30">
+      <span class="cinzel text-[8px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-0.5 sm:mb-1 drop-shadow">SPELL 3</span>
+      <button id="spell-card-3" onclick="window.game && window.game.castSpell(3)" class="spell-card flex flex-col items-center justify-between p-1 sm:p-1.5">
+        <div class="spell-icon-box w-full h-14 rounded bg-gradient-to-b from-cyan-950 via-sky-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-cyan-300/30">
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.45),transparent_70%)]"></div>
           <!-- Snowflake Freeze Icon -->
           <svg class="w-9 h-9 text-sky-200 drop-shadow-[0_0_10px_#38bdf8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v20M17 4l-5 4-5-4M7 20l5-4 5 4M2 12h20M4 7l4 5-4 5M20 17l-4-5 4-5M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>
           </svg>
         </div>
-        <span class="cinzel text-[11px] font-bold text-amber-100 tracking-wide">Freeze</span>
-        <div id="cd-overlay-3" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-xs font-bold text-sky-300"></div>
+        <span class="cinzel text-[9px] sm:text-[11px] font-bold text-amber-100 tracking-wide">Freeze</span>
+        <div id="cd-overlay-3" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-[10px] sm:text-xs font-bold text-sky-300"></div>
       </button>
     </div>
 
     <!-- SPELL 4: SHIELD -->
     <div class="flex flex-col items-center">
-      <span class="cinzel text-[9px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-1 drop-shadow">SPELL 4</span>
-      <button id="spell-card-4" onclick="window.game && window.game.castSpell(4)" class="spell-card flex flex-col items-center justify-between p-1.5">
-        <div class="w-full h-14 rounded bg-gradient-to-b from-indigo-950 via-blue-900/80 to-slate-950 flex items-center justify-center relative overflow-hidden border border-amber-300/40">
+      <span class="cinzel text-[8px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-0.5 sm:mb-1 drop-shadow">SPELL 4</span>
+      <button id="spell-card-4" onclick="window.game && window.game.castSpell(4)" class="spell-card flex flex-col items-center justify-between p-1 sm:p-1.5">
+        <div class="spell-icon-box w-full h-14 rounded bg-gradient-to-b from-indigo-950 via-blue-900/80 to-slate-950 flex items-center justify-center relative overflow-hidden border border-amber-300/40">
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.5),transparent_70%)]"></div>
           <!-- Radiant Shield Icon -->
           <svg class="w-9 h-9 text-cyan-200 drop-shadow-[0_0_10px_#60a5fa]" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4.18l5 2.22v4.6c0 4.12-2.88 8.01-5 9.15-2.12-1.14-5-5.03-5-9.15V7.4l5-2.22z"/>
           </svg>
         </div>
-        <span class="cinzel text-[11px] font-bold text-amber-100 tracking-wide">Shield</span>
-        <div id="cd-overlay-4" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-xs font-bold text-amber-300"></div>
+        <span class="cinzel text-[9px] sm:text-[11px] font-bold text-amber-100 tracking-wide">Shield</span>
+        <div id="cd-overlay-4" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-[10px] sm:text-xs font-bold text-amber-300"></div>
       </button>
     </div>
   </div>

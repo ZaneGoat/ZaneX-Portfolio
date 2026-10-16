@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert } from "lucide-react";
+import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Sparkles, Compass } from "lucide-react";
 import { navLinks } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
@@ -10,9 +10,15 @@ interface NavigationProps {
   onOpenTerminal: () => void;
   onOpenBreach: () => void;
   onOpenCtf?: () => void;
+  onOpenMaze?: () => void;
 }
 
-export const Navigation = ({ onOpenTerminal, onOpenBreach, onOpenCtf }: NavigationProps) => {
+export const Navigation = ({
+  onOpenTerminal,
+  onOpenBreach,
+  onOpenCtf,
+  onOpenMaze
+}: NavigationProps) => {
   const { persona } = usePersona();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
@@ -37,20 +43,20 @@ export const Navigation = ({ onOpenTerminal, onOpenBreach, onOpenCtf }: Navigati
       <motion.nav
         initial={{ y: -80 }}
         animate={{ y: 0 }}
-        className="fixed top-0 w-full z-50 backdrop-blur-xl bg-background/80 border-b border-primary/20"
+        className="fixed top-0 w-full z-50 backdrop-blur-xl bg-background/85 border-b border-primary/20"
       >
-        <div className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
+        <div className="container mx-auto px-4 md:px-6 py-2.5 sm:py-3 flex justify-between items-center">
           {/* Logo / Brand */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <a
               href="#overview"
               onClick={() => sound.playClick()}
-              className="flex items-center gap-2 group font-mono"
+              className="flex items-center gap-2 group font-mono shrink-0"
             >
-              <span className="text-xl md:text-2xl font-black text-primary tracking-tighter group-hover:scale-105 transition-transform">
+              <span className="text-lg sm:text-xl md:text-2xl font-black text-primary tracking-tighter group-hover:scale-105 transition-transform">
                 ZANE<span className="text-secondary">X</span>
               </span>
-              <span className="text-[10px] bg-primary/10 text-primary border border-primary/30 px-2 py-0.5 rounded-full font-bold">
+              <span className="text-[9px] sm:text-[10px] bg-primary/10 text-primary border border-primary/30 px-1.5 sm:px-2 py-0.5 rounded-full font-bold">
                 v4.2
               </span>
             </a>
@@ -59,22 +65,52 @@ export const Navigation = ({ onOpenTerminal, onOpenBreach, onOpenCtf }: Navigati
             <PersonaSwitcher variant="compact" className="hidden xl:inline-flex" />
           </div>
 
-          {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-6 font-mono text-sm">
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex items-center gap-5 lg:gap-6 font-mono text-sm">
             {activeNavLinks.map(link => (
               <a
                 key={link.name}
                 href={link.href}
                 onClick={() => sound.playClick()}
-                className="text-foreground/80 hover:text-primary transition-colors relative py-1"
+                className="text-foreground/80 hover:text-primary transition-colors relative py-1 text-xs lg:text-sm"
               >
                 {link.name}
               </a>
             ))}
+
+            {/* Dedicated 3D Game Link in Desktop Navbar */}
+            {onOpenMaze && (
+              <button
+                onClick={() => {
+                  sound.playBoot();
+                  onOpenMaze();
+                }}
+                className="flex items-center gap-1.5 text-amber-300 hover:text-amber-200 transition-colors font-bold text-xs lg:text-sm cursor-pointer"
+                title="Launch 3D Arcane Realm in Fullscreen"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                <span>✦ 3D Arcane</span>
+              </button>
+            )}
           </div>
 
-          {/* Controls: Audio Toggle, Terminal Trigger, Minigame Trigger */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Header Controls: Clean & uncluttered on mobile */}
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+            {/* Quick 3D Game Action Button (Large screens) */}
+            {onOpenMaze && (
+              <button
+                onClick={() => {
+                  sound.playBoot();
+                  onOpenMaze();
+                }}
+                className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 rounded-lg transition-all font-mono text-xs font-bold shadow-[0_0_15px_rgba(245,158,11,0.25)]"
+                title="Launch 3D Arcane Realm (Standalone Fullscreen)"
+              >
+                <Compass className="w-3.5 h-3.5 text-amber-400" />
+                <span>3D GAME</span>
+              </button>
+            )}
+
             {/* Audio Toggle */}
             <button
               onClick={handleToggleSound}
@@ -101,37 +137,38 @@ export const Navigation = ({ onOpenTerminal, onOpenBreach, onOpenCtf }: Navigati
               <Terminal className="w-4 h-4" />
             </button>
 
-            {/* Quick Breach Trigger */}
+            {/* Quick Breach Trigger (Hidden on small mobile to avoid cramped navbar wrap) */}
             <button
               onClick={() => {
                 sound.playBoot();
                 onOpenBreach();
               }}
-              className="p-2 bg-secondary/10 border border-secondary/30 text-secondary hover:bg-secondary/20 rounded-lg transition-all"
+              className="hidden sm:flex p-2 bg-secondary/10 border border-secondary/30 text-secondary hover:bg-secondary/20 rounded-lg transition-all"
               title="Launch Breach Protocol Minigame"
             >
               <Zap className="w-4 h-4" />
             </button>
 
-            {/* Quick CTF Bounty Trigger */}
+            {/* Quick CTF Bounty Trigger (Hidden on small mobile to avoid cramped navbar wrap) */}
             {onOpenCtf && (
               <button
                 onClick={() => {
                   sound.playBoot();
                   onOpenCtf();
                 }}
-                className="px-2.5 py-1.5 bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 rounded-lg transition-all font-mono text-xs font-bold flex items-center gap-1.5"
+                className="hidden sm:flex px-2.5 py-1.5 bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 rounded-lg transition-all font-mono text-xs font-bold items-center gap-1.5"
                 title="Open Hack My Portfolio CTF Bounty Board"
               >
                 <ShieldAlert className="w-3.5 h-3.5 text-primary animate-pulse" />
-                <span className="hidden sm:inline">CTF</span>
+                <span>CTF</span>
               </button>
             )}
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 text-primary border border-primary/30 rounded-lg"
+              className="md:hidden p-2 text-primary border border-primary/30 rounded-lg hover:bg-primary/10"
+              title="Toggle Mobile Menu"
             >
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -139,33 +176,90 @@ export const Navigation = ({ onOpenTerminal, onOpenBreach, onOpenCtf }: Navigati
         </div>
       </motion.nav>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer Menu */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-x-0 top-14 z-40 bg-[#050816]/95 border-b border-primary/20 backdrop-blur-2xl p-6 md:hidden font-mono"
+            className="fixed inset-x-0 top-[52px] sm:top-14 z-40 bg-[#050816]/98 border-b border-primary/25 backdrop-blur-2xl p-5 md:hidden font-mono shadow-2xl max-h-[calc(100vh-55px)] overflow-y-auto"
           >
-            <div className="flex flex-col gap-4">
-              <div className="pb-2 border-b border-primary/15 flex justify-center">
+            <div className="flex flex-col gap-3">
+              {/* Featured 3D Game Launcher on Mobile */}
+              {onOpenMaze && (
+                <button
+                  onClick={() => {
+                    sound.playBoot();
+                    setIsMenuOpen(false);
+                    onOpenMaze();
+                  }}
+                  className="w-full flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-yellow-500/25 to-amber-500/20 border-2 border-amber-500/50 text-amber-300 font-bold text-sm shadow-[0_0_20px_rgba(245,158,11,0.25)] active:scale-95 transition-all text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
+                    <div>
+                      <div className="leading-tight">✦ 3D Arcane Realm</div>
+                      <div className="text-[10px] text-amber-200/70 font-normal">Standalone WebGL RPG</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-1 rounded bg-amber-500/30 text-amber-200 border border-amber-400/40">
+                    FULLSCREEN
+                  </span>
+                </button>
+              )}
+
+              {/* Persona Switcher in Mobile Drawer */}
+              <div className="py-2 border-y border-primary/15 flex justify-center">
                 <PersonaSwitcher variant="compact" />
               </div>
 
-              {activeNavLinks.map(link => (
-                <a
-                  key={link.name}
-                  href={link.href}
+              {/* Page Links */}
+              <div className="flex flex-col">
+                {activeNavLinks.map(link => (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => {
+                      sound.playClick();
+                      setIsMenuOpen(false);
+                    }}
+                    className="text-foreground/90 hover:text-primary text-base font-bold py-2.5 border-b border-primary/10 flex items-center justify-between"
+                  >
+                    <span>{link.name}</span>
+                    <span className="text-primary/40 text-xs">→</span>
+                  </a>
+                ))}
+              </div>
+
+              {/* Quick Minigame & CTF Triggers in Mobile Drawer */}
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <button
                   onClick={() => {
-                    sound.playClick();
+                    sound.playBoot();
                     setIsMenuOpen(false);
+                    onOpenBreach();
                   }}
-                  className="text-primary text-base font-bold py-2 border-b border-primary/10"
+                  className="flex items-center justify-center gap-1.5 p-3 rounded-xl border border-secondary/40 bg-secondary/15 text-secondary font-bold text-xs"
                 >
-                  {link.name}
-                </a>
-              ))}
+                  <Zap className="w-4 h-4" />
+                  <span>BREACH ICE</span>
+                </button>
+
+                {onOpenCtf && (
+                  <button
+                    onClick={() => {
+                      sound.playBoot();
+                      setIsMenuOpen(false);
+                      onOpenCtf();
+                    }}
+                    className="flex items-center justify-center gap-1.5 p-3 rounded-xl border border-yellow-500/40 bg-yellow-500/15 text-yellow-400 font-bold text-xs"
+                  >
+                    <ShieldAlert className="w-4 h-4" />
+                    <span>CTF QUEST</span>
+                  </button>
+                )}
+              </div>
             </div>
           </motion.div>
         )}

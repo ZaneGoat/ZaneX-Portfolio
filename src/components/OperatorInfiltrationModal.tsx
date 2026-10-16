@@ -95,32 +95,32 @@ export const OperatorInfiltrationModal: React.FC<OperatorInfiltrationModalProps>
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-3 sm:p-4 overscroll-contain"
       >
         <motion.div
           initial={{ scale: 0.94, y: 15 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.94, y: 15 }}
-          className="relative w-full max-w-3xl bg-[#030712] border-2 border-primary/50 rounded-2xl p-6 sm:p-8 shadow-[0_0_60px_hsl(var(--primary)/0.3)] font-mono text-foreground overflow-hidden"
+          className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto overscroll-contain bg-[#030712] border-2 border-primary/50 rounded-2xl p-4 sm:p-8 shadow-[0_0_60px_hsl(var(--primary)/0.3)] font-mono text-foreground custom-scrollbar"
         >
           {/* Subtle matrix glow in background */}
           <div className="absolute -top-24 -right-24 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-primary/20 pb-4 mb-6">
+          <div className="flex items-center justify-between border-b border-primary/20 pb-4 mb-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/50 flex items-center justify-center text-primary shadow-[0_0_20px_hsl(var(--primary)/0.4)]">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/20 border border-primary/50 flex items-center justify-center text-primary shadow-[0_0_20px_hsl(var(--primary)/0.4)] shrink-0">
                 <ShieldAlert className="w-5 h-5 animate-pulse" />
               </div>
               <div>
-                <h2 className="text-xl sm:text-2xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
-                  <span>CLASSIFIED DOSSIER INFILTRATION</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 font-bold">
+                <h2 className="text-lg sm:text-2xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
+                  <span>CLASSIFIED DOSSIER</span>
+                  <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 font-bold shrink-0">
                     LVL {clearanceLevel} / 3
                   </span>
                 </h2>
-                <p className="text-xs text-muted-foreground">
-                  Infiltrate the 3 security nodes to permanently declassify Zane's identity, specs & black-ops archives.
+                <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-1 sm:line-clamp-none">
+                  Infiltrate 3 security nodes to permanently declassify Zane's identity, specs & archives.
                 </p>
               </div>
             </div>
@@ -130,36 +130,36 @@ export const OperatorInfiltrationModal: React.FC<OperatorInfiltrationModalProps>
                 sound.playClick();
                 onClose();
               }}
-              className="p-1.5 rounded-lg border border-primary/30 text-primary hover:bg-primary/20 transition cursor-pointer"
+              className="p-1.5 rounded-lg border border-primary/30 text-primary hover:bg-primary/20 transition cursor-pointer shrink-0 ml-2"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Node Progression Tabs */}
-          <div className="grid grid-cols-3 gap-2.5 mb-6">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 mb-6">
             {/* Node 1 */}
             <button
               onClick={() => {
                 sound.playClick();
                 setActiveNode(1);
               }}
-              className={`p-3 rounded-xl border text-left transition-all ${
+              className={`p-2 sm:p-3 rounded-xl border text-left transition-all ${
                 activeNode === 1
                   ? "border-primary bg-primary/15 shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
                   : "border-primary/20 bg-primary/5 hover:border-primary/40"
               }`}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-primary/70 uppercase font-bold">NODE 01</span>
+                <span className="text-[9px] sm:text-[10px] text-primary/70 uppercase font-bold">NODE 01</span>
                 {clearance.identityUnlocked ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
                 ) : (
-                  <Lock className="w-3.5 h-3.5 text-primary/50" />
+                  <Lock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary/50" />
                 )}
               </div>
-              <div className="text-xs font-bold text-foreground">Recon Identity</div>
-              <div className="text-[10px] text-muted-foreground mt-0.5">
+              <div className="text-[11px] sm:text-xs font-bold text-foreground truncate">Recon Identity</div>
+              <div className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5">
                 {clearance.identityUnlocked ? "DECLASSIFIED" : "REDACTED"}
               </div>
             </button>
@@ -358,10 +358,10 @@ export const OperatorInfiltrationModal: React.FC<OperatorInfiltrationModalProps>
           </div>
 
           {/* Footer controls: Instant Override & Reset */}
-          <div className="flex items-center justify-between border-t border-primary/20 pt-4 text-xs">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-primary/20 pt-4 text-xs">
             <button
               onClick={resetClearance}
-              className="flex items-center gap-1.5 text-red-400 hover:text-red-300 transition-colors"
+              className="flex items-center gap-1.5 text-red-400 hover:text-red-300 transition-colors w-full sm:w-auto justify-center"
               title="Reset all declassifications back to 100% redacted"
             >
               <RotateCcw className="w-3.5 h-3.5" />

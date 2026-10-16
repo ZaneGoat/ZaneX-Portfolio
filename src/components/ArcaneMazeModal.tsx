@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X,
+  ArrowLeft,
   Maximize2,
   Minimize2,
   Sparkles,
-  Gamepad2,
   ShieldAlert,
-  Volume2,
-  VolumeX,
+  Tv,
   ExternalLink,
-  Tv
+  X
 } from "lucide-react";
 import { sound } from "@/lib/sound";
 import { toast } from "sonner";
@@ -37,7 +35,6 @@ export const ArcaneMazeModal: React.FC<ArcaneMazeModalProps> = ({ isOpen, onClos
 
       if (action === "CLEARANCE_UNLOCKED") {
         unlockNode("projectsUnlocked");
-        // Also award CTF flag if not already saved
         try {
           const savedFlags = JSON.parse(localStorage.getItem("zanex_ctf_solved") || "[]");
           if (!savedFlags.includes("flag_maze_root")) {
@@ -86,7 +83,7 @@ export const ArcaneMazeModal: React.FC<ArcaneMazeModalProps> = ({ isOpen, onClos
     return () => document.removeEventListener("fullscreenchange", onFsChange);
   }, []);
 
-  // Close on ESC when not in fullscreen
+  // Close on ESC
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen && !document.fullscreenElement) {
@@ -106,117 +103,103 @@ export const ArcaneMazeModal: React.FC<ArcaneMazeModalProps> = ({ isOpen, onClos
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-2 sm:p-4 md:p-6"
+        className="fixed inset-0 z-50 w-screen h-screen bg-[#050811] text-foreground font-mono overflow-hidden select-none flex flex-col"
       >
-        <motion.div
-          initial={{ scale: 0.94, y: 15 }}
-          animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.94, y: 15 }}
-          transition={{ duration: 0.25 }}
-          className="relative w-full h-full max-w-7xl max-h-[94vh] bg-[#050811] border-2 border-amber-500/50 rounded-2xl shadow-[0_0_60px_rgba(245,158,11,0.25)] flex flex-col overflow-hidden font-mono"
-        >
-          {/* Top Bar HUD */}
-          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-slate-950 via-[#0a0f1d] to-slate-950 border-b border-amber-500/30 text-xs">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-400 flex items-center justify-center text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.4)]">
-                <Sparkles className="w-4 h-4 animate-spin-slow" />
+        {/* Floating Top Header Overlay */}
+        <div className="absolute top-0 inset-x-0 z-30 flex items-center justify-between px-3 sm:px-6 py-2.5 bg-gradient-to-b from-black/95 via-black/70 to-transparent backdrop-blur-md border-b border-amber-500/25 text-xs">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Quick Exit to Portfolio */}
+            <button
+              onClick={() => {
+                sound.playClick();
+                onClose();
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/15 border border-red-500/40 text-red-400 hover:bg-red-500/25 transition-all font-bold cursor-pointer text-xs"
+              title="Exit Fullscreen Game to Portfolio [ESC]"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Portfolio</span>
+              <span className="text-[10px] text-red-400/70 font-mono hidden md:inline">[ESC]</span>
+            </button>
+
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-400 flex items-center justify-center text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+                <Sparkles className="w-3.5 h-3.5 animate-spin-slow" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-black text-amber-300 tracking-wider uppercase text-sm sm:text-base font-serif">
-                    Elder Catalyzer — 3D Arcane Realm
-                  </h3>
-                  <span className="hidden sm:inline-block px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 text-[10px] font-bold">
-                    Three.js WebGL
-                  </span>
-                </div>
-                <p className="text-[11px] text-muted-foreground hidden md:block">
-                  Procedural Gothic Labyrinth · Arcane Spell Deck · Runic Wall Cipher [E]
+              <div className="leading-tight">
+                <h2 className="font-black text-amber-300 tracking-wider uppercase text-xs sm:text-sm font-serif">
+                  Elder Catalyzer — 3D Arcane Realm
+                </h2>
+                <p className="text-[10px] text-muted-foreground hidden lg:block">
+                  WebGL Three.js · Full-Screen Alone Mode
                 </p>
               </div>
             </div>
-
-            <div className="flex items-center gap-2">
-              {/* Scanlines Toggle */}
-              <button
-                onClick={() => setShowScanlines(v => !v)}
-                className={`px-2 py-1.5 rounded border text-[11px] flex items-center gap-1 transition-colors ${
-                  showScanlines
-                    ? "border-amber-400/50 bg-amber-500/15 text-amber-300"
-                    : "border-slate-700 bg-slate-900 text-slate-400"
-                }`}
-                title="Toggle Cyber CRT Scanlines"
-              >
-                <Tv className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">CRT</span>
-              </button>
-
-              {/* Fullscreen Button */}
-              <button
-                onClick={toggleFullscreen}
-                className="px-2 py-1.5 rounded border border-amber-500/40 bg-slate-900 text-amber-200 hover:text-white hover:bg-slate-800 transition flex items-center gap-1 text-[11px]"
-                title="Toggle Fullscreen"
-              >
-                {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-                <span className="hidden sm:inline">{isFullscreen ? "Exit" : "Full"}</span>
-              </button>
-
-              {/* Direct Tab Opener */}
-              <a
-                href="/games/arcane-maze/index.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-2 py-1.5 rounded border border-slate-700 bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1 text-[11px]"
-                title="Open Standalone In New Window"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-
-              {/* Close Button */}
-              <button
-                onClick={() => {
-                  sound.playClick();
-                  onClose();
-                }}
-                className="p-1.5 rounded-lg border border-red-500/40 bg-red-950/40 text-red-400 hover:bg-red-900/60 hover:text-white transition cursor-pointer"
-                title="Exit Game [ESC]"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
           </div>
 
-          {/* Game Canvas Container (Iframe) */}
-          <div className="relative flex-1 w-full h-full bg-[#050811] overflow-hidden">
-            {showScanlines && (
-              <div className="absolute inset-0 pointer-events-none z-10 opacity-20 scanlines" />
-            )}
-            <iframe
-              ref={iframeRef}
-              src="/games/arcane-maze/index.html"
-              title="Elder Catalyzer 3D Arcane Maze"
-              className="w-full h-full border-0 block"
-              allow="autoplay; fullscreen; accelerometer; gyroscope"
-            />
-          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Scanlines Toggle */}
+            <button
+              onClick={() => setShowScanlines(v => !v)}
+              className={`px-2 py-1 rounded-lg border text-[11px] flex items-center gap-1 transition-colors ${
+                showScanlines
+                  ? "border-amber-400/50 bg-amber-500/20 text-amber-300"
+                  : "border-slate-800 bg-slate-900 text-slate-400"
+              }`}
+              title="Toggle Cyber CRT Scanlines"
+            >
+              <Tv className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">CRT</span>
+            </button>
 
-          {/* Bottom Quick Help Bar */}
-          <div className="px-4 py-2 bg-slate-950/90 border-t border-amber-500/20 flex flex-wrap items-center justify-between text-[11px] text-muted-foreground gap-2">
-            <div className="flex flex-wrap items-center gap-3">
-              <span><strong>Move:</strong> WASD / Touch Joystick</span>
-              <span>•</span>
-              <span><strong>Spells:</strong> 1-4 (Blink, Flame, Freeze, Shield)</span>
-              <span>•</span>
-              <span><strong>Staff Bolt:</strong> Space / Arc Attack</span>
-              <span>•</span>
-              <span><strong>Wall Cipher:</strong> [E]</span>
-            </div>
-            <div className="text-amber-300/80 font-bold flex items-center gap-1.5">
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-              <span>Type 'OPERATOR' in Wall Cipher for Black-Ops Dossier Declassification</span>
-            </div>
+            {/* Native Fullscreen Button */}
+            <button
+              onClick={toggleFullscreen}
+              className="px-2.5 py-1 rounded-lg border border-amber-500/40 bg-slate-900 text-amber-200 hover:text-white hover:bg-slate-800 transition flex items-center gap-1 text-[11px]"
+              title="Toggle Native Browser Fullscreen"
+            >
+              {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">{isFullscreen ? "Exit" : "Full"}</span>
+            </button>
+
+            {/* Standalone Window Link */}
+            <a
+              href="/game"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2 py-1 rounded-lg border border-slate-700 bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1 text-[11px]"
+              title="Open Standalone URL /game"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                sound.playClick();
+                onClose();
+              }}
+              className="p-1.5 rounded-lg border border-red-500/40 bg-red-950/40 text-red-400 hover:bg-red-900/60 hover:text-white transition cursor-pointer"
+              title="Exit Game [ESC]"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-        </motion.div>
+        </div>
+
+        {/* 3D WebGL Canvas (100% viewport edge-to-edge) */}
+        <div className="relative flex-1 w-full h-full bg-[#050811] overflow-hidden pt-10 sm:pt-12">
+          {showScanlines && (
+            <div className="absolute inset-0 pointer-events-none z-10 opacity-20 scanlines" />
+          )}
+          <iframe
+            ref={iframeRef}
+            src="/games/arcane-maze/index.html"
+            title="Elder Catalyzer 3D Arcane Maze"
+            className="w-full h-full border-0 block"
+            allow="autoplay; fullscreen; accelerometer; gyroscope"
+          />
+        </div>
       </motion.div>
     </AnimatePresence>
   );

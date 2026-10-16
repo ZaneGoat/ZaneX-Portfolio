@@ -5,7 +5,7 @@ import { MusicProvider } from "./context/MusicContext";
 import { OperatorClearanceProvider } from "./context/OperatorClearanceContext";
 import Index from "./pages/Index";
 
-// Unused providers (React Query, Radix Tooltip, two toast systems) were removed — nothing on the site used them.
+const ArcaneGamePage = lazy(() => import("./pages/ArcaneGamePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const App = () => (
@@ -16,6 +16,8 @@ const App = () => (
           <Suspense fallback={null}>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/game" element={<ArcaneGamePage />} />
+              <Route path="/arcane-maze" element={<ArcaneGamePage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

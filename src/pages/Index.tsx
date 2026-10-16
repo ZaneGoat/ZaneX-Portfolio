@@ -98,6 +98,7 @@ const Index = () => {
         onOpenTerminal={openTerminal}
         onOpenBreach={openBreach}
         onOpenCtf={openCtf}
+        onOpenMaze={openMaze}
       />
       <CyberdeckFAB
         onOpenTerminal={openTerminal}

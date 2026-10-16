@@ -858,7 +858,7 @@ Allow: /
   };
 
   const quickChips = [
-    "music", "help", "ctf", "csi", "robin", "hardware", "device", "whoami", "neofetch", 
+    "maze", "clearance", "music", "help", "ctf", "csi", "robin", "hardware", "device", "whoami", "neofetch", 
     "projects", "breach", "matrix", "clear"
   ];
 
@@ -869,14 +869,14 @@ Allow: /
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[10000] bg-background/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4"
+          className="fixed inset-0 z-[10000] bg-background/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overscroll-contain"
         >
           <motion.div
             initial={{ scale: 0.95, y: 20 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.95, y: 20 }}
-            className={`bg-[#050816] border-2 border-primary/50 rounded-2xl shadow-[0_0_80px_hsl(var(--primary)/0.25)] flex flex-col font-mono overflow-hidden transition-all duration-300 ${
-              isMaximized ? "w-full h-full rounded-none" : "w-full max-w-4xl h-[85vh] max-h-[820px]"
+            className={`bg-[#050816] border-2 border-primary/50 rounded-2xl shadow-[0_0_80px_hsl(var(--primary)/0.25)] flex flex-col font-mono overflow-hidden transition-all duration-300 overscroll-contain ${
+              isMaximized ? "w-full h-full rounded-none" : "w-full max-w-4xl h-[92vh] sm:h-[85vh] max-h-[820px]"
             }`}
           >
             {/* Header */}

@@ -140,10 +140,10 @@ export const BentoGrid = ({
               ))}
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-2.5">
               <button
                 onClick={() => { sound.playBoot(); onOpenTerminal(); }}
-                className="flex items-center gap-2 bg-primary text-background font-mono font-bold px-5 py-3 rounded-xl hover:scale-105 active:scale-95 transition-transform shadow-[0_0_25px_hsl(var(--primary)/0.4)]"
+                className="flex items-center justify-center gap-2 bg-primary text-background font-mono font-bold px-4 sm:px-5 py-3 rounded-xl hover:scale-105 active:scale-95 transition-transform shadow-[0_0_25px_hsl(var(--primary)/0.4)] text-xs sm:text-sm"
               >
                 <Terminal className="w-4 h-4" />
                 LAUNCH ZANE_OS
@@ -153,7 +153,7 @@ export const BentoGrid = ({
               {isOperator && (
                 <button
                   onClick={() => { sound.playBoot(); onOpenInfiltration?.(); }}
-                  className={`flex items-center gap-2 font-mono font-bold px-4 py-3 rounded-xl text-xs transition-all ${
+                  className={`flex items-center justify-center gap-2 font-mono font-bold px-4 py-3 rounded-xl text-xs transition-all ${
                     clearance.identityUnlocked
                       ? "border border-emerald-500/50 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
                       : "border border-red-500/60 bg-red-500/15 text-red-400 hover:bg-red-500/25 animate-pulse"
@@ -167,7 +167,7 @@ export const BentoGrid = ({
               {onOpenCtf && (
                 <button
                   onClick={() => { sound.playBoot(); onOpenCtf(); }}
-                  className="flex items-center gap-1.5 border border-yellow-500/50 bg-yellow-500/10 text-yellow-400 font-mono font-bold px-4 py-3 rounded-xl hover:bg-yellow-500/20 active:scale-95 transition-all text-xs"
+                  className="flex items-center justify-center gap-1.5 border border-yellow-500/50 bg-yellow-500/10 text-yellow-400 font-mono font-bold px-4 py-3 rounded-xl hover:bg-yellow-500/20 active:scale-95 transition-all text-xs"
                 >
                   <ShieldAlert className="w-4 h-4 animate-pulse" />
                   CTF QUEST
@@ -177,7 +177,7 @@ export const BentoGrid = ({
               {persona === "friend" ? (
                 <button
                   onClick={() => { sound.playBoot(); onOpenBreach(); }}
-                  className="flex items-center gap-2 border border-secondary/50 bg-secondary/15 text-secondary font-mono font-bold px-5 py-3 rounded-xl hover:bg-secondary/25 active:scale-95 transition-all shadow-[0_0_20px_hsl(var(--secondary)/0.3)] cursor-pointer"
+                  className="flex items-center justify-center gap-2 border border-secondary/50 bg-secondary/15 text-secondary font-mono font-bold px-4 sm:px-5 py-3 rounded-xl hover:bg-secondary/25 active:scale-95 transition-all shadow-[0_0_20px_hsl(var(--secondary)/0.3)] cursor-pointer text-xs sm:text-sm"
                 >
                   <Zap className="w-4 h-4 fill-current" />
                   PLAY BREACH
@@ -186,7 +186,7 @@ export const BentoGrid = ({
                 <a
                   href="#projects"
                   onClick={() => sound.playClick()}
-                  className="flex items-center gap-2 border border-primary/40 text-primary font-mono font-bold px-5 py-3 rounded-xl hover:bg-primary/10 transition-colors"
+                  className="flex items-center justify-center gap-2 border border-primary/40 text-primary font-mono font-bold px-4 sm:px-5 py-3 rounded-xl hover:bg-primary/10 transition-colors text-xs sm:text-sm"
                 >
                   VIEW PROJECTS
                 </a>
@@ -197,7 +197,7 @@ export const BentoGrid = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => sound.playClick()}
-                className="flex items-center gap-2 text-primary/80 hover:text-primary font-mono font-bold px-3 py-3 transition-colors"
+                className="flex items-center justify-center gap-2 text-primary/80 hover:text-primary font-mono font-bold px-3 py-3 transition-colors text-xs sm:text-sm"
               >
                 <Github className="w-4 h-4" />
                 GitHub
@@ -338,14 +338,14 @@ export const BentoGrid = ({
                     <div className="flex items-center gap-2 text-primary font-mono text-xs font-bold uppercase tracking-widest">
                       <Database className="w-4 h-4" /> Flagship architectures
                     </div>
-                    <div className="flex flex-wrap gap-1.5" role="tablist">
+                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full pb-1" role="tablist">
                       {flagships.map((p, idx) => (
                         <button
                           key={p.id}
                           role="tab"
                           aria-selected={activeTab === idx}
                           onClick={() => { sound.playClick(); setActiveTab(idx); }}
-                          className={`px-3 py-1 rounded-lg text-[11px] font-mono font-bold transition-colors ${
+                          className={`px-3 py-1 rounded-lg text-[11px] font-mono font-bold transition-colors shrink-0 ${
                             activeTab === idx ? "bg-primary text-background" : "bg-primary/10 text-primary/70 hover:text-primary"
                           }`}
                         >
