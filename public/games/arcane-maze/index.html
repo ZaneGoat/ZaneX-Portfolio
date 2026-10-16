@@ -1,0 +1,2575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Elder Catalyzer — 3D Dark Fantasy Arcane RPG</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js r128 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #050811;
+      font-family: 'Inter', sans-serif;
+      color: #f8fafc;
+    }
+    .cinzel {
+      font-family: 'Cinzel', serif;
+    }
+    #game-canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      outline: none;
+    }
+
+    /* Atmospheric Dark Fantasy Vignette */
+    .vignette-overlay {
+      background: radial-gradient(circle at 52% 48%, rgba(0,0,0,0) 45%, rgba(3,6,14,0.65) 80%, rgba(2,4,9,0.92) 100%);
+      pointer-events: none;
+    }
+
+    /* Ornate Gold RPG Borders */
+    .gold-border {
+      border: 1.5px solid #c5a059;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.85), inset 0 0 8px rgba(197, 160, 89, 0.25);
+    }
+    .gold-crest-diamond {
+      width: 48px;
+      height: 48px;
+      transform: rotate(45deg);
+      background: linear-gradient(135deg, #1b2838 0%, #0a0f18 100%);
+      border: 2px solid #d4af37;
+      box-shadow: 0 0 15px rgba(0, 225, 255, 0.35), inset 0 0 10px rgba(212, 175, 55, 0.4);
+    }
+
+    /* Slanted Fantasy Bars */
+    .slanted-bar-outer {
+      transform: skewX(-24deg);
+      background: rgba(10, 14, 22, 0.9);
+      border: 1.5px solid #c5a059;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.85), inset 0 2px 6px rgba(0,0,0,0.9);
+      overflow: hidden;
+    }
+    .hp-bar-fill {
+      background: linear-gradient(90deg, #8b0000 0%, #dc2626 55%, #f59e0b 92%, #fef08a 100%);
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+      transition: width 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .mp-bar-fill {
+      background: linear-gradient(90deg, #1e3a8a 0%, #0284c7 60%, #00f0ff 100%);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.8);
+      transition: width 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* Spell Cards matching right-side deck of screenshot */
+    .spell-card {
+      width: 68px;
+      height: 98px;
+      background: linear-gradient(180deg, rgba(16, 23, 38, 0.92) 0%, rgba(8, 11, 20, 0.98) 100%);
+      border: 1.5px solid #c5a059;
+      border-radius: 6px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.85), inset 0 0 12px rgba(197, 160, 89, 0.18);
+      transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .spell-card:hover {
+      transform: translateY(-4px) scale(1.03);
+      border-color: #fde047;
+      box-shadow: 0 8px 22px rgba(212, 175, 55, 0.45), inset 0 0 14px rgba(253, 224, 71, 0.25);
+    }
+    .spell-card:active, .spell-card.casting {
+      transform: scale(0.95);
+      border-color: #00f0ff;
+      box-shadow: 0 0 24px rgba(0, 240, 255, 0.8);
+    }
+    .spell-card::before {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      border: 1px solid rgba(212, 175, 55, 0.28);
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    /* Bottom-Right Circular Combat Buttons */
+    .combat-round-btn {
+      background: radial-gradient(circle at 35% 30%, rgba(30, 41, 59, 0.92), rgba(7, 10, 19, 0.96));
+      border: 2px solid #c5a059;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.9), inset 0 0 12px rgba(212, 175, 55, 0.3);
+      transition: all 0.12s ease;
+      cursor: pointer;
+    }
+    .combat-round-btn:hover {
+      border-color: #fef08a;
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.6), inset 0 0 15px rgba(0, 240, 255, 0.35);
+      transform: scale(1.06);
+    }
+    .combat-round-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* World Space Floating Prompt Badge ("ACCESS WALL CIPHER") */
+    #cipher-world-prompt {
+      background: rgba(12, 16, 23, 0.88);
+      border: 1.5px solid rgba(197, 160, 89, 0.85);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.9), 0 0 15px rgba(212, 175, 55, 0.3);
+      backdrop-filter: blur(6px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    /* ZANE Glitch Flash */
+    @keyframes zanePulse {
+      0%, 100% { filter: hue-rotate(0deg); }
+      50% { filter: hue-rotate(45deg); }
+    }
+    .zane-overdrive-active {
+      animation: zanePulse 6s infinite linear;
+    }
+  </style>
+</head>
+<body class="relative w-screen h-screen overflow-hidden select-none">
+
+  <!-- 3D WebGL Dungeon Canvas -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Cinematic Dark Vignette -->
+  <div class="vignette-overlay absolute inset-0 z-10"></div>
+
+  <!-- =====================================================================
+       1. TOP-LEFT: ORNATE DIAMOND CREST + SLANTED HP & MP BARS
+       (Exact match to reference screenshot top-left)
+       ===================================================================== -->
+  <div class="fixed top-5 left-5 z-20 flex items-center pointer-events-none">
+    <!-- Diamond Crystal Crest -->
+    <div class="relative z-10 flex items-center justify-center mr-[-10px]">
+      <div class="gold-crest-diamond flex items-center justify-center">
+        <!-- Inner Glowing Blue Shard SVG (unrotated) -->
+        <svg class="w-6 h-6 -rotate-45 drop-shadow-[0_0_8px_#00f0ff]" viewBox="0 0 24 36" fill="none">
+          <polygon points="12,1 22,14 12,35 2,14" fill="url(#shardGrad)" stroke="#bae6fd" stroke-width="1.2"/>
+          <polygon points="12,1 17,14 12,35 12,1" fill="rgba(255,255,255,0.35)"/>
+          <defs>
+            <linearGradient id="shardGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#e0f2fe"/>
+              <stop offset="45%" stop-color="#00f0ff"/>
+              <stop offset="100%" stop-color="#0369a1"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Slanted Bars Stack -->
+    <div class="flex flex-col gap-1.5 pl-1">
+      <!-- Upper Long Crimson/Orange Health Bar -->
+      <div class="slanted-bar-outer w-56 sm:w-72 h-4 relative">
+        <div id="hud-hp-bar" class="hp-bar-fill h-full w-full"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-white/25 via-transparent to-black/40"></div>
+      </div>
+
+      <!-- Lower Shorter Blue/Cyan Mana Bar -->
+      <div class="slanted-bar-outer w-40 sm:w-52 h-3 relative ml-1">
+        <div id="hud-mp-bar" class="mp-bar-fill h-full w-full"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-white/25 via-transparent to-black/40"></div>
+      </div>
+
+      <!-- Subtle Chapter & Soul Shard Tracker Underneath -->
+      <div class="flex items-center gap-3 mt-1 pl-2 text-[11px] tracking-wider uppercase font-semibold text-amber-200/90 drop-shadow">
+        <span id="hud-chapter-title" class="cinzel text-amber-300">Ch. I: Mossbound Sanctum</span>
+        <span class="text-slate-500">•</span>
+        <span class="text-cyan-300 flex items-center gap-1">
+          <span class="inline-block w-2 h-2 rotate-45 bg-cyan-400 shadow-[0_0_6px_#00f0ff]"></span>
+          Shards: <strong id="hud-shards">0/3</strong>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       2. TOP-CENTER: BOSS / ENEMY TARGET BAR OR ZANE OVERDRIVE BANNER
+       ===================================================================== -->
+  <div id="hud-top-banner" class="fixed top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center transition-opacity duration-300 opacity-0">
+    <div class="px-5 py-1.5 rounded-full bg-slate-950/85 gold-border flex items-center gap-2.5">
+      <span id="hud-banner-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+      <span id="hud-banner-text" class="cinzel text-xs sm:text-sm font-bold tracking-widest text-amber-200 uppercase">
+        Portal Rift Sealed — Attune 3 Elder Shards
+      </span>
+    </div>
+  </div>
+
+  <!-- Top Utility Strip (FPS Monitor, Graphics Quality, Camera Switch, Cipher Shortcut, Sound) -->
+  <div class="fixed top-5 right-44 sm:right-52 z-20 hidden md:flex items-center gap-2">
+    <div id="fps-badge" class="px-2.5 py-1.5 rounded bg-slate-950/90 gold-border text-[11px] font-mono font-bold text-emerald-400 flex items-center gap-1.5" title="Real-Time Frame Rate">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span id="fps-val">60</span> <span>FPS</span>
+    </div>
+    <button id="btn-perf-mode" class="px-3 py-1.5 rounded bg-slate-950/85 gold-border text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1.5 cursor-pointer" title="Cycle Graphics Performance Mode [P]">
+      <span>GFX:</span> <span id="perf-label" class="text-emerald-300">BALANCED</span> <span class="text-[9px] text-slate-400">[P]</span>
+    </button>
+    <button id="btn-camera-mode" class="px-3 py-1.5 rounded bg-slate-950/85 gold-border text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1.5 cursor-pointer" title="Switch Camera Angle [C]">
+      <span>CAM:</span> <span id="cam-label" class="text-cyan-300">SHOULDER</span> <span class="text-[9px] text-slate-400">[C]</span>
+    </button>
+    <button id="btn-cipher-modal" class="px-3 py-1.5 rounded bg-slate-950/85 gold-border text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1.5 cursor-pointer" title="Open Wall Cipher [E]">
+      <span>🔒 CIPHER</span> <span class="text-[9px] text-slate-400">[E]</span>
+    </button>
+    <button id="btn-audio-toggle" class="p-1.5 rounded bg-slate-950/85 gold-border text-amber-200 hover:text-white transition cursor-pointer" title="Toggle Audio">
+      <svg id="svg-audio-on" class="w-4 h-4 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+      </svg>
+      <svg id="svg-audio-off" class="w-4 h-4 text-rose-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l4-4m0 4l-4-4"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- =====================================================================
+       3. TOP-RIGHT: CIRCULAR GOLD-RIMMED RADAR MINIMAP
+       (Exact match to top-right circular radar in screenshot)
+       ===================================================================== -->
+  <div class="fixed top-4 right-4 sm:right-6 z-20 pointer-events-none">
+    <div class="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full p-1 bg-gradient-to-b from-amber-200/80 via-amber-600/80 to-amber-900/90 shadow-[0_8px_30px_rgba(0,0,0,0.95)]">
+      <div class="w-full h-full rounded-full overflow-hidden bg-[#0a0f16] relative border border-amber-400/40">
+        <canvas id="radar-canvas" width="180" height="180" class="w-full h-full block"></canvas>
+        <!-- Subtle Radar Crosshair Gridlines -->
+        <div class="absolute inset-0 pointer-events-none opacity-25">
+          <div class="absolute top-1/2 left-0 right-0 h-[1px] bg-amber-300/60"></div>
+          <div class="absolute left-1/2 top-0 bottom-0 w-[1px] bg-amber-300/60"></div>
+          <div class="absolute inset-4 rounded-full border border-amber-300/40"></div>
+        </div>
+      </div>
+      <!-- Cardinal N tick -->
+      <div class="absolute -top-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0.2 bg-slate-950 border border-amber-500/80 rounded text-[9px] cinzel font-bold text-amber-300">N</div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       4. MIDDLE-RIGHT: 4 ORNATE SPELL CARDS (SPELL 1 - SPELL 4)
+       (Exact match to Blink, Flame, Freeze, Shield cards in screenshot)
+       ===================================================================== -->
+  <div class="fixed right-4 sm:right-6 top-1/2 -translate-y-1/3 z-20 flex flex-row gap-2 sm:gap-2.5 items-center">
+    <!-- SPELL 1: BLINK -->
+    <div class="flex flex-col items-center">
+      <span class="cinzel text-[9px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-1 drop-shadow">SPELL 1</span>
+      <button id="spell-card-1" onclick="window.game && window.game.castSpell(1)" class="spell-card flex flex-col items-center justify-between p-1.5">
+        <div class="w-full h-14 rounded bg-gradient-to-b from-sky-950 via-blue-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-sky-400/30">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,240,255,0.35),transparent_70%)]"></div>
+          <!-- Dashing Blink Silhouette Icon -->
+          <svg class="w-9 h-9 text-cyan-300 drop-shadow-[0_0_8px_#00f0ff]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
+            <path d="M2 11h4v1.5H2zm1 3h5v1.5H3zm-2 3h6v1.5H1z" opacity="0.75"/>
+          </svg>
+        </div>
+        <span class="cinzel text-[11px] font-bold text-amber-100 tracking-wide">Blink</span>
+        <div id="cd-overlay-1" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-xs font-bold text-cyan-300"></div>
+      </button>
+    </div>
+
+    <!-- SPELL 2: FLAME -->
+    <div class="flex flex-col items-center">
+      <span class="cinzel text-[9px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-1 drop-shadow">SPELL 2</span>
+      <button id="spell-card-2" onclick="window.game && window.game.castSpell(2)" class="spell-card flex flex-col items-center justify-between p-1.5">
+        <div class="w-full h-14 rounded bg-gradient-to-b from-amber-950 via-red-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-orange-400/30">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,146,60,0.45),transparent_70%)]"></div>
+          <!-- Flame Fireball Icon -->
+          <svg class="w-9 h-9 text-amber-400 drop-shadow-[0_0_10px_#f97316]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/>
+          </svg>
+        </div>
+        <span class="cinzel text-[11px] font-bold text-amber-100 tracking-wide">Flame</span>
+        <div id="cd-overlay-2" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-xs font-bold text-orange-300"></div>
+      </button>
+    </div>
+
+    <!-- SPELL 3: FREEZE -->
+    <div class="flex flex-col items-center">
+      <span class="cinzel text-[9px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-1 drop-shadow">SPELL 3</span>
+      <button id="spell-card-3" onclick="window.game && window.game.castSpell(3)" class="spell-card flex flex-col items-center justify-between p-1.5">
+        <div class="w-full h-14 rounded bg-gradient-to-b from-cyan-950 via-sky-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-cyan-300/30">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.45),transparent_70%)]"></div>
+          <!-- Snowflake Freeze Icon -->
+          <svg class="w-9 h-9 text-sky-200 drop-shadow-[0_0_10px_#38bdf8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v20M17 4l-5 4-5-4M7 20l5-4 5 4M2 12h20M4 7l4 5-4 5M20 17l-4-5 4-5M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>
+          </svg>
+        </div>
+        <span class="cinzel text-[11px] font-bold text-amber-100 tracking-wide">Freeze</span>
+        <div id="cd-overlay-3" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-xs font-bold text-sky-300"></div>
+      </button>
+    </div>
+
+    <!-- SPELL 4: SHIELD -->
+    <div class="flex flex-col items-center">
+      <span class="cinzel text-[9px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-1 drop-shadow">SPELL 4</span>
+      <button id="spell-card-4" onclick="window.game && window.game.castSpell(4)" class="spell-card flex flex-col items-center justify-between p-1.5">
+        <div class="w-full h-14 rounded bg-gradient-to-b from-indigo-950 via-blue-900/80 to-slate-950 flex items-center justify-center relative overflow-hidden border border-amber-300/40">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.5),transparent_70%)]"></div>
+          <!-- Radiant Shield Icon -->
+          <svg class="w-9 h-9 text-cyan-200 drop-shadow-[0_0_10px_#60a5fa]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4.18l5 2.22v4.6c0 4.12-2.88 8.01-5 9.15-2.12-1.14-5-5.03-5-9.15V7.4l5-2.22z"/>
+          </svg>
+        </div>
+        <span class="cinzel text-[11px] font-bold text-amber-100 tracking-wide">Shield</span>
+        <div id="cd-overlay-4" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-xs font-bold text-amber-300"></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       5. WORLD-SPACE FLOATING WALL CIPHER BADGE ("[🔒] ACCESS WALL CIPHER")
+       (Positioned dynamically over the 3D Illuminated Runic Pedestal)
+       ===================================================================== -->
+  <div id="cipher-world-prompt" onclick="window.game && window.game.openCipherModal()" class="fixed z-20 px-4 py-2 rounded-full flex items-center gap-2.5 cursor-pointer hover:scale-105 active:scale-95" style="left: 24%; top: 43%;">
+    <div class="w-7 h-7 rounded-full border border-amber-400/80 bg-amber-950/60 flex items-center justify-center text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.5)]">
+      <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+      </svg>
+    </div>
+    <span class="cinzel text-xs sm:text-sm font-semibold tracking-wider text-amber-100 uppercase">ACCESS WALL CIPHER</span>
+    <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30">[E]</span>
+  </div>
+
+  <!-- =====================================================================
+       6. BOTTOM-LEFT: AUTHENTIC GOLD-RINGED VIRTUAL THUMBSTICK
+       (Responds to both WASD keys & Touch/Mouse Dragging)
+       ===================================================================== -->
+  <div class="fixed bottom-7 left-7 sm:bottom-9 sm:left-10 z-20">
+    <div id="joystick-zone" class="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-slate-950/65 border-2 border-[#c5a059]/80 shadow-[0_0_25px_rgba(0,0,0,0.9),inset_0_0_20px_rgba(197,160,89,0.2)] relative flex items-center justify-center cursor-grab active:cursor-grabbing">
+      <!-- Inner subtle ring -->
+      <div class="absolute inset-2 rounded-full border border-amber-500/20 pointer-events-none"></div>
+      <!-- 4 Directional Gold Arrows -->
+      <span class="absolute top-2.5 left-1/2 -translate-x-1/2 text-[10px] text-amber-200/75 pointer-events-none">▲</span>
+      <span class="absolute bottom-2.5 left-1/2 -translate-x-1/2 text-[10px] text-amber-200/75 pointer-events-none">▼</span>
+      <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-amber-200/75 pointer-events-none">◄</span>
+      <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-amber-200/75 pointer-events-none">►</span>
+
+      <!-- Movable Center Thumb Cap -->
+      <div id="joystick-puck" class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-b from-slate-700 via-slate-900 to-black border-2 border-amber-400/80 shadow-[0_4px_14px_rgba(0,0,0,0.95),0_0_10px_rgba(212,175,55,0.3)] pointer-events-none transition-transform duration-75"></div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       7. BOTTOM-RIGHT: 3 CIRCULAR ACTION BUTTONS IN AN ARC
+       (Matches the 3 circular action icons on the bottom-right of screenshot)
+       ===================================================================== -->
+  <div class="fixed bottom-7 right-6 sm:bottom-9 sm:right-8 z-20 w-44 h-44 pointer-events-none">
+    <!-- Top-Right Arc Button: Meteor / Heavy Mandala Nova [F] -->
+    <button onclick="window.game && window.game.triggerMandalaNova()" class="combat-round-btn pointer-events-auto w-14 h-14 rounded-full absolute top-0 right-1 flex items-center justify-center" title="Arcane Mandala Nova [F]">
+      <svg class="w-7 h-7 text-amber-200 drop-shadow-[0_0_6px_#fde047]" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 3l-5 5 2 2 5-5-2-2zm-3.5 6.5l-2-2-6.5 6.5c-1.5 1.5-1.5 4 0 5.5s4 1.5 5.5 0l6.5-6.5-3.5-3.5zM6 17c-.6-.6-.6-1.5 0-2.1l3.5-3.5 2.1 2.1L8.1 17c-.6.6-1.5.6-2.1 0z"/>
+        <circle cx="17" cy="5" r="1.3"/>
+        <circle cx="13" cy="4" r="1"/>
+      </svg>
+      <span class="absolute -bottom-1 right-0 text-[9px] font-mono bg-slate-950 px-1 rounded border border-amber-500/50 text-amber-300">F</span>
+    </button>
+
+    <!-- Center Large Primary Attack Button: Staff Arcane Slash/Bolt [SPACE / CLICK] -->
+    <button onclick="window.game && window.game.firePrimaryStaffBolt()" class="combat-round-btn pointer-events-auto w-20 h-20 rounded-full absolute top-14 right-7 flex items-center justify-center" title="Primary Catalyzer Bolt [Space]">
+      <svg class="w-10 h-10 text-cyan-200 drop-shadow-[0_0_10px_#00f0ff]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 5L5 19M15 5h4v4M9 9l6 6M6 12l6 6"/>
+        <circle cx="17" cy="7" r="2" fill="#00f0ff"/>
+      </svg>
+      <span class="absolute -bottom-1 right-1 text-[9px] font-mono bg-slate-950 px-1.5 rounded border border-cyan-400/50 text-cyan-300">SPC</span>
+    </button>
+
+    <!-- Bottom-Left Arc Button: Ground Rune Pulse / Attune [R] -->
+    <button onclick="window.game && window.game.triggerGroundRunePulse()" class="combat-round-btn pointer-events-auto w-14 h-14 rounded-full absolute bottom-0 left-2 flex items-center justify-center" title="Ground Rune Attunement [R]">
+      <svg class="w-7 h-7 text-amber-200 drop-shadow-[0_0_8px_#00f0ff]" viewBox="0 0 24 24" fill="currentColor">
+        <polygon points="12,3 16,10 12,17 8,10"/>
+        <ellipse cx="12" cy="19" rx="8" ry="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      </svg>
+      <span class="absolute -bottom-1 right-0 text-[9px] font-mono bg-slate-950 px-1 rounded border border-amber-500/50 text-amber-300">R</span>
+    </button>
+  </div>
+
+  <!-- =====================================================================
+       8. WALL CIPHER MODAL (TYPE "ZANE" FOR REALITY OVERDRIVE OR WARP SEED)
+       ===================================================================== -->
+  <div id="cipher-modal" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="max-w-lg w-full bg-[#0b101d] gold-border rounded-2xl p-6 sm:p-8 shadow-2xl relative text-slate-100">
+      <button onclick="window.game && window.game.closeCipherModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-900 border border-amber-500/40 text-amber-300 hover:text-white flex items-center justify-center cursor-pointer">✕</button>
+
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-amber-300">
+          🔒
+        </div>
+        <div>
+          <h2 class="cinzel text-xl sm:text-2xl font-bold text-amber-300 tracking-wider">ANCIENT WALL CIPHER</h2>
+          <p class="text-xs text-slate-400">Inscribe an Elder Rune Word to alter the Labyrinth reality</p>
+        </div>
+      </div>
+
+      <div class="my-5">
+        <label class="block text-[11px] cinzel uppercase tracking-widest text-amber-200/80 mb-2">Enter Rune Cipher or Custom Dungeon Seed:</label>
+        <div class="flex gap-2">
+          <input id="cipher-input" type="text" placeholder="Type ZANE, ASTRAL, GHOST, or any seed..." class="flex-1 bg-slate-950 border-2 border-amber-500/60 focus:border-cyan-400 rounded-xl px-4 py-3 text-base font-mono uppercase tracking-widest text-cyan-300 outline-none" />
+          <button onclick="window.game && window.game.submitCipherCode()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 cinzel font-extrabold text-sm tracking-wider hover:brightness-110 transition cursor-pointer">
+            EVOKE
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Clickable Cheat / Rune Presets -->
+      <div class="mb-5">
+        <div class="text-[11px] cinzel uppercase tracking-widest text-slate-400 mb-2">Quick Elder Glyphs (Click to Activate):</div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+          <button onclick="window.game && window.game.applyCipherWord('ZANE')" class="p-2.5 rounded-xl bg-gradient-to-r from-fuchsia-950/90 to-cyan-950/90 border border-fuchsia-400/60 text-fuchsia-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
+            <div class="font-mono text-fuchsia-300">ZANE</div>
+            <div class="text-[10px] text-slate-300">Rainbow Astral Overdrive</div>
+          </button>
+          <button onclick="window.game && window.game.applyCipherWord('OPERATOR')" class="p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/90 to-cyan-950/90 border border-emerald-400/60 text-emerald-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
+            <div class="font-mono text-emerald-300">OPERATOR</div>
+            <div class="text-[10px] text-slate-300">Declassify Black-Ops Node</div>
+          </button>
+          <button onclick="window.game && window.game.applyCipherWord('GHOST')" class="p-2.5 rounded-xl bg-slate-900 border border-cyan-500/40 text-cyan-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
+            <div class="font-mono text-cyan-300">GHOST</div>
+            <div class="text-[10px] text-slate-400">Phase Walk Through Walls</div>
+          </button>
+          <button onclick="window.game && window.game.applyCipherWord('ARCHMAGE')" class="p-2.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
+            <div class="font-mono text-amber-300">ARCHMAGE</div>
+            <div class="text-[10px] text-slate-400">Zero Cooldowns + Max Mana</div>
+          </button>
+          <button onclick="window.game && window.game.applyCipherWord('CHAPTER2')" class="p-2.5 rounded-xl bg-slate-900 border border-orange-500/40 text-orange-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
+            <div class="font-mono text-orange-300">CHAPTER2</div>
+            <div class="text-[10px] text-slate-400">Catacombs of Cinder</div>
+          </button>
+          <button onclick="window.game && window.game.applyCipherWord('CHAPTER3')" class="p-2.5 rounded-xl bg-slate-900 border border-indigo-500/40 text-indigo-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
+            <div class="font-mono text-indigo-300">CHAPTER3</div>
+            <div class="text-[10px] text-slate-400">The Astral Spire</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="text-[11px] text-slate-400 flex justify-between items-center border-t border-slate-800 pt-3">
+        <span>Controls: <strong>WASD / Arrows</strong> Move • <strong>1-4</strong> Spells • <strong>Space</strong> Staff Bolt • <strong>Q/E</strong> Rotate</span>
+        <button onclick="window.game && window.game.closeCipherModal()" class="text-amber-300 hover:underline font-semibold cursor-pointer">Resume</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       9. CHAPTER COMPLETE / VICTORY MODAL
+       ===================================================================== -->
+  <div id="victory-modal" class="fixed inset-0 z-40 bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="max-w-md w-full bg-[#0b101d] gold-border rounded-2xl p-7 text-center shadow-2xl">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-cyan-500/20 border-2 border-amber-400 flex items-center justify-center shadow-[0_0_25px_#00f0ff]">
+        <span class="text-2xl">✨</span>
+      </div>
+      <h2 id="vic-title" class="cinzel text-2xl sm:text-3xl font-extrabold text-amber-300 mb-1">SANCTUM CLEARED</h2>
+      <p id="vic-subtitle" class="text-xs uppercase tracking-widest text-cyan-300 mb-6">Archway Rift Portal Stabilized</p>
+
+      <div class="bg-slate-950/80 border border-amber-500/30 rounded-xl p-4 mb-6 space-y-2 text-xs font-mono text-left">
+        <div class="flex justify-between">
+          <span class="text-slate-400">Realm Cleared:</span>
+          <span id="vic-realm" class="text-amber-200 font-bold">Chapter I</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Hollow Guardians Vanquished:</span>
+          <span id="vic-kills" class="text-cyan-300 font-bold">0</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Reality Mode:</span>
+          <span id="vic-mode" class="text-fuchsia-300 font-bold">Standard Gothic</span>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="window.game && window.game.advanceNextChapter()" class="flex-1 py-3.5 px-5 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 cinzel font-extrabold text-sm tracking-wider hover:brightness-110 transition cursor-pointer">
+          Enter Next Realm &rarr;
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MAIN THREE.JS DARK FANTASY ENGINE
+       ===================================================================== -->
+  <script>
+    /* =========================================================================
+       1. WEB AUDIO SYNTHESIZER (Dark Fantasy Torches, Spells, Mandalas & ZANE Synth)
+       ========================================================================= */
+    class ArcaneAudio {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+        this.zaneArpTimer = null;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioCtx();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggle() {
+        this.enabled = !this.enabled;
+        return this.enabled;
+      }
+
+      playCastMandala() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        // Shimmering harmonic chord
+        const freqs = [440, 554.37, 659.25, 880, 1174.66];
+        freqs.forEach((f, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+          osc.frequency.setValueAtTime(f, now + idx * 0.03);
+          osc.frequency.exponentialRampToValueAtTime(f * 1.25, now + 0.55);
+          gain.gain.setValueAtTime(0.06, now + idx * 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.03);
+          osc.stop(now + 0.62);
+        });
+      }
+
+      playFireball() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(190, now);
+        osc.frequency.exponentialRampToValueAtTime(42, now + 0.45);
+        gain.gain.setValueAtTime(0.14, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.46);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.48);
+      }
+
+      playFreeze() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        [1046.5, 1318.5, 1567.98, 2093].forEach((f, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, now + i * 0.04);
+          gain.gain.setValueAtTime(0.08, now + i * 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.04 + 0.45);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.04);
+          osc.stop(now + i * 0.04 + 0.46);
+        });
+      }
+
+      playBlink() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(280, now);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.22);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      }
+
+      playFootstep() {
+        if (!this.enabled || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(95 + Math.random() * 25, now);
+        osc.frequency.exponentialRampToValueAtTime(35, now + 0.07);
+        gain.gain.setValueAtTime(0.035, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.075);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      }
+
+      playZaneActivation() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const notes = [220, 277.18, 329.63, 440, 554.37, 659.25, 880];
+        notes.forEach((f, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(f, now + i * 0.05);
+          gain.gain.setValueAtTime(0.08, now + i * 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.05 + 0.5);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.05);
+          osc.stop(now + i * 0.05 + 0.52);
+        });
+      }
+    }
+
+    const audio = new ArcaneAudio();
+
+    /* =========================================================================
+       2. PROCEDURAL TEXTURES (Gothic Stone, Wet Puddle Cobblestone, Runic Mandala)
+       ========================================================================= */
+    class ProceduralArt {
+      // Intricate Doctor Strange / Arcane Golden Mandala Texture with Runes
+      static createMandalaTexture(isZane = false) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        const cx = 256, cy = 256;
+
+        ctx.clearRect(0, 0, 512, 512);
+
+        // Outer neon/gold aura
+        const grad = ctx.createRadialGradient(cx, cy, 40, cx, cy, 250);
+        if (isZane) {
+          grad.addColorStop(0, 'rgba(0, 240, 255, 0.25)');
+          grad.addColorStop(0.5, 'rgba(255, 0, 220, 0.35)');
+          grad.addColorStop(0.85, 'rgba(253, 224, 71, 0.85)');
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        } else {
+          grad.addColorStop(0, 'rgba(0, 240, 255, 0.18)');
+          grad.addColorStop(0.55, 'rgba(251, 191, 36, 0.35)');
+          grad.addColorStop(0.88, 'rgba(253, 224, 71, 0.9)');
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        }
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 250, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = isZane ? '#00f0ff' : '#fde047';
+        ctx.shadowColor = isZane ? '#ff00e5' : '#f59e0b';
+        ctx.shadowBlur = 12;
+
+        // Concentric Geometric Rings
+        [236, 222, 188, 174, 128, 82].forEach((r, idx) => {
+          ctx.lineWidth = idx % 2 === 0 ? 3 : 1.5;
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+
+        // Sacred Octagram (Two rotated squares inside the mandala)
+        ctx.lineWidth = 2.2;
+        for (let rot = 0; rot < 4; rot++) {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate((rot * Math.PI) / 4);
+          ctx.strokeRect(-124, -124, 248, 248);
+          ctx.restore();
+        }
+
+        // Arcane Elder Runes along the outer band
+        const runes = 'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ';
+        ctx.font = 'bold 20px serif';
+        ctx.fillStyle = '#fffbeb';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (let i = 0; i < 24; i++) {
+          const angle = (i / 24) * Math.PI * 2;
+          ctx.save();
+          ctx.translate(cx + Math.cos(angle) * 205, cy + Math.sin(angle) * 205);
+          ctx.rotate(angle + Math.PI / 2);
+          ctx.fillText(runes[i % runes.length], 0, 0);
+          ctx.restore();
+        }
+
+        const tex = new THREE.CanvasTexture(canvas);
+        return tex;
+      }
+
+      // Mossy Gothic Dungeon Wall Texture
+      static createGothicWallTexture(mode = 'gothic') {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = mode === 'zane' ? '#090418' : '#11161f';
+        ctx.fillRect(0, 0, 512, 512);
+
+        const rows = 8, cols = 4;
+        const rh = 512 / rows, cw = 512 / cols;
+
+        for (let r = 0; r < rows; r++) {
+          const offset = (r % 2) * (cw / 2);
+          for (let c = -1; c <= cols; c++) {
+            const x = c * cw + offset + 3;
+            const y = r * rh + 3;
+            const w = cw - 6;
+            const h = rh - 6;
+
+            if (mode === 'zane') {
+              ctx.fillStyle = '#12092b';
+              ctx.fillRect(x, y, w, h);
+              ctx.strokeStyle = (r + c) % 2 === 0 ? '#00f0ff' : '#ff00e5';
+              ctx.lineWidth = 1.5;
+              ctx.strokeRect(x, y, w, h);
+            } else {
+              const shade = 26 + Math.floor(Math.random() * 20);
+              ctx.fillStyle = `rgb(${shade}, ${shade + 4}, ${shade + 9})`;
+              ctx.fillRect(x, y, w, h);
+
+              // Stone grain & moss patches
+              for (let i = 0; i < 45; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.28)';
+                ctx.fillRect(x + Math.random() * w, y + Math.random() * h, 4, 4);
+              }
+              if (Math.random() < 0.38) {
+                ctx.fillStyle = 'rgba(34, 72, 38, 0.35)';
+                ctx.beginPath();
+                ctx.arc(x + Math.random() * w, y + Math.random() * h, 14 + Math.random() * 16, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+          }
+        }
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        return tex;
+      }
+
+      // Wet Reflective Cobblestone Floor with Puddles & Moss
+      static createWetCobbleFloorTexture(mode = 'gothic') {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = mode === 'zane' ? '#050210' : '#090d14';
+        ctx.fillRect(0, 0, 512, 512);
+
+        const size = 64;
+        for (let y = 0; y < 512; y += size) {
+          for (let x = 0; x < 512; x += size) {
+            if (mode === 'zane') {
+              ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
+              ctx.strokeRect(x + 2, y + 2, size - 4, size - 4);
+            } else {
+              const v = 18 + Math.floor(Math.random() * 16);
+              ctx.fillStyle = `rgb(${v}, ${v + 4}, ${v + 8})`;
+              ctx.fillRect(x + 2, y + 2, size - 4, size - 4);
+              // Moss in crevices
+              if (Math.random() < 0.3) {
+                ctx.strokeStyle = 'rgba(42, 88, 44, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
+              }
+            }
+          }
+        }
+
+        // Dark glossy wet puddles
+        if (mode !== 'zane') {
+          for (let p = 0; p < 6; p++) {
+            const px = Math.random() * 512;
+            const py = Math.random() * 512;
+            const grad = ctx.createRadialGradient(px, py, 5, px, py, 65);
+            grad.addColorStop(0, 'rgba(14, 28, 48, 0.85)');
+            grad.addColorStop(0.6, 'rgba(10, 18, 30, 0.5)');
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(px, py, 65, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        return tex;
+      }
+    }
+
+    /* =========================================================================
+       3. SEEDED DUNGEON GENERATOR (Gothic Corridors + Vaulted Arches + Alcoves)
+       ========================================================================= */
+    class SeededRandom {
+      constructor(seedStr = 'SANCTUM-1') {
+        let h = 2166136261 >>> 0;
+        for (let i = 0; i < seedStr.length; i++) {
+          h = Math.imul(h ^ seedStr.charCodeAt(i), 16777619);
+        }
+        this.state = h >>> 0;
+      }
+      next() {
+        let t = (this.state += 0x6D2B79F5);
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      }
+    }
+
+    /* =========================================================================
+       4. MAIN 3D DARK FANTASY GAME CLASS
+       ========================================================================= */
+    const CELL_SIZE = 5.0; // Wide dramatic Gothic corridors
+    const WALL_HEIGHT = 6.2;
+
+    class DarkFantasyGame {
+      constructor() {
+        this.chapter = 1;
+        this.seedString = 'CHAPTER-1';
+        this.zaneMode = false;
+        this.ghostMode = false;
+        this.archmageMode = false;
+
+        // Performance & Graphics Quality State ('BALANCED' | 'TURBO' | 'ULTRA')
+        this.perfModes = ['BALANCED', 'TURBO', 'ULTRA'];
+        this.perfIndex = 0; // Default BALANCED for silky-smooth 60+ FPS
+        this.frameCounter = 0;
+        this.fpsFrames = 0;
+        this.fpsLastTime = performance.now();
+        this.currentFps = 60;
+
+        // Pre-allocated Scratchpad Vectors & Boxes (Zero Garbage Collection in update loop!)
+        this._vForward = new THREE.Vector3();
+        this._vRight = new THREE.Vector3();
+        this._vStep = new THREE.Vector3();
+        this._vDesiredCam = new THREE.Vector3();
+        this._vLookTarget = new THREE.Vector3();
+        this._vWorldPrompt = new THREE.Vector3();
+        this._pBox = new THREE.Box3();
+        this._pMin = new THREE.Vector3();
+        this._pMax = new THREE.Vector3();
+        this._dummyMatrix = new THREE.Object3D();
+
+        // Player RPG Stats
+        this.hp = 100;
+        this.maxHp = 100;
+        this.mp = 100;
+        this.maxMp = 100;
+        this.shardsCollected = 0;
+        this.shardsRequired = 3;
+        this.enemiesDefeated = 0;
+        this.portalUnlocked = false;
+        this._lastHudHp = -1;
+        this._lastHudMp = -1;
+
+        // Camera Modes: 0 = Over-The-Shoulder (Screenshot Default), 1 = Tactical Top-Down, 2 = 1st-Person
+        this.cameraMode = 0;
+        this.playerPos = new THREE.Vector3(0, 0, 0);
+        this.playerYaw = 0; // Facing North (-Z) initially so screenshot composition matches immediately!
+        this.cameraPitch = 0.06;
+
+        // Spell Cooldowns
+        this.cooldowns = { 1: 0, 2: 0, 3: 0, 4: 0 };
+        this._lastCdText = { 1: '', 2: '', 3: '', 4: '' };
+        this.activeMandalaTimer = 2.8; // Start with the iconic Mandala active right away!
+        this.shieldWardTimer = 0;
+
+        // Input state
+        this.keys = {};
+        this.joyVec = { x: 0, y: 0, active: false };
+        this.isMouseDragging = false;
+        this.lastMousePos = { x: 0, y: 0 };
+
+        // Cached DOM Elements for Fast Access
+        this.dom = {
+          hpBar: document.getElementById('hud-hp-bar'),
+          mpBar: document.getElementById('hud-mp-bar'),
+          shards: document.getElementById('hud-shards'),
+          chapterTitle: document.getElementById('hud-chapter-title'),
+          cipherPrompt: document.getElementById('cipher-world-prompt'),
+          joyPuck: document.getElementById('joystick-puck'),
+          fpsVal: document.getElementById('fps-val'),
+          perfLabel: document.getElementById('perf-label'),
+          cdOverlays: {
+            1: document.getElementById('cd-overlay-1'),
+            2: document.getElementById('cd-overlay-2'),
+            3: document.getElementById('cd-overlay-3'),
+            4: document.getElementById('cd-overlay-4')
+          }
+        };
+
+        // Dynamic World Collections
+        this.levelMeshes = [];
+        this.wallBoxes = [];
+        this.torches = [];
+        this.shards = [];
+        this.enemies = [];
+        this.projectiles = [];
+        this.barricades = [];
+        this.cipherPedestalPos = new THREE.Vector3();
+        this.portalPos = new THREE.Vector3();
+        this.portalMesh = null;
+
+        this.initThree();
+        this.initSharedAssets();
+        this.buildWizardCharacter();
+        this.buildMandalaSpellSystem();
+        this.initControls();
+        this.loadChapter(1, 'SANCTUM-1');
+
+        this.lastFrameTime = performance.now();
+        this.animate = this.animate.bind(this);
+        requestAnimationFrame(this.animate);
+      }
+
+      initThree() {
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x060b16);
+        this.scene.fog = new THREE.FogExp2(0x071120, 0.036);
+
+        this.camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.15, 75);
+        this.renderer = new THREE.WebGLRenderer({
+          canvas: document.getElementById('game-canvas'),
+          antialias: true,
+          powerPreference: 'high-performance',
+          stencil: false,
+          depth: true
+        });
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        // Cap pixel ratio at 1.25 in BALANCED mode to prevent 4K/Retina fill-rate bottlenecks
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+        this.renderer.shadowMap.enabled = false; // Disabled expensive real-time point light shadows by default for 3x FPS boost
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this.renderer.toneMappingExposure = 1.12;
+
+        // Cool Moonlit / Portal Ambient Light + Hemisphere Light
+        this.ambientLight = new THREE.AmbientLight(0x1e2f4d, 0.92);
+        this.scene.add(this.ambientLight);
+
+        this.hemiLight = new THREE.HemisphereLight(0x38bdf8, 0x1a120b, 0.62);
+        this.scene.add(this.hemiLight);
+
+        // Textures
+        this.wallTexture = ProceduralArt.createGothicWallTexture('gothic');
+        this.floorTexture = ProceduralArt.createWetCobbleFloorTexture('gothic');
+        this.mandalaTexture = ProceduralArt.createMandalaTexture(false);
+
+        // Radar Canvas + Cached Background Layer
+        this.radarCanvas = document.getElementById('radar-canvas');
+        this.radarCtx = this.radarCanvas.getContext('2d');
+      }
+
+      initSharedAssets() {
+        // Shared Geometries & Materials so we don't recreate dozens of WebGL buffers
+        this.shared = {
+          wallGeo: new THREE.BoxGeometry(CELL_SIZE, WALL_HEIGHT, CELL_SIZE),
+          pillarGeo: new THREE.BoxGeometry(0.75, WALL_HEIGHT, 0.85),
+          capGeo: new THREE.BoxGeometry(0.95, 0.35, 1.05),
+          archTorusGeo: new THREE.TorusGeometry(CELL_SIZE * 0.44, 0.36, 8, 16, Math.PI),
+          leafGeo: new THREE.CircleGeometry(0.18, 5),
+          leafMat: new THREE.MeshLambertMaterial({ color: 0x244723, side: THREE.DoubleSide }),
+          rootMat: new THREE.MeshLambertMaterial({ color: 0x2d2417 }),
+          ironMat: new THREE.MeshStandardMaterial({ color: 0x1e242b, metalness: 0.7, roughness: 0.45 }),
+          flameGeo: new THREE.ConeGeometry(0.13, 0.36, 6),
+          flameMat: new THREE.MeshBasicMaterial({ color: 0xffaa22 }),
+          torchGlowSpriteMat: new THREE.MeshBasicMaterial({
+            color: 0xff8c24,
+            transparent: true,
+            opacity: 0.28,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            side: THREE.DoubleSide
+          }),
+          projArcaneGeo: new THREE.SphereGeometry(0.18, 8, 8),
+          projFlameGeo: new THREE.SphereGeometry(0.28, 8, 8),
+          projArcaneMat: new THREE.MeshBasicMaterial({ color: 0x00f0ff }),
+          projFlameMat: new THREE.MeshBasicMaterial({ color: 0xf97316 }),
+          shardGeo: new THREE.OctahedronGeometry(0.42, 0),
+          shardMat: new THREE.MeshStandardMaterial({
+            color: 0x00f0ff,
+            emissive: 0x0284c7,
+            emissiveIntensity: 1.2,
+            roughness: 0.15,
+            metalness: 0.85
+          }),
+          shardRingGeo: new THREE.TorusGeometry(0.62, 0.025, 6, 18),
+          shardRingMat: new THREE.MeshBasicMaterial({ color: 0xfde047 })
+        };
+      }
+
+      cyclePerformanceMode() {
+        this.perfIndex = (this.perfIndex + 1) % this.perfModes.length;
+        const mode = this.perfModes[this.perfIndex];
+        this.dom.perfLabel.innerText = mode;
+
+        if (mode === 'TURBO') {
+          this.renderer.setPixelRatio(1.0);
+          this.renderer.shadowMap.enabled = false;
+          this.camera.far = 58;
+          this.torches.forEach((t, i) => {
+            if (t.light) t.light.visible = (i === 0); // Only nearest torch casts dynamic light in Turbo
+          });
+          this.showTopBanner('⚡ TURBO GFX MODE: 1.0x Pixel Scale & Max Frame Rate', '#34d399');
+        } else if (mode === 'BALANCED') {
+          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+          this.renderer.shadowMap.enabled = false;
+          this.camera.far = 75;
+          this.torches.forEach((t, i) => {
+            if (t.light) t.light.visible = (i < 2);
+          });
+          this.showTopBanner('⚖️ BALANCED GFX MODE: Crisp HD & High FPS', '#38bdf8');
+        } else if (mode === 'ULTRA') {
+          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+          this.renderer.shadowMap.enabled = true;
+          this.camera.far = 95;
+          this.torches.forEach(t => {
+            if (t.light) t.light.visible = true;
+          });
+          this.showTopBanner('✨ ULTRA GFX MODE: Full Resolution & All Dynamic Lights', '#fde047');
+        }
+        this.camera.updateProjectionMatrix();
+      }
+
+      /* =========================================================================
+         BUILD 3D HOODED BATTLEMAGE CHARACTER (CAPE, PAULDRONS, CATALYZER STAFF)
+         ========================================================================= */
+      buildWizardCharacter() {
+        this.wizardGroup = new THREE.Group();
+
+        const cloakMat = new THREE.MeshStandardMaterial({
+          color: 0x0c1938,
+          roughness: 0.65,
+          metalness: 0.2
+        });
+        const goldTrimMat = new THREE.MeshStandardMaterial({
+          color: 0xd4af37,
+          emissive: 0x6b4c1b,
+          emissiveIntensity: 0.35,
+          roughness: 0.25,
+          metalness: 0.88
+        });
+        const leatherMat = new THREE.MeshStandardMaterial({
+          color: 0x241710,
+          roughness: 0.75,
+          metalness: 0.15
+        });
+
+        // 1. Boots & Animated Legs
+        const bootGeo = new THREE.CylinderGeometry(0.11, 0.13, 0.72, 8);
+        this.leftLeg = new THREE.Mesh(bootGeo, leatherMat);
+        this.leftLeg.position.set(-0.18, 0.36, 0);
+        this.rightLeg = new THREE.Mesh(bootGeo, leatherMat);
+        this.rightLeg.position.set(0.18, 0.36, 0);
+        this.wizardGroup.add(this.leftLeg, this.rightLeg);
+
+        // 2. Lower Robe Skirt & Torso Tunic
+        const robeSkirt = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.24, 0.44, 0.85, 10),
+          cloakMat
+        );
+        robeSkirt.position.y = 0.75;
+        this.wizardGroup.add(robeSkirt);
+
+        const torso = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.27, 0.23, 0.68, 10),
+          cloakMat
+        );
+        torso.position.y = 1.28;
+        this.wizardGroup.add(torso);
+
+        // 3. Leather Belt & Alchemist Satchel Pouch
+        const belt = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.25, 0.25, 0.09, 10),
+          leatherMat
+        );
+        belt.position.y = 1.02;
+        const pouch = new THREE.Mesh(
+          new THREE.BoxGeometry(0.15, 0.18, 0.12),
+          leatherMat
+        );
+        pouch.position.set(0.24, 0.96, 0.08);
+        pouch.rotation.z = -0.18;
+        this.wizardGroup.add(belt, pouch);
+
+        // 4. Ornate Gold-Trimmed Pauldrons (Shoulders)
+        const pauldronGeo = new THREE.SphereGeometry(0.19, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.55);
+        const leftPauldron = new THREE.Mesh(pauldronGeo, cloakMat);
+        leftPauldron.position.set(-0.31, 1.48, 0);
+        leftPauldron.rotation.z = 0.35;
+        const rightPauldron = new THREE.Mesh(pauldronGeo, cloakMat);
+        rightPauldron.position.set(0.31, 1.48, 0);
+        rightPauldron.rotation.z = -0.35;
+
+        const trimRingGeo = new THREE.TorusGeometry(0.18, 0.022, 6, 14);
+        const leftTrim = new THREE.Mesh(trimRingGeo, goldTrimMat);
+        leftTrim.rotation.x = Math.PI / 2;
+        leftPauldron.add(leftTrim);
+        const rightTrim = new THREE.Mesh(trimRingGeo, goldTrimMat);
+        rightTrim.rotation.x = Math.PI / 2;
+        rightPauldron.add(rightTrim);
+        this.wizardGroup.add(leftPauldron, rightPauldron);
+
+        // 5. Flowing Midnight-Blue Cape with Gold Back Crest
+        this.capeGroup = new THREE.Group();
+        this.capeGroup.position.set(0, 1.52, 0.15);
+
+        const capeGeo = new THREE.PlaneGeometry(0.92, 1.38, 6, 8);
+        const posAttr = capeGeo.attributes.position;
+        for (let i = 0; i < posAttr.count; i++) {
+          const py = posAttr.getY(i);
+          const px = posAttr.getX(i);
+          const t = (0.69 - py) / 1.38; // 0 at top, 1 at bottom hem
+          posAttr.setX(i, px * (0.65 + t * 0.55) - t * 0.12);
+          posAttr.setZ(i, Math.sin(px * 4.5) * 0.06 * t + t * 0.22);
+        }
+        capeGeo.computeVertexNormals();
+
+        const capeDoubleMat = cloakMat.clone();
+        capeDoubleMat.side = THREE.DoubleSide;
+        this.capeMesh = new THREE.Mesh(capeGeo, capeDoubleMat);
+        this.capeMesh.position.set(0, -0.65, 0.08);
+
+        // Gold border trim along cape bottom
+        const capeTrimGeo = new THREE.BoxGeometry(0.95, 0.04, 0.03);
+        const capeTrim = new THREE.Mesh(capeTrimGeo, goldTrimMat);
+        capeTrim.position.set(-0.12, -1.32, 0.28);
+        this.capeGroup.add(this.capeMesh, capeTrim);
+        this.wizardGroup.add(this.capeGroup);
+
+        // 6. Deep Wizard Hood
+        const hoodGroup = new THREE.Group();
+        hoodGroup.position.set(0, 1.66, 0);
+        const hoodOuter = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.45, 12), cloakMat);
+        hoodOuter.position.set(0, 0.06, 0.02);
+        hoodOuter.rotation.x = 0.22;
+        const headShadow = new THREE.Mesh(
+          new THREE.SphereGeometry(0.17, 10, 10),
+          new THREE.MeshBasicMaterial({ color: 0x02040a })
+        );
+        hoodGroup.add(hoodOuter, headShadow);
+        this.wizardGroup.add(hoodGroup);
+
+        // 7. Right Casting Arm + Twisted Elder Catalyzer Staff + Anamorphic Lens Flare
+        this.rightArmGroup = new THREE.Group();
+        this.rightArmGroup.position.set(0.34, 1.38, 0);
+
+        const armMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.56, 8), cloakMat);
+        armMesh.position.set(0.12, -0.1, -0.22);
+        armMesh.rotation.x = Math.PI / 2.6;
+        armMesh.rotation.z = -0.35;
+        this.rightArmGroup.add(armMesh);
+
+        // Elder Catalyzer Staff (held diagonally across body as in the screenshot)
+        this.staffGroup = new THREE.Group();
+        this.staffGroup.position.set(0.22, -0.15, -0.45);
+        this.staffGroup.rotation.x = 0.55;
+        this.staffGroup.rotation.z = 0.48;
+
+        const staffWoodMat = new THREE.MeshStandardMaterial({
+          color: 0x3b2d22,
+          roughness: 0.5,
+          metalness: 0.4
+        });
+        const shaftMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.022, 2.25, 8), staffWoodMat);
+        this.staffGroup.add(shaftMesh);
+
+        // Spiral silver/gold vine wrapping the staff head
+        const coilMesh = new THREE.Mesh(new THREE.TorusKnotGeometry(0.09, 0.018, 24, 6, 2, 3), goldTrimMat);
+        coilMesh.position.set(0, 1.08, 0);
+        this.staffGroup.add(coilMesh);
+
+        // Blazing Cyan Crystal Orb at Staff Tip
+        const orbMat = new THREE.MeshBasicMaterial({ color: 0xdff9ff });
+        this.staffOrb = new THREE.Mesh(new THREE.OctahedronGeometry(0.09, 1), orbMat);
+        this.staffOrb.position.set(0, 1.15, 0);
+        this.staffGroup.add(this.staffOrb);
+
+        // Anamorphic Horizontal Cyan-Blue Lens Flare Streak across Staff Tip!
+        const flareGeo = new THREE.PlaneGeometry(1.75, 0.08);
+        const flareMat = new THREE.MeshBasicMaterial({
+          color: 0x38bdf8,
+          transparent: true,
+          opacity: 0.85,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          side: THREE.DoubleSide
+        });
+        this.staffLensFlare = new THREE.Mesh(flareGeo, flareMat);
+        this.staffLensFlare.position.set(0, 1.15, 0);
+        this.staffGroup.add(this.staffLensFlare);
+
+        // Staff Dynamic Point Light
+        this.staffLight = new THREE.PointLight(0x00f0ff, 2.6, 14, 1.6);
+        this.staffLight.position.set(0, 1.15, 0);
+        this.staffGroup.add(this.staffLight);
+
+        this.rightArmGroup.add(this.staffGroup);
+        this.wizardGroup.add(this.rightArmGroup);
+
+        this.scene.add(this.wizardGroup);
+      }
+
+      /* =========================================================================
+         BUILD VERTICAL & FLOOR GOLDEN MANDALA CIRCLES + RAINBOW SPARKLE SWIRL
+         (Exact match to center magical VFX of screenshot)
+         ========================================================================= */
+      buildMandalaSpellSystem() {
+        this.mandalaGroup = new THREE.Group();
+
+        const mandalaMat = new THREE.MeshBasicMaterial({
+          map: this.mandalaTexture,
+          transparent: true,
+          opacity: 0.95,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          side: THREE.DoubleSide
+        });
+
+        // 1. Vertical Mandala Circle in front of the Staff
+        this.verticalMandala = new THREE.Mesh(new THREE.PlaneGeometry(2.35, 2.35), mandalaMat);
+        this.verticalMandala.position.set(0.28, 1.48, -1.65);
+        this.mandalaGroup.add(this.verticalMandala);
+
+        // 2. Horizontal Golden Rune Circle on the Wet Stone Floor
+        this.floorMandala = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), mandalaMat.clone());
+        this.floorMandala.rotation.x = -Math.PI / 2;
+        this.floorMandala.position.set(0.28, 0.04, -1.65);
+        this.mandalaGroup.add(this.floorMandala);
+
+        // 3. Swirling Prismatic Rainbow & Cyan-Gold Sparkle Ring Particles
+        const count = 160;
+        const pGeo = new THREE.BufferGeometry();
+        const positions = new Float32Array(count * 3);
+        const colors = new Float32Array(count * 3);
+        this.sparkleAngles = new Float32Array(count);
+        this.sparkleRadii = new Float32Array(count);
+
+        const palette = [
+          new THREE.Color(0x00f0ff), // Cyan
+          new THREE.Color(0xfde047), // Gold
+          new THREE.Color(0xff00e5), // Magenta
+          new THREE.Color(0x4ade80), // Emerald
+          new THREE.Color(0xf97316)  // Fiery Orange
+        ];
+
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const radius = 0.55 + Math.random() * 0.95;
+          this.sparkleAngles[i] = angle;
+          this.sparkleRadii[i] = radius;
+
+          positions[i * 3] = 0.28 + Math.cos(angle) * radius;
+          positions[i * 3 + 1] = 1.35 + Math.sin(angle) * radius;
+          positions[i * 3 + 2] = -1.55 + (Math.random() - 0.5) * 0.6;
+
+          const col = palette[i % palette.length];
+          colors[i * 3] = col.r;
+          colors[i * 3 + 1] = col.g;
+          colors[i * 3 + 2] = col.b;
+        }
+
+        pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        pGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const pMat = new THREE.PointsMaterial({
+          size: 0.09,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.95,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+
+        this.mandalaSparkles = new THREE.Points(pGeo, pMat);
+        this.mandalaGroup.add(this.mandalaSparkles);
+
+        this.wizardGroup.add(this.mandalaGroup);
+      }
+
+      /* =========================================================================
+         BUILD GOTHIC STONE DUNGEON (GPU-INSTANCED WALLS, ARCHWAYS, TORCHES, PORTAL)
+         ========================================================================= */
+      loadChapter(chapterNum, seedStr) {
+        this.chapter = chapterNum;
+        this.seedString = seedStr || `CHAPTER-${chapterNum}`;
+        this.shardsCollected = 0;
+        this.portalUnlocked = false;
+
+        // Clear existing level geometry cleanly
+        this.levelMeshes.forEach(m => this.scene.remove(m));
+        this.levelMeshes = [];
+        this.wallBoxes = [];
+        this.torches.forEach(t => {
+          this.scene.remove(t.group);
+          if (t.light) this.scene.remove(t.light);
+        });
+        this.torches = [];
+        this.shards.forEach(s => this.scene.remove(s.group));
+        this.shards = [];
+        this.enemies.forEach(e => this.scene.remove(e.group));
+        this.enemies = [];
+        this.barricades.forEach(b => this.scene.remove(b.group));
+        this.barricades = [];
+        if (this.portalMesh) this.scene.remove(this.portalMesh);
+
+        // Update Chapter UI Title
+        const chapterNames = {
+          1: 'Ch. I: Mossbound Sanctum',
+          2: 'Ch. II: Catacombs of Cinder',
+          3: 'Ch. III: The Astral Spire'
+        };
+        this.dom.chapterTitle.innerText =
+          chapterNames[this.chapter] || `Abyss Seed: ${this.seedString}`;
+        this.dom.shards.innerText = `0/${this.shardsRequired}`;
+
+        // Design a dramatic Grand Vaulted Hallway at Spawn (0,0) leading North (-Z)
+        // with branching side wings so the initial view is 100% identical to the screenshot!
+        const cols = 13, rows = 15;
+        const grid = Array.from({ length: rows }, () => Array(cols).fill(1));
+        const rng = new SeededRandom(this.seedString);
+
+        // Carve main central vaulted nave corridor from row 13 up to row 1 (col 6)
+        for (let r = 1; r <= 13; r++) {
+          grid[r][6] = 0;
+        }
+        // Carve branching gothic side chambers & loops
+        const branches = [
+          [11, 5], [11, 4], [11, 3], [10, 3], [9, 3], [9, 4], [9, 5],
+          [11, 7], [11, 8], [11, 9], [10, 9], [9, 9], [8, 9], [8, 8], [8, 7],
+          [6, 5], [6, 4], [6, 3], [5, 3], [4, 3], [4, 4], [4, 5],
+          [6, 7], [6, 8], [6, 9], [5, 9], [4, 9], [3, 9], [3, 8], [3, 7],
+          [2, 5], [2, 7]
+        ];
+        branches.forEach(([r, c]) => { grid[r][c] = 0; });
+
+        // Extra procedural rooms based on seed
+        for (let i = 0; i < 12; i++) {
+          const rr = 2 + Math.floor(rng.next() * (rows - 4));
+          const rc = 2 + Math.floor(rng.next() * (cols - 4));
+          grid[rr][rc] = 0;
+          if (rc < 6) grid[rr][rc + 1] = 0;
+          if (rc > 6) grid[rr][rc - 1] = 0;
+        }
+
+        // Precompute open corridor passages for fast radar rendering
+        const openCells = [];
+        let wallCount = 0;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (grid[r][c] === 1) {
+              wallCount++;
+            } else {
+              openCells.push({
+                wx: (c - Math.floor(cols / 2)) * CELL_SIZE,
+                wz: (r - Math.floor(rows / 2)) * CELL_SIZE
+              });
+            }
+          }
+        }
+        this.gridData = { grid, cols, rows, openCells };
+
+        // Materials
+        const wallMat = new THREE.MeshStandardMaterial({
+          map: this.wallTexture,
+          roughness: 0.78,
+          metalness: 0.15
+        });
+        const floorMat = new THREE.MeshStandardMaterial({
+          map: this.floorTexture,
+          roughness: 0.25, // Low roughness for wet stone puddle reflections!
+          metalness: 0.35
+        });
+        this.floorTexture.repeat.set(cols * 1.5, rows * 1.5);
+
+        // Floor & Ceiling
+        const floorGeo = new THREE.PlaneGeometry(cols * CELL_SIZE, rows * CELL_SIZE);
+        const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+        floorMesh.rotation.x = -Math.PI / 2;
+        this.scene.add(floorMesh);
+        this.levelMeshes.push(floorMesh);
+
+        const ceilingMesh = new THREE.Mesh(
+          floorGeo,
+          new THREE.MeshBasicMaterial({ color: 0x050811 })
+        );
+        ceilingMesh.rotation.x = Math.PI / 2;
+        ceilingMesh.position.y = WALL_HEIGHT;
+        this.scene.add(ceilingMesh);
+        this.levelMeshes.push(ceilingMesh);
+
+        // GPU-INSTANCED WALLS: Render all ~140 dungeon walls in 1 single WebGL draw call!
+        const instancedWalls = new THREE.InstancedMesh(this.shared.wallGeo, wallMat, wallCount);
+        let instanceIdx = 0;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (grid[r][c] === 1) {
+              const wx = (c - Math.floor(cols / 2)) * CELL_SIZE;
+              const wz = (r - Math.floor(rows / 2)) * CELL_SIZE;
+
+              this._dummyMatrix.position.set(wx, WALL_HEIGHT / 2, wz);
+              this._dummyMatrix.rotation.set(0, 0, 0);
+              this._dummyMatrix.scale.set(1, 1, 1);
+              this._dummyMatrix.updateMatrix();
+              instancedWalls.setMatrixAt(instanceIdx++, this._dummyMatrix.matrix);
+
+              this.wallBoxes.push(new THREE.Box3(
+                new THREE.Vector3(wx - CELL_SIZE / 2, 0, wz - CELL_SIZE / 2),
+                new THREE.Vector3(wx + CELL_SIZE / 2, WALL_HEIGHT, wz + CELL_SIZE / 2)
+              ));
+            }
+          }
+        }
+        instancedWalls.instanceMatrix.needsUpdate = true;
+        this.scene.add(instancedWalls);
+        this.levelMeshes.push(instancedWalls);
+
+        // Player Spawn at (col 6, row 12) looking North down the vaulted stone nave
+        const spawnX = 0;
+        const spawnZ = (12 - Math.floor(rows / 2)) * CELL_SIZE;
+        this.playerPos.set(spawnX, 0, spawnZ);
+        this.playerYaw = 0;
+
+        // Add Vaulted Gothic Stone Archways, Torches, Creeping Floor Roots & Hanging Ivy along the main corridor
+        for (let r = 11; r >= 2; r -= 2) {
+          const az = (r - Math.floor(rows / 2)) * CELL_SIZE;
+          this.createGothicArchway(0, az, wallMat);
+          this.createCreepingFloorRoots(0, az + 1.8);
+          this.createWallIvyPatch(-CELL_SIZE * 0.48, az + 1.2, 1);
+          this.createWallIvyPatch(CELL_SIZE * 0.48, az - 1.0, -1);
+        }
+
+        // Flickering Wall Sconce Torches (Left near pedestal & right down corridor, matching screenshot!)
+        this.createWallTorch(-CELL_SIZE * 0.45, spawnZ - 4.2, 1, true);
+        this.createWallTorch(CELL_SIZE * 0.45, spawnZ - 11.5, -1, true);
+        this.createWallTorch(-CELL_SIZE * 0.45, spawnZ - 21.0, 1, false);
+        this.createWallTorch(CELL_SIZE * 0.45, spawnZ - 31.0, -1, false);
+
+        // Glowing Wall Cipher Lectern Pedestal on the Left Wall (exact match to screenshot!)
+        this.cipherPedestalPos.set(-CELL_SIZE * 0.34, 0, spawnZ - 2.6);
+        this.createCipherPedestal(this.cipherPedestalPos);
+
+        // Glowing Blue Archway Rift Portal at the far North end of the corridor (row 1, col 6)
+        this.portalPos.set(0, 0, (1 - Math.floor(rows / 2)) * CELL_SIZE);
+        this.createArchwayRiftPortal(this.portalPos);
+
+        // Place 3 Collectible Elder Soul Shards in the branching wings & corridor
+        const shardCoords = [
+          [9, 3],
+          [8, 9],
+          [4, 3]
+        ];
+        shardCoords.forEach(([sr, sc]) => {
+          const sx = (sc - Math.floor(cols / 2)) * CELL_SIZE;
+          const sz = (sr - Math.floor(rows / 2)) * CELL_SIZE;
+          this.createElderSoulShard(new THREE.Vector3(sx, 1.3, sz));
+        });
+
+        // Spawn Patrolling Hollow Knights & Shadow Wraiths
+        const enemySpawns = [
+          [7, 6, 'Hollow Knight'],
+          [10, 8, 'Shadow Wraith'],
+          [5, 4, 'Hollow Knight'],
+          [3, 8, 'Abyssal Sentinel']
+        ];
+        enemySpawns.forEach(([er, ec, name]) => {
+          const ex = (ec - Math.floor(cols / 2)) * CELL_SIZE;
+          const ez = (er - Math.floor(rows / 2)) * CELL_SIZE;
+          this.spawnEnemy(new THREE.Vector3(ex, 0, ez), name);
+        });
+      }
+
+      createGothicArchway(x, z, mat) {
+        const archGroup = new THREE.Group();
+        archGroup.position.set(x, 0, z);
+
+        // Left & Right Carved Stone Pillars using shared geometries
+        const leftPillar = new THREE.Mesh(this.shared.pillarGeo, mat);
+        leftPillar.position.set(-CELL_SIZE * 0.44, WALL_HEIGHT / 2, 0);
+        const rightPillar = new THREE.Mesh(this.shared.pillarGeo, mat);
+        rightPillar.position.set(CELL_SIZE * 0.44, WALL_HEIGHT / 2, 0);
+
+        // Stone Capitals
+        const leftCap = new THREE.Mesh(this.shared.capGeo, mat);
+        leftCap.position.set(-CELL_SIZE * 0.44, 3.6, 0);
+        const rightCap = new THREE.Mesh(this.shared.capGeo, mat);
+        rightCap.position.set(CELL_SIZE * 0.44, 3.6, 0);
+
+        // Curved Vaulted Arch Ring overhead
+        const archTorus = new THREE.Mesh(this.shared.archTorusGeo, mat);
+        archTorus.position.set(0, 3.6, 0);
+
+        archGroup.add(leftPillar, rightPillar, leftCap, rightCap, archTorus);
+        archGroup.matrixAutoUpdate = false;
+        archGroup.updateMatrix();
+        this.scene.add(archGroup);
+        this.levelMeshes.push(archGroup);
+      }
+
+      createCreepingFloorRoots(x, z) {
+        const rootGroup = new THREE.Group();
+        rootGroup.position.set(x, 0.03, z);
+
+        for (let i = 0; i < 4; i++) {
+          const curve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3((Math.random() - 0.5) * 3.8, 0.02, (Math.random() - 0.5) * 2.2),
+            new THREE.Vector3((Math.random() - 0.5) * 2.0, 0.07, (Math.random() - 0.5) * 1.5),
+            new THREE.Vector3((Math.random() - 0.5) * 3.8, 0.01, (Math.random() - 0.5) * 2.2)
+          ]);
+          const tubeGeo = new THREE.TubeGeometry(curve, 7, 0.05 + Math.random() * 0.035, 5, false);
+          const rootMesh = new THREE.Mesh(tubeGeo, this.shared.rootMat);
+          rootGroup.add(rootMesh);
+        }
+
+        rootGroup.matrixAutoUpdate = false;
+        rootGroup.updateMatrix();
+        this.scene.add(rootGroup);
+        this.levelMeshes.push(rootGroup);
+      }
+
+      createWallIvyPatch(x, z, sideDir) {
+        // GPU InstancedMesh for Ivy leaves (1 draw call per patch instead of 28)
+        const leafCount = 18;
+        const instancedLeaves = new THREE.InstancedMesh(this.shared.leafGeo, this.shared.leafMat, leafCount);
+        instancedLeaves.position.set(x, 2.6, z);
+
+        for (let i = 0; i < leafCount; i++) {
+          this._dummyMatrix.position.set(
+            sideDir * (0.05 + Math.random() * 0.08),
+            (Math.random() - 0.5) * 3.4,
+            (Math.random() - 0.5) * 2.2
+          );
+          this._dummyMatrix.rotation.set(0, sideDir * Math.PI / 2 + (Math.random() - 0.5) * 0.5, 0);
+          const s = 0.8 + Math.random() * 0.6;
+          this._dummyMatrix.scale.set(s, s, s);
+          this._dummyMatrix.updateMatrix();
+          instancedLeaves.setMatrixAt(i, this._dummyMatrix.matrix);
+        }
+        instancedLeaves.instanceMatrix.needsUpdate = true;
+        instancedLeaves.matrixAutoUpdate = false;
+        instancedLeaves.updateMatrix();
+
+        this.scene.add(instancedLeaves);
+        this.levelMeshes.push(instancedLeaves);
+      }
+
+      createWallTorch(x, z, sideDir, hasRealLight = true) {
+        const group = new THREE.Group();
+        group.position.set(x, 2.55, z);
+
+        const bracket = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.025, 0.55, 6), this.shared.ironMat);
+        bracket.rotation.z = sideDir * -0.45;
+        group.add(bracket);
+
+        // Glowing Fire Flame Core
+        const flame = new THREE.Mesh(this.shared.flameGeo, this.shared.flameMat);
+        flame.position.set(sideDir * 0.14, 0.28, 0);
+        group.add(flame);
+
+        // Additive Volumetric Halo Plane (gives warm torch glow even without expensive PointLight!)
+        const halo = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.4), this.shared.torchGlowSpriteMat);
+        halo.position.set(sideDir * 0.18, 0.32, 0);
+        halo.rotation.y = sideDir * Math.PI / 2;
+        group.add(halo);
+
+        let light = null;
+        if (hasRealLight) {
+          light = new THREE.PointLight(0xff7b1a, 2.5, 16, 1.8);
+          light.position.set(x + sideDir * 0.35, 2.85, z);
+          this.scene.add(light);
+        }
+
+        this.scene.add(group);
+        this.torches.push({ group, flame, light, baseIntensity: 2.5 });
+      }
+
+      createCipherPedestal(pos) {
+        // Ornate Stone & Gold Lectern on the Left Wall (matching screenshot!)
+        const group = new THREE.Group();
+        group.position.copy(pos);
+
+        const stoneMat = new THREE.MeshStandardMaterial({ color: 0x2a323d, roughness: 0.7 });
+        const goldMat = new THREE.MeshStandardMaterial({
+          color: 0xfbbf24,
+          emissive: 0xd97706,
+          emissiveIntensity: 0.75,
+          roughness: 0.2,
+          metalness: 0.85
+        });
+
+        const base = new THREE.Mesh(new THREE.BoxGeometry(0.68, 1.15, 0.52), stoneMat);
+        base.position.y = 0.575;
+        group.add(base);
+
+        // Slanted glowing golden rune tablet on top of pedestal
+        const topTablet = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.08, 0.44), goldMat);
+        topTablet.position.set(0, 1.18, 0);
+        topTablet.rotation.z = -0.22;
+        group.add(topTablet);
+
+        const pedLight = new THREE.PointLight(0xfbbf24, 1.6, 6, 2);
+        pedLight.position.set(0.1, 1.5, 0);
+        group.add(pedLight);
+
+        this.scene.add(group);
+        this.levelMeshes.push(group);
+      }
+
+      createArchwayRiftPortal(pos) {
+        // Bright glowing cyan-blue vertical archway portal at the end of the corridor (matching screenshot background!)
+        const group = new THREE.Group();
+        group.position.copy(pos);
+
+        const portalGeo = new THREE.PlaneGeometry(3.2, 4.8);
+        this.portalMat = new THREE.MeshBasicMaterial({
+          color: 0x7dd3fc,
+          transparent: true,
+          opacity: 0.88,
+          side: THREE.DoubleSide
+        });
+        const portalPlane = new THREE.Mesh(portalGeo, this.portalMat);
+        portalPlane.position.y = 2.4;
+        group.add(portalPlane);
+
+        // Intense Volumetric Backlight Glow down the corridor
+        this.portalLight = new THREE.PointLight(0x38bdf8, 4.2, 28, 1.5);
+        this.portalLight.position.set(0, 2.6, 1.2);
+        group.add(this.portalLight);
+
+        this.scene.add(group);
+        this.portalMesh = group;
+      }
+
+      createElderSoulShard(pos) {
+        const group = new THREE.Group();
+        group.position.copy(pos);
+
+        const mesh = new THREE.Mesh(this.shared.shardGeo, this.shared.shardMat);
+        group.add(mesh);
+
+        const ring = new THREE.Mesh(this.shared.shardRingGeo, this.shared.shardRingMat);
+        group.add(ring);
+
+        this.scene.add(group);
+        this.shards.push({ group, mesh, ring, baseY: pos.y, collected: false });
+      }
+
+      spawnEnemy(pos, name) {
+        const group = new THREE.Group();
+        group.position.copy(pos);
+
+        const armorMat = new THREE.MeshStandardMaterial({
+          color: 0x1e293b,
+          metalness: 0.75,
+          roughness: 0.35
+        });
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.25, 1.45, 10), armorMat);
+        body.position.y = 0.85;
+        group.add(body);
+
+        // Glowing crimson eyes visor
+        const visor = new THREE.Mesh(
+          new THREE.BoxGeometry(0.28, 0.08, 0.25),
+          new THREE.MeshBasicMaterial({ color: 0xf43f5e })
+        );
+        visor.position.set(0, 1.42, 0.15);
+        group.add(visor);
+
+        // Ice Block Cage (hidden until frozen by Spell 3 Freeze!)
+        const iceCage = new THREE.Mesh(
+          new THREE.BoxGeometry(1.1, 2.0, 1.1),
+          new THREE.MeshStandardMaterial({
+            color: 0x7dd3fc,
+            emissive: 0x0284c7,
+            emissiveIntensity: 0.4,
+            transparent: true,
+            opacity: 0.65,
+            roughness: 0.1
+          })
+        );
+        iceCage.position.y = 1.0;
+        iceCage.visible = false;
+        group.add(iceCage);
+
+        this.scene.add(group);
+        this.enemies.push({
+          group,
+          name,
+          hp: 60,
+          maxHp: 60,
+          frozenTimer: 0,
+          iceCage,
+          patrolOrigin: pos.clone(),
+          patrolPhase: Math.random() * Math.PI * 2,
+          alive: true
+        });
+      }
+
+      /* =========================================================================
+         5. SPELLCASTING & COMBAT SYSTEM (BLINK, FLAME, FREEZE, SHIELD + STAFF BOLT)
+         ========================================================================= */
+      castSpell(slot) {
+        if (this.cooldowns[slot] > 0 && !this.archmageMode && !this.zaneMode) return;
+
+        const costs = { 1: 15, 2: 20, 3: 25, 4: 20 };
+        if (this.mp < costs[slot] && !this.archmageMode && !this.zaneMode) {
+          this.showTopBanner('Insufficient Arcane Mana!', '#38bdf8');
+          return;
+        }
+
+        if (!this.archmageMode && !this.zaneMode) {
+          this.mp = Math.max(0, this.mp - costs[slot]);
+          const cdTimes = { 1: 2.5, 2: 2.0, 3: 4.0, 4: 5.0 };
+          this.cooldowns[slot] = cdTimes[slot];
+        }
+
+        // Trigger the iconic Doctor Strange Mandala circle on every spell cast!
+        this.activeMandalaTimer = 3.2;
+
+        const cardEl = document.getElementById(`spell-card-${slot}`);
+        if (cardEl) {
+          cardEl.classList.add('casting');
+          setTimeout(() => cardEl.classList.remove('casting'), 260);
+        }
+
+        if (slot === 1) {
+          // SPELL 1: BLINK (Teleport forward along facing direction)
+          audio.playBlink();
+          const forward = new THREE.Vector3(-Math.sin(this.playerYaw), 0, -Math.cos(this.playerYaw));
+          const stepDist = 1.2;
+          for (let s = 0; s < 5; s++) {
+            const testPos = this.playerPos.clone().addScaledVector(forward, stepDist);
+            if (!this.checkCollisionAt(testPos.x, testPos.z)) {
+              this.playerPos.copy(testPos);
+            } else {
+              break;
+            }
+          }
+          this.showTopBanner('SPELL 1: Phase Blink Evoked', '#38bdf8');
+        } else if (slot === 2) {
+          // SPELL 2: FLAME (Launch explosive scorching fireball down the corridor)
+          audio.playFireball();
+          this.spawnProjectile('flame');
+          this.showTopBanner('SPELL 2: Elder Flame Torrent', '#f97316');
+        } else if (slot === 3) {
+          // SPELL 3: FREEZE (Glacial Blizzard AoE freezing nearby enemies in crystal ice)
+          audio.playFreeze();
+          this.triggerFreezeNova();
+          this.showTopBanner('SPELL 3: Glacial Frost Nova', '#7dd3fc');
+        } else if (slot === 4) {
+          // SPELL 4: SHIELD (Golden Mandala Aegis Ward + Heal HP)
+          audio.playCastMandala();
+          this.shieldWardTimer = 6.0;
+          this.hp = Math.min(this.maxHp, this.hp + 30);
+          this.showTopBanner('SPELL 4: Golden Mandala Aegis Active (+30 HP)', '#fde047');
+        }
+
+        this.updateStatusBars();
+      }
+
+      firePrimaryStaffBolt() {
+        audio.playCastMandala();
+        this.activeMandalaTimer = 2.4;
+        this.spawnProjectile('arcane');
+      }
+
+      triggerMandalaNova() {
+        audio.playCastMandala();
+        this.activeMandalaTimer = 4.0;
+        // Fire 3 fan bolts
+        [-0.22, 0, 0.22].forEach(angleOffset => {
+          this.spawnProjectile('arcane', angleOffset);
+        });
+        this.showTopBanner('Arcane Catalyzer Nova Unleashed!', '#fde047');
+      }
+
+      triggerGroundRunePulse() {
+        audio.playCastMandala();
+        this.activeMandalaTimer = 3.5;
+        // Check if near Wall Cipher Lectern
+        if (this.playerPos.distanceTo(this.cipherPedestalPos) < 4.5) {
+          this.openCipherModal();
+          return;
+        }
+        // Pull nearby shards or damage nearby enemies
+        this.enemies.forEach(en => {
+          if (en.alive && en.group.position.distanceTo(this.playerPos) < 6.5) {
+            en.hp -= 35;
+            if (en.hp <= 0) this.killEnemy(en);
+          }
+        });
+        this.showTopBanner('Ground Rune Resonance Pulse!', '#00f0ff');
+      }
+
+      spawnProjectile(type = 'arcane', yawOffset = 0) {
+        const isFlame = type === 'flame';
+        const mesh = new THREE.Mesh(
+          isFlame ? this.shared.projFlameGeo : this.shared.projArcaneGeo,
+          isFlame ? this.shared.projFlameMat : this.shared.projArcaneMat
+        );
+
+        const angle = this.playerYaw + yawOffset;
+        const dir = new THREE.Vector3(-Math.sin(angle), 0, -Math.cos(angle));
+        mesh.position.set(
+          this.playerPos.x + dir.x * 1.2,
+          this.playerPos.y + 1.35,
+          this.playerPos.z + dir.z * 1.2
+        );
+
+        this.scene.add(mesh);
+        this.projectiles.push({
+          mesh,
+          dir,
+          speed: isFlame ? 18 : 24,
+          damage: isFlame ? 45 : 25,
+          life: 2.0
+        });
+      }
+
+      triggerFreezeNova() {
+        // Expanding icy ring mesh
+        const ringGeo = new THREE.RingGeometry(0.4, 5.5, 32);
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: 0x38bdf8,
+          transparent: true,
+          opacity: 0.75,
+          side: THREE.DoubleSide
+        });
+        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+        ringMesh.rotation.x = -Math.PI / 2;
+        ringMesh.position.copy(this.playerPos).add(new THREE.Vector3(0, 0.08, 0));
+        this.scene.add(ringMesh);
+        setTimeout(() => this.scene.remove(ringMesh), 650);
+
+        this.enemies.forEach(en => {
+          if (en.alive && en.group.position.distanceTo(this.playerPos) < 8.5) {
+            en.frozenTimer = 6.0;
+            en.iceCage.visible = true;
+            en.hp -= 20;
+            if (en.hp <= 0) this.killEnemy(en);
+          }
+        });
+      }
+
+      killEnemy(en) {
+        en.alive = false;
+        this.scene.remove(en.group);
+        this.enemiesDefeated++;
+        this.mp = Math.min(this.maxMp, this.mp + 20);
+        this.updateStatusBars();
+        this.showTopBanner(`${en.name} Vanquished! (+20 Mana)`, '#fde047');
+      }
+
+      /* =========================================================================
+         6. WALL CIPHER & "ZANE" REALITY OVERDRIVE SYSTEM
+         ========================================================================= */
+      openCipherModal() {
+        const modal = document.getElementById('cipher-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        const input = document.getElementById('cipher-input');
+        input.value = '';
+        setTimeout(() => input.focus(), 50);
+      }
+
+      closeCipherModal() {
+        const modal = document.getElementById('cipher-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+
+      submitCipherCode() {
+        const val = document.getElementById('cipher-input').value.trim().toUpperCase();
+        if (val) this.applyCipherWord(val);
+      }
+
+      applyCipherWord(word) {
+        const code = word.trim().toUpperCase();
+        this.closeCipherModal();
+
+        const notifyParent = (payload) => {
+          try {
+            if (window.parent && window.parent !== window) {
+              window.parent.postMessage({ source: 'ZANEX_ARCANE_MAZE', ...payload }, '*');
+            }
+          } catch (e) {}
+        };
+
+        if (code === 'OPERATOR' || code === 'ZANEX' || code === 'ROOT' || code === 'CLEARANCE') {
+          audio.playZaneActivation();
+          this.hp = this.maxHp;
+          this.mp = this.maxMp;
+          this.updateStatusBars();
+          this.showTopBanner('⚡ OPERATOR CLEARANCE TOKEN UNLOCKED: BLACK-OPS DOSSIER DECLASSIFIED!', '#00f0ff');
+          notifyParent({
+            type: 'ZANEX_MAZE_EVENT',
+            action: 'CLEARANCE_UNLOCKED',
+            code,
+            flag: 'ZANEX{ARCANE_MAZE_OPERATOR_ROOT_99}'
+          });
+        } else if (code === 'ZANE') {
+          this.zaneMode = !this.zaneMode;
+          audio.playZaneActivation();
+          document.body.classList.toggle('zane-overdrive-active', this.zaneMode);
+
+          // Re-skin textures & lighting into ZANE Astral Overdrive
+          this.wallTexture = ProceduralArt.createGothicWallTexture(this.zaneMode ? 'zane' : 'gothic');
+          this.floorTexture = ProceduralArt.createWetCobbleFloorTexture(this.zaneMode ? 'zane' : 'gothic');
+          this.mandalaTexture = ProceduralArt.createMandalaTexture(this.zaneMode);
+          this.verticalMandala.material.map = this.mandalaTexture;
+          this.floorMandala.material.map = this.mandalaTexture;
+          this.scene.fog.color.setHex(this.zaneMode ? 0x140429 : 0x071120);
+          this.activeMandalaTimer = 9999;
+          this.hp = this.maxHp;
+          this.mp = this.maxMp;
+          this.updateStatusBars();
+
+          this.loadChapter(this.chapter, this.seedString);
+          this.showTopBanner(
+            this.zaneMode
+              ? '⚡ ZANE OVERDRIVE ACTIVATED: Astral Rainbow Dimension & Infinite Mana!'
+              : 'Returned to Standard Gothic Sanctum',
+            '#ff00e5'
+          );
+
+          notifyParent({
+            type: 'ZANEX_MAZE_EVENT',
+            action: 'ZANE_OVERDRIVE',
+            active: this.zaneMode
+          });
+        } else if (code === 'GHOST') {
+          this.ghostMode = !this.ghostMode;
+          this.showTopBanner(
+            this.ghostMode ? '👻 GHOST PHASE ACTIVE: Walk Through Stone Walls!' : 'Ghost Phase Disabled',
+            '#00f0ff'
+          );
+        } else if (code === 'ARCHMAGE') {
+          this.archmageMode = !this.archmageMode;
+          this.hp = this.maxHp;
+          this.mp = this.maxMp;
+          this.updateStatusBars();
+          this.showTopBanner('✨ ARCHMAGE MODE: Infinite Mana & Zero Cooldowns!', '#fde047');
+        } else if (code === 'CHAPTER2') {
+          this.loadChapter(2, 'CINDER-2');
+          this.showTopBanner('Warped to Chapter II: Catacombs of Cinder', '#f97316');
+        } else if (code === 'CHAPTER3') {
+          this.loadChapter(3, 'ASTRAL-3');
+          this.showTopBanner('Warped to Chapter III: The Astral Spire', '#a855f7');
+        } else {
+          // Custom Infinite Procedural Dungeon Seed!
+          this.loadChapter(this.chapter + 1, code);
+          this.showTopBanner(`Generated Infinite Labyrinth Seed: [${code}]`, '#34d399');
+        }
+      }
+
+      /* =========================================================================
+         7. CONTROLS (WASD, ARROWS, VIRTUAL JOYSTICK, CAMERA MODES)
+         ========================================================================= */
+      initControls() {
+        window.addEventListener('resize', () => {
+          this.camera.aspect = window.innerWidth / window.innerHeight;
+          this.camera.updateProjectionMatrix();
+          this.renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        window.addEventListener('keydown', (e) => {
+          // Do not intercept keys when typing inside the Wall Cipher input
+          if (document.activeElement && document.activeElement.id === 'cipher-input') {
+            if (e.key === 'Enter') this.submitCipherCode();
+            if (e.key === 'Escape') this.closeCipherModal();
+            return;
+          }
+
+          this.keys[e.code] = true;
+
+          if (e.code === 'Digit1') this.castSpell(1);
+          if (e.code === 'Digit2') this.castSpell(2);
+          if (e.code === 'Digit3') this.castSpell(3);
+          if (e.code === 'Digit4') this.castSpell(4);
+          if (e.code === 'Space') {
+            e.preventDefault();
+            this.firePrimaryStaffBolt();
+          }
+          if (e.code === 'KeyF') this.triggerMandalaNova();
+          if (e.code === 'KeyR') this.triggerGroundRunePulse();
+          if (e.code === 'KeyE') this.openCipherModal();
+          if (e.code === 'KeyC') this.cycleCameraMode();
+          if (e.code === 'KeyP') this.cyclePerformanceMode();
+        });
+
+        window.addEventListener('keyup', (e) => {
+          this.keys[e.code] = false;
+        });
+
+        // Utility Strip Buttons
+        document.getElementById('btn-perf-mode').addEventListener('click', () => this.cyclePerformanceMode());
+        document.getElementById('btn-camera-mode').addEventListener('click', () => this.cycleCameraMode());
+        document.getElementById('btn-cipher-modal').addEventListener('click', () => this.openCipherModal());
+        document.getElementById('btn-audio-toggle').addEventListener('click', () => {
+          const on = audio.toggle();
+          document.getElementById('svg-audio-on').classList.toggle('hidden', !on);
+          document.getElementById('svg-audio-off').classList.toggle('hidden', on);
+        });
+
+        // Smooth Mouse Drag Look on Canvas
+        const canvas = document.getElementById('game-canvas');
+        canvas.addEventListener('mousedown', (e) => {
+          this.isMouseDragging = true;
+          this.lastMousePos = { x: e.clientX, y: e.clientY };
+        });
+        window.addEventListener('mousemove', (e) => {
+          if (!this.isMouseDragging) return;
+          const dx = e.clientX - this.lastMousePos.x;
+          const dy = e.clientY - this.lastMousePos.y;
+          this.lastMousePos = { x: e.clientX, y: e.clientY };
+          this.playerYaw -= dx * 0.0045;
+          this.cameraPitch = Math.max(-0.25, Math.min(0.45, this.cameraPitch + dy * 0.003));
+        });
+        window.addEventListener('mouseup', () => {
+          this.isMouseDragging = false;
+        });
+
+        // Bottom-Left Interactive Virtual Joystick (Mouse & Touch)
+        const joyZone = document.getElementById('joystick-zone');
+        const joyPuck = document.getElementById('joystick-puck');
+        let joyCenter = { x: 0, y: 0 };
+
+        const startJoy = (clientX, clientY) => {
+          const rect = joyZone.getBoundingClientRect();
+          joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+          this.joyVec.active = true;
+          moveJoy(clientX, clientY);
+        };
+
+        const moveJoy = (clientX, clientY) => {
+          if (!this.joyVec.active) return;
+          const dx = clientX - joyCenter.x;
+          const dy = clientY - joyCenter.y;
+          const maxR = 38;
+          const dist = Math.min(maxR, Math.hypot(dx, dy));
+          const ang = Math.atan2(dy, dx);
+          const px = Math.cos(ang) * dist;
+          const py = Math.sin(ang) * dist;
+          joyPuck.style.transform = `translate(${px}px, ${py}px)`;
+          this.joyVec.x = px / maxR;
+          this.joyVec.y = py / maxR;
+        };
+
+        const endJoy = () => {
+          this.joyVec.active = false;
+          this.joyVec.x = 0;
+          this.joyVec.y = 0;
+          joyPuck.style.transform = 'translate(0px, 0px)';
+        };
+
+        joyZone.addEventListener('mousedown', (e) => {
+          e.stopPropagation();
+          startJoy(e.clientX, e.clientY);
+        });
+        window.addEventListener('mousemove', (e) => moveJoy(e.clientX, e.clientY));
+        window.addEventListener('mouseup', endJoy);
+
+        joyZone.addEventListener('touchstart', (e) => {
+          e.stopPropagation();
+          const t = e.changedTouches[0];
+          startJoy(t.clientX, t.clientY);
+        });
+        joyZone.addEventListener('touchmove', (e) => {
+          e.stopPropagation();
+          const t = e.changedTouches[0];
+          moveJoy(t.clientX, t.clientY);
+        });
+        joyZone.addEventListener('touchend', endJoy);
+      }
+
+      cycleCameraMode() {
+        this.cameraMode = (this.cameraMode + 1) % 3;
+        const labels = ['SHOULDER', 'TACTICAL', 'FIRST-PERSON'];
+        document.getElementById('cam-label').innerText = labels[this.cameraMode];
+        this.wizardGroup.visible = this.cameraMode !== 2;
+      }
+
+      showTopBanner(text, dotColor = '#fde047') {
+        const banner = document.getElementById('hud-top-banner');
+        const txt = document.getElementById('hud-banner-text');
+        const dot = document.getElementById('hud-banner-dot');
+        txt.innerText = text;
+        dot.style.backgroundColor = dotColor;
+        banner.classList.remove('opacity-0');
+        banner.classList.add('opacity-100');
+        clearTimeout(this.bannerTimeout);
+        this.bannerTimeout = setTimeout(() => {
+          banner.classList.remove('opacity-100');
+          banner.classList.add('opacity-0');
+        }, 3200);
+      }
+
+      updateStatusBars() {
+        const hpPct = Math.round((this.hp / this.maxHp) * 100);
+        const mpPct = Math.round((this.mp / this.maxMp) * 100);
+        if (hpPct !== this._lastHudHp) {
+          this.dom.hpBar.style.width = `${hpPct}%`;
+          this._lastHudHp = hpPct;
+        }
+        if (mpPct !== this._lastHudMp) {
+          this.dom.mpBar.style.width = `${mpPct}%`;
+          this._lastHudMp = mpPct;
+        }
+      }
+
+      checkCollisionAt(x, z) {
+        if (this.ghostMode) return false;
+        const radius = 0.62;
+        this._pMin.set(x - radius, 0.1, z - radius);
+        this._pMax.set(x + radius, 2.0, z + radius);
+        this._pBox.set(this._pMin, this._pMax);
+        for (let i = 0; i < this.wallBoxes.length; i++) {
+          if (this.wallBoxes[i].intersectsBox(this._pBox)) return true;
+        }
+        return false;
+      }
+
+      /* =========================================================================
+         8. ZERO-ALLOCATION UPDATE LOOP (MOVEMENT, ANIMATION, THROTTLED RADAR)
+         ========================================================================= */
+      update(dt, elapsed) {
+        this.frameCounter++;
+
+        // Regenerate Mana slowly (only touch DOM when integer percentage changes)
+        if (this.mp < this.maxMp) {
+          this.mp = Math.min(this.maxMp, this.mp + dt * 4.5);
+          this.updateStatusBars();
+        }
+
+        // Update Cooldowns with minimal DOM writes
+        for (let s = 1; s <= 4; s++) {
+          const overlay = this.dom.cdOverlays[s];
+          if (this.cooldowns[s] > 0) {
+            this.cooldowns[s] = Math.max(0, this.cooldowns[s] - dt);
+            const txt = this.cooldowns[s].toFixed(1) + 's';
+            if (this._lastCdText[s] !== txt) {
+              if (this._lastCdText[s] === '') {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+              }
+              overlay.innerText = txt;
+              this._lastCdText[s] = txt;
+            }
+          } else if (this._lastCdText[s] !== '') {
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+            this._lastCdText[s] = '';
+          }
+        }
+
+        // Smooth Q/E Rotation
+        const turnSpeed = 2.1 * dt;
+        if (this.keys['KeyQ']) this.playerYaw += turnSpeed;
+        if (this.keys['KeyE']) this.playerYaw -= turnSpeed;
+
+        // Movement Input Vector
+        let moveX = 0, moveZ = 0;
+        if (this.keys['KeyW'] || this.keys['ArrowUp']) moveZ -= 1;
+        if (this.keys['KeyS'] || this.keys['ArrowDown']) moveZ += 1;
+        if (this.keys['KeyA'] || this.keys['ArrowLeft']) moveX -= 1;
+        if (this.keys['KeyD'] || this.keys['ArrowRight']) moveX += 1;
+
+        if (this.joyVec.active) {
+          moveX += this.joyVec.x;
+          moveZ += this.joyVec.y;
+        } else if (this.frameCounter % 2 === 0 && this.dom.joyPuck) {
+          // Visually mirror WASD input onto the bottom-left thumbstick puck
+          this.dom.joyPuck.style.transform = `translate(${moveX * 24}px, ${moveZ * 24}px)`;
+        }
+
+        const isMoving = Math.hypot(moveX, moveZ) > 0.05;
+        const speed = (this.zaneMode ? 9.5 : 5.8) * dt;
+
+        if (isMoving) {
+          const len = Math.hypot(moveX, moveZ);
+          moveX /= len;
+          moveZ /= len;
+
+          if ((this.keys['ArrowLeft'] || this.keys['ArrowRight']) && !this.isMouseDragging) {
+            this.playerYaw -= moveX * 1.6 * dt;
+          }
+
+          this._vForward.set(-Math.sin(this.playerYaw), 0, -Math.cos(this.playerYaw));
+          this._vRight.set(Math.cos(this.playerYaw), 0, -Math.sin(this.playerYaw));
+
+          this._vStep.set(0, 0, 0)
+            .addScaledVector(this._vForward, -moveZ * speed)
+            .addScaledVector(this._vRight, moveX * speed);
+
+          if (!this.checkCollisionAt(this.playerPos.x + this._vStep.x, this.playerPos.z)) {
+            this.playerPos.x += this._vStep.x;
+          }
+          if (!this.checkCollisionAt(this.playerPos.x, this.playerPos.z + this._vStep.z)) {
+            this.playerPos.z += this._vStep.z;
+          }
+
+          // Walking Limb & Cape Animation
+          this.leftLeg.rotation.x = Math.sin(elapsed * 9) * 0.45;
+          this.rightLeg.rotation.x = -Math.sin(elapsed * 9) * 0.45;
+          this.capeGroup.rotation.x = 0.14 + Math.sin(elapsed * 8) * 0.07;
+
+          this.footstepAccum = (this.footstepAccum || 0) + dt;
+          if (this.footstepAccum > 0.38) {
+            audio.playFootstep();
+            this.footstepAccum = 0;
+          }
+        } else {
+          // Subtle breathing animation
+          this.leftLeg.rotation.x *= 0.85;
+          this.rightLeg.rotation.x *= 0.85;
+          this.capeGroup.rotation.x = 0.06 + Math.sin(elapsed * 2.2) * 0.025;
+        }
+
+        // Sync Wizard Position & Yaw
+        this.wizardGroup.position.copy(this.playerPos);
+        this.wizardGroup.rotation.y = this.playerYaw;
+
+        // Keep Lens Flare facing Camera
+        this.staffLensFlare.lookAt(this.camera.position);
+
+        // Animate Doctor Strange Golden Mandala & Rainbow Sparkle Swirl
+        this.verticalMandala.rotation.z -= dt * 1.15;
+        this.floorMandala.rotation.z += dt * 0.85;
+
+        const mandalaScale = this.activeMandalaTimer > 0 ? 1.0 : 0.65;
+        if (this.activeMandalaTimer > 0 && !this.zaneMode) {
+          this.activeMandalaTimer = Math.max(0, this.activeMandalaTimer - dt);
+        }
+        this.verticalMandala.scale.setScalar(mandalaScale + Math.sin(elapsed * 4) * 0.04);
+        this.floorMandala.scale.setScalar(mandalaScale);
+
+        // Swirl the rainbow particles around the staff mandala
+        const spPos = this.mandalaSparkles.geometry.attributes.position;
+        for (let i = 0; i < this.sparkleAngles.length; i++) {
+          this.sparkleAngles[i] += dt * (1.8 + (i % 5) * 0.35);
+          const ang = this.sparkleAngles[i];
+          const rad = this.sparkleRadii[i] * mandalaScale;
+          spPos.setXYZ(
+            i,
+            0.28 + Math.cos(ang) * rad,
+            1.38 + Math.sin(ang) * rad,
+            -1.55 + Math.sin(elapsed * 3 + i) * 0.25
+          );
+        }
+        spPos.needsUpdate = true;
+
+        // Flicker Wall Torches
+        for (let idx = 0; idx < this.torches.length; idx++) {
+          const t = this.torches[idx];
+          const flicker = Math.sin(elapsed * 14 + idx * 3.1) * 0.25 + Math.cos(elapsed * 23 + idx) * 0.15;
+          if (t.light && t.light.visible) t.light.intensity = t.baseIntensity + flicker;
+          t.flame.scale.y = 1.0 + flicker * 0.25;
+        }
+
+        // Update Projectiles
+        for (let i = this.projectiles.length - 1; i >= 0; i--) {
+          const p = this.projectiles[i];
+          p.life -= dt;
+          p.mesh.position.addScaledVector(p.dir, p.speed * dt);
+
+          let hit = false;
+          if (this.checkCollisionAt(p.mesh.position.x, p.mesh.position.z)) {
+            hit = true;
+          }
+
+          for (let j = 0; j < this.enemies.length; j++) {
+            const en = this.enemies[j];
+            if (en.alive && en.group.position.distanceToSquared(p.mesh.position) < 1.82) {
+              en.hp -= p.damage;
+              if (en.hp <= 0) this.killEnemy(en);
+              hit = true;
+              break;
+            }
+          }
+
+          if (hit || p.life <= 0) {
+            this.scene.remove(p.mesh);
+            this.projectiles.splice(i, 1);
+          }
+        }
+
+        // Update Patrolling Enemies
+        for (let i = 0; i < this.enemies.length; i++) {
+          const en = this.enemies[i];
+          if (!en.alive) continue;
+          if (en.frozenTimer > 0) {
+            en.frozenTimer -= dt;
+            if (en.frozenTimer <= 0) en.iceCage.visible = false;
+            continue;
+          }
+          en.patrolPhase += dt * 1.4;
+          en.group.position.x = en.patrolOrigin.x + Math.sin(en.patrolPhase) * 1.4;
+          en.group.lookAt(this.playerPos.x, 0, this.playerPos.z);
+
+          if (en.group.position.distanceToSquared(this.playerPos) < 1.82 && this.shieldWardTimer <= 0 && !this.zaneMode) {
+            this.hp = Math.max(10, this.hp - dt * 12);
+            this.updateStatusBars();
+          }
+        }
+
+        if (this.shieldWardTimer > 0) this.shieldWardTimer -= dt;
+
+        // Update Elder Soul Shards
+        for (let idx = 0; idx < this.shards.length; idx++) {
+          const s = this.shards[idx];
+          if (s.collected) continue;
+          s.mesh.rotation.y += dt * 2.2;
+          s.ring.rotation.x = elapsed * 2 + idx;
+          s.group.position.y = s.baseY + Math.sin(elapsed * 3 + idx) * 0.18;
+
+          if (this.playerPos.distanceToSquared(s.group.position) < 3.42) {
+            s.collected = true;
+            this.scene.remove(s.group);
+            this.shardsCollected++;
+            audio.playCastMandala();
+            this.dom.shards.innerText = `${this.shardsCollected}/${this.shardsRequired}`;
+
+            if (this.shardsCollected >= this.shardsRequired) {
+              this.portalUnlocked = true;
+              this.showTopBanner('All Elder Shards Attuned! Step into the Archway Rift Portal!', '#00f0ff');
+            } else {
+              this.showTopBanner(`Elder Soul Shard Attuned (${this.shardsCollected}/${this.shardsRequired})`, '#38bdf8');
+            }
+          }
+        }
+
+        // Check Archway Rift Portal Completion
+        if (this.playerPos.distanceToSquared(this.portalPos) < 5.76) {
+          this.openVictoryModal();
+        }
+
+        this.updateCamera();
+
+        // Throttle 2D Canvas Radar & World Prompt Projection to every 2nd frame
+        if (this.frameCounter % 2 === 0) {
+          this.updateWorldSpacePrompt();
+          this.renderCircularRadar();
+        }
+      }
+
+      updateCamera() {
+        if (this.cameraMode === 0) {
+          // OVER-THE-SHOULDER CAMERA (Zero vector allocations)
+          const backDist = 3.15;
+          const rightShift = 0.42;
+          const heightOffset = 1.72;
+
+          this._vForward.set(-Math.sin(this.playerYaw), 0, -Math.cos(this.playerYaw));
+          this._vRight.set(Math.cos(this.playerYaw), 0, -Math.sin(this.playerYaw));
+
+          this._vDesiredCam.copy(this.playerPos)
+            .addScaledVector(this._vForward, -backDist)
+            .addScaledVector(this._vRight, rightShift);
+          this._vDesiredCam.y += heightOffset;
+
+          this.camera.position.lerp(this._vDesiredCam, 0.18);
+
+          this._vLookTarget.copy(this.playerPos)
+            .addScaledVector(this._vForward, 6.5)
+            .addScaledVector(this._vRight, 0.55);
+          this._vLookTarget.y += 1.35 - this.cameraPitch * 3.0;
+
+          this.camera.lookAt(this._vLookTarget);
+        } else if (this.cameraMode === 1) {
+          // TACTICAL TOP-DOWN CAMERA
+          this._vDesiredCam.set(this.playerPos.x, this.playerPos.y + 14, this.playerPos.z + 7);
+          this.camera.position.lerp(this._vDesiredCam, 0.15);
+          this._vLookTarget.set(this.playerPos.x, this.playerPos.y + 1, this.playerPos.z - 2);
+          this.camera.lookAt(this._vLookTarget);
+        } else {
+          // FIRST-PERSON CAMERA
+          this._vForward.set(-Math.sin(this.playerYaw), 0, -Math.cos(this.playerYaw));
+          this.camera.position.set(this.playerPos.x, this.playerPos.y + 1.65, this.playerPos.z);
+          this._vLookTarget.copy(this.camera.position).add(this._vForward);
+          this.camera.lookAt(this._vLookTarget);
+        }
+      }
+
+      updateWorldSpacePrompt() {
+        const promptEl = this.dom.cipherPrompt;
+        this._vWorldPrompt.set(
+          this.cipherPedestalPos.x,
+          this.cipherPedestalPos.y + 1.85,
+          this.cipherPedestalPos.z
+        );
+        const distSq = this.playerPos.distanceToSquared(this.cipherPedestalPos);
+
+        this._vWorldPrompt.project(this.camera);
+        if (this._vWorldPrompt.z < 1 && distSq < 196) {
+          const sx = (this._vWorldPrompt.x * 0.5 + 0.5) * window.innerWidth;
+          const sy = (-(this._vWorldPrompt.y * 0.5) + 0.5) * window.innerHeight;
+          promptEl.style.left = `${Math.max(120, Math.min(window.innerWidth - 220, sx))}px`;
+          promptEl.style.top = `${Math.max(90, Math.min(window.innerHeight - 120, sy))}px`;
+          promptEl.style.opacity = '1';
+        } else {
+          promptEl.style.opacity = '0.65';
+        }
+      }
+
+      renderCircularRadar() {
+        const ctx = this.radarCtx;
+        const w = this.radarCanvas.width;
+        const h = this.radarCanvas.height;
+        const cx = w / 2, cy = h / 2;
+
+        ctx.fillStyle = '#0a0f16';
+        ctx.fillRect(0, 0, w, h);
+
+        if (!this.gridData) return;
+        const { openCells } = this.gridData;
+        const scale = 3.2;
+        const cellPx = CELL_SIZE * scale + 0.8;
+        const halfCellPx = (CELL_SIZE * scale) / 2;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(this.playerYaw);
+
+        // Draw Precomputed Open Dungeon Passages
+        ctx.fillStyle = 'rgba(100, 116, 139, 0.45)';
+        for (let i = 0; i < openCells.length; i++) {
+          const cell = openCells[i];
+          const wx = (cell.wx - this.playerPos.x) * scale;
+          const wz = (cell.wz - this.playerPos.z) * scale;
+          ctx.fillRect(wx - halfCellPx, wz - halfCellPx, cellPx, cellPx);
+        }
+
+        // Draw Portal Icon on Radar
+        const px = (this.portalPos.x - this.playerPos.x) * scale;
+        const pz = (this.portalPos.z - this.playerPos.z) * scale;
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(px, pz, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw Soul Shards (Green/Gold markers)
+        ctx.fillStyle = '#4ade80';
+        for (let i = 0; i < this.shards.length; i++) {
+          const s = this.shards[i];
+          if (s.collected) continue;
+          const sx = (s.group.position.x - this.playerPos.x) * scale;
+          const sz = (s.group.position.z - this.playerPos.z) * scale;
+          ctx.beginPath();
+          ctx.arc(sx, sz, 3.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Draw Enemies (Orange/Red dots)
+        ctx.fillStyle = '#f97316';
+        for (let i = 0; i < this.enemies.length; i++) {
+          const en = this.enemies[i];
+          if (!en.alive) continue;
+          const ex = (en.group.position.x - this.playerPos.x) * scale;
+          const ez = (en.group.position.z - this.playerPos.z) * scale;
+          ctx.beginPath();
+          ctx.arc(ex, ez, 3.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+
+        // Draw Green FOV Cone
+        if (!this._radarConeGrad) {
+          this._radarConeGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 62);
+          this._radarConeGrad.addColorStop(0, 'rgba(74, 222, 128, 0.42)');
+          this._radarConeGrad.addColorStop(1, 'rgba(74, 222, 128, 0.0)');
+        }
+        ctx.fillStyle = this._radarConeGrad;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, 62, -Math.PI / 2 - 0.52, -Math.PI / 2 + 0.52);
+        ctx.closePath();
+        ctx.fill();
+
+        // White Player Arrow Triangle at Radar Center
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 6);
+        ctx.lineTo(cx - 4.5, cy + 5);
+        ctx.lineTo(cx + 4.5, cy + 5);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      openVictoryModal() {
+        const modal = document.getElementById('victory-modal');
+        if (!modal.classList.contains('hidden')) return;
+        audio.playZaneActivation();
+        document.getElementById('vic-realm').innerText = `Chapter ${this.chapter}`;
+        document.getElementById('vic-kills').innerText = this.enemiesDefeated;
+        document.getElementById('vic-mode').innerText = this.zaneMode ? 'ZANE Astral Overdrive' : 'Dark Gothic Realism';
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+              source: 'ZANEX_ARCANE_MAZE',
+              type: 'ZANEX_MAZE_EVENT',
+              action: 'CHAPTER_CLEAR',
+              chapter: this.chapter,
+              kills: this.enemiesDefeated,
+              zaneMode: this.zaneMode
+            }, '*');
+          }
+        } catch (e) {}
+      }
+
+      advanceNextChapter() {
+        const modal = document.getElementById('victory-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        const nextCh = (this.chapter % 3) + 1;
+        this.loadChapter(nextCh, `SANCTUM-${nextCh}-${Math.floor(Math.random() * 999)}`);
+      }
+
+      animate(now) {
+        requestAnimationFrame(this.animate);
+        const dt = Math.min(0.05, (now - this.lastFrameTime) / 1000);
+        this.lastFrameTime = now;
+        const elapsed = now * 0.001;
+
+        // Live FPS Monitor
+        this.fpsFrames++;
+        if (now - this.fpsLastTime >= 500) {
+          this.currentFps = Math.round((this.fpsFrames * 1000) / (now - this.fpsLastTime));
+          if (this.dom.fpsVal) this.dom.fpsVal.innerText = this.currentFps;
+          this.fpsFrames = 0;
+          this.fpsLastTime = now;
+        }
+
+        this.update(dt, elapsed);
+        this.renderer.render(this.scene, this.camera);
+      }
+    }
+
+    window.onload = () => {
+      window.game = new DarkFantasyGame();
+    };
+  </script>
+</body>
+</html>

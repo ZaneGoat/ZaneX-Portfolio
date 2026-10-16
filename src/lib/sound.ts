@@ -310,6 +310,35 @@ class SoundManager {
       this.haptic(15);
     } catch {}
   }
+
+  // Magical Zane Astral Overdrive Chime
+  public playZane() {
+    if (this.muted) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    try {
+      const notes = [440, 554.37, 659.25, 880, 1108.73, 1318.51];
+      notes.forEach((freq, idx) => {
+        const osc = this.ctx!.createOscillator();
+        const gain = this.ctx!.createGain();
+
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(freq, this.ctx!.currentTime + idx * 0.05);
+
+        gain.gain.setValueAtTime(0.06, this.ctx!.currentTime + idx * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx!.currentTime + idx * 0.05 + 0.4);
+
+        osc.connect(gain);
+        gain.connect(this.ctx!.destination);
+        this.cleanNode(osc, gain);
+
+        osc.start(this.ctx!.currentTime + idx * 0.05);
+        osc.stop(this.ctx!.currentTime + idx * 0.05 + 0.42);
+      });
+      this.haptic([40, 30, 60, 30, 80]);
+    } catch {}
+  }
 }
 
 export const sound = new SoundManager();

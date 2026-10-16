@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { usePersona } from "@/context/PersonaContext";
+import { useOperatorClearance } from "@/context/OperatorClearanceContext";
 import { MatrixRain } from "@/components/MatrixRain";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import { EasterEggs } from "@/components/EasterEggs";
@@ -21,14 +22,18 @@ const CtfBountyBoard = lazy(() => import("@/components/CtfBountyBoard").then(m =
 const RobinThreatMap = lazy(() => import("@/components/RobinThreatMap").then(m => ({ default: m.RobinThreatMap })));
 const ZaneMegaCenterModal = lazy(() => import("@/components/ZaneMegaCenterModal").then(m => ({ default: m.ZaneMegaCenterModal })));
 const ZanophyModal = lazy(() => import("@/components/ZanophyModal").then(m => ({ default: m.ZanophyModal })));
+const ArcaneMazeModal = lazy(() => import("@/components/ArcaneMazeModal").then(m => ({ default: m.ArcaneMazeModal })));
+const OperatorInfiltrationModal = lazy(() => import("@/components/OperatorInfiltrationModal").then(m => ({ default: m.OperatorInfiltrationModal })));
 
 import { ZanophyMiniBar } from "@/components/ZanophyMiniBar";
 
-type Overlay = "terminal" | "breach" | "matrix" | "csi" | "ctf" | "threatmap" | "megacenter";
+type Overlay = "terminal" | "breach" | "matrix" | "csi" | "ctf" | "threatmap" | "megacenter" | "maze" | "infiltration";
 
 const Index = () => {
   const { persona } = usePersona();
+  const { clearance } = useOperatorClearance();
   const [open, setOpen] = useState<Overlay | null>(null);
+
   // Once an overlay has been opened, keep it mounted so its exit animation and state survive.
   const [loaded, setLoaded] = useState<Record<Overlay, boolean>>({
     terminal: false,
@@ -37,7 +42,9 @@ const Index = () => {
     csi: false,
     ctf: false,
     threatmap: false,
-    megacenter: false
+    megacenter: false,
+    maze: false,
+    infiltration: false
   });
 
   const show = useCallback((o: Overlay) => {
@@ -53,6 +60,8 @@ const Index = () => {
   const openCtf = useCallback(() => show("ctf"), [show]);
   const openThreatMap = useCallback(() => show("threatmap"), [show]);
   const openMegaCenter = useCallback(() => show("megacenter"), [show]);
+  const openMaze = useCallback(() => show("maze"), [show]);
+  const openInfiltration = useCallback(() => show("infiltration"), [show]);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("zanex_theme");
@@ -98,6 +107,7 @@ const Index = () => {
         onOpenCtf={openCtf}
         onOpenThreatMap={openThreatMap}
         onOpenMegaCenter={openMegaCenter}
+        onOpenMaze={openMaze}
       />
 
       <main className="relative z-10 pt-16">
@@ -108,10 +118,12 @@ const Index = () => {
           onOpenCtf={openCtf}
           onOpenThreatMap={openThreatMap}
           onOpenMegaCenter={openMegaCenter}
+          onOpenMaze={openMaze}
+          onOpenInfiltration={openInfiltration}
         />
 
-        {/* Technical Showcase: Projects & Skills (Guest & Operator clearance only; hidden for Friends) */}
-        {persona !== "friend" && (
+        {/* Technical Showcase: Projects & Skills (Guest always; Operator only if Node 03 declassified; hidden for Friends) */}
+        {(persona === "guest" || (persona === "operator" && clearance.projectsUnlocked)) && (
           <>
             <Projects
               onOpenCsi={openCsi}
@@ -124,7 +136,7 @@ const Index = () => {
 
         {/* Culture, Philosophy, Breach Protocol & Minigames */}
         <Philosophy />
-        <Games onOpenBreach={openBreach} />
+        <Games onOpenBreach={openBreach} onOpenMaze={openMaze} />
         <Contact />
       </main>
 
@@ -139,6 +151,7 @@ const Index = () => {
             onOpenCtf={openCtf}
             onOpenThreatMap={openThreatMap}
             onOpenMegaCenter={openMegaCenter}
+            onOpenMaze={openMaze}
           />
         )}
         {loaded.breach && <BreachProtocol isOpen={open === "breach"} onClose={close} />}
@@ -165,6 +178,19 @@ const Index = () => {
             onClose={close}
           />
         )}
+        {loaded.maze && (
+          <ArcaneMazeModal
+            isOpen={open === "maze"}
+            onClose={close}
+          />
+        )}
+        {loaded.infiltration && (
+          <OperatorInfiltrationModal
+            isOpen={open === "infiltration"}
+            onClose={close}
+            onOpenMaze={openMaze}
+          />
+        )}
         <ZanophyModal />
       </Suspense>
 
@@ -178,6 +204,14 @@ const Index = () => {
             <p>&copy; {new Date().getFullYear()} Aziz Maaizate (Zane Goat)</p>
           </div>
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 text-primary/70">
+            <button
+              onClick={openMaze}
+              className="text-amber-400 hover:text-amber-300 underline decoration-amber-400/40 hover:decoration-amber-400 underline-offset-4 cursor-pointer transition-colors"
+              title="Launch 3D Arcane Maze Realm"
+            >
+              ✦ 3D Arcane Realm
+            </button>
+            <span>·</span>
             <button
               onClick={openCtf}
               className="text-yellow-400 hover:text-yellow-300 underline decoration-yellow-400/40 hover:decoration-yellow-400 underline-offset-4 cursor-pointer transition-colors"

@@ -4,6 +4,7 @@ import { Terminal as TerminalIcon, X, Maximize2, Minimize2, CornerDownLeft, Exte
 import { systemSpecsByPersona, projectsData, skillsData, terminalCommandsHelp } from "@/data/portfolio";
 import { usePersona } from "@/context/PersonaContext";
 import { useMusic } from "@/context/MusicContext";
+import { useOperatorClearance } from "@/context/OperatorClearanceContext";
 import { sound } from "@/lib/sound";
 
 interface TerminalOverlayProps {
@@ -15,6 +16,7 @@ interface TerminalOverlayProps {
   onOpenCtf?: () => void;
   onOpenThreatMap?: () => void;
   onOpenMegaCenter?: () => void;
+  onOpenMaze?: () => void;
 }
 
 interface LogEntry {
@@ -39,12 +41,14 @@ export const TerminalOverlay = ({
   onOpenCsi,
   onOpenCtf,
   onOpenThreatMap,
-  onOpenMegaCenter
+  onOpenMegaCenter,
+  onOpenMaze
 }: TerminalOverlayProps) => {
   const { persona, setPersona, telemetry, deviceChoice, setDeviceChoice, spoofActive } = usePersona();
   const { currentTrack, isPlaying, togglePlay, play, pause, nextTrack, prevTrack, playlist, selectTrack, setIsFullPlayerOpen } = useMusic();
+  const { clearance, clearanceLevel } = useOperatorClearance();
   const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.guest;
-  const shellUser = persona === "friend" ? "homie@zane-lounge" : persona === "operator" ? "zane@kali" : "guest@zanex-portfolio";
+  const shellUser = persona === "friend" ? "homie@zane-lounge" : persona === "operator" ? (clearance.identityUnlocked ? "zane@kali" : "operator@classified") : "guest@zanex-portfolio";
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [input, setInput] = useState("");
@@ -235,27 +239,41 @@ export const TerminalOverlay = ({
                   <span className="text-primary font-bold w-24 shrink-0">music</span>
                   <span className="text-muted-foreground text-[11px]">Zanophy player: play, pause, next, list, gui</span>
                 </div>
+                <div className="flex gap-2">
+                  <span className="text-primary font-bold w-24 shrink-0">maze</span>
+                  <span className="text-muted-foreground text-[11px]">Launch 3D WebGL Arcane Maze Explorer</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-primary font-bold w-24 shrink-0">clearance</span>
+                  <span className="text-muted-foreground text-[11px]">Check Operator dossier declassification status</span>
+                </div>
               </div>
             </div>
           )
         });
         break;
 
-      case "whoami":
+      case "whoami": {
+        const isOp = persona === "operator";
+        const opLocked = isOp && !clearance.identityUnlocked;
         newLogs.push({
           type: "output",
           content: (
             <div className="bg-primary/5 border border-primary/20 p-3 rounded-xl my-2 space-y-1 text-xs font-mono">
               <p><span className="text-primary font-bold">PROFILE:</span> [{persona.toUpperCase()}]</p>
-              <p><span className="text-primary font-bold">OPERATOR:</span> {activeSpecs.realName} ({activeSpecs.handle})</p>
-              <p><span className="text-primary font-bold">DESIGNATION:</span> {activeSpecs.role}</p>
-              <p><span className="text-primary font-bold">STATUS:</span> {activeSpecs.status}</p>
-              <p><span className="text-primary font-bold">BASE LOCATION:</span> {activeSpecs.location}</p>
-              <p><span className="text-primary font-bold">MAINFRAME:</span> {activeSpecs.os}</p>
+              <p><span className="text-primary font-bold">OPERATOR:</span> {opLocked ? "████████ ████████ (OPERATOR_UNKNOWN)" : `${activeSpecs.realName} (${activeSpecs.handle})`}</p>
+              <p><span className="text-primary font-bold">DESIGNATION:</span> {opLocked ? "[CLASSIFIED LEVEL 99 // ENCRYPTED]" : activeSpecs.role}</p>
+              <p><span className="text-primary font-bold">STATUS:</span> {opLocked ? `CLASSIFIED BLACK-SITE // CLEARANCE LVL ${clearanceLevel}/3` : activeSpecs.status}</p>
+              <p><span className="text-primary font-bold">BASE LOCATION:</span> {isOp && !clearance.hardwareUnlocked ? "GPS MASKED // TOR-HOP 3" : activeSpecs.location}</p>
+              <p><span className="text-primary font-bold">MAINFRAME:</span> {isOp && !clearance.hardwareUnlocked ? "[EC MEMORY ENCRYPTED]" : activeSpecs.os}</p>
+              {opLocked && (
+                <p className="text-red-400 font-bold mt-2">&gt;&gt; IDENTITY REDACTED. Run 'clearance' or launch 'maze' to unmask dossier.</p>
+              )}
             </div>
           )
         });
         break;
+      }
 
       case "neofetch":
         newLogs.push({
@@ -727,6 +745,34 @@ Allow: /
       case "breach":
         onClose();
         if (onOpenBreach) onOpenBreach();
+        break;
+
+      case "maze":
+      case "arcane":
+        onClose();
+        if (onOpenMaze) {
+          onOpenMaze();
+        } else {
+          newLogs.push({ type: "error", content: "Error: 3D Arcane Maze engine not initialized." });
+        }
+        break;
+
+      case "clearance":
+        newLogs.push({
+          type: "output",
+          content: (
+            <div className="space-y-1.5 text-xs font-mono my-2 border-l-2 border-primary/50 pl-3">
+              <p className="text-primary font-bold">=== OPERATOR CLASSIFIED CLEARANCE MATRIX ===</p>
+              <p>Current Clearance: <strong className="text-primary">LEVEL {clearanceLevel} / 3</strong></p>
+              <p>Node 01 (Recon Identity): {clearance.identityUnlocked ? <span className="text-emerald-400 font-bold">[DECLASSIFIED]</span> : <span className="text-red-400 font-bold">[REDACTED // LOCKED]</span>}</p>
+              <p>Node 02 (Hardware Rig): {clearance.hardwareUnlocked ? <span className="text-emerald-400 font-bold">[DECLASSIFIED]</span> : <span className="text-red-400 font-bold">[REDACTED // LOCKED]</span>}</p>
+              <p>Node 03 (Black-Ops Projects): {clearance.projectsUnlocked ? <span className="text-emerald-400 font-bold">[DECLASSIFIED]</span> : <span className="text-red-400 font-bold">[REDACTED // LOCKED]</span>}</p>
+              <p className="text-muted-foreground mt-2">
+                &gt; To declassify Node 03, enter the 3D Arcane Maze ('maze') and type 'OPERATOR' in the ancient wall cipher [E].
+              </p>
+            </div>
+          )
+        });
         break;
 
       case "matrix":
