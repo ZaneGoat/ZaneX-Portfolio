@@ -68,10 +68,10 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.85), inset 0 2px 6px rgba(0,0,0,0.9);
       overflow: hidden;
     }
-    .hp-bar-fill {
-      background: linear-gradient(90deg, #8b0000 0%, #dc2626 55%, #f59e0b 92%, #fef08a 100%);
-      box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
-      transition: width 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    .discovery-bar-fill {
+      background: linear-gradient(90deg, #92400e 0%, #d97706 45%, #fbbf24 85%, #fef08a 100%);
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.8);
+      transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .mp-bar-fill {
       background: linear-gradient(90deg, #1e3a8a 0%, #0284c7 60%, #00f0ff 100%);
@@ -111,25 +111,6 @@
       pointer-events: none;
     }
 
-    /* Mobile Phone Ergonomics */
-    @media (max-width: 640px) {
-      .spell-card {
-        width: 48px;
-        height: 64px;
-        border-radius: 4px;
-      }
-      .spell-card .spell-icon-box {
-        height: 34px !important;
-      }
-      .spell-card svg {
-        width: 20px !important;
-        height: 20px !important;
-      }
-      .spell-card span {
-        font-size: 8px !important;
-      }
-    }
-
     /* Bottom-Right Circular Combat Buttons */
     .combat-round-btn {
       background: radial-gradient(circle at 35% 30%, rgba(30, 41, 59, 0.92), rgba(7, 10, 19, 0.96));
@@ -165,42 +146,164 @@
       animation: zanePulse 6s infinite linear;
     }
 
-    /* Floating RPG Combat Numbers */
-    .combat-num-float {
-      position: absolute;
+    /* Interactive Movie Prologue & Letterbox Workflow */
+    .cinema-bar-top, .cinema-bar-bottom {
+      height: 0vh;
+      background: #02040a;
+      transition: height 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 45;
       pointer-events: none;
-      font-family: 'Cinzel', serif;
-      font-weight: 800;
-      font-size: 14px;
-      text-shadow: 0 0 8px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.9);
-      animation: combatFloatUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      transform: translate(-50%, -50%);
-      z-index: 50;
-      white-space: nowrap;
     }
-    @keyframes combatFloatUp {
-      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
-      25% { transform: translate(-50%, -70px) scale(1.25); }
-      100% { opacity: 0; transform: translate(-50%, -100px) scale(0.9); }
+    body.cinema-mode .cinema-bar-top,
+    body.cinema-mode .cinema-bar-bottom {
+      height: 9.5vh;
+    }
+    body.prologue-active .hud-element {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity 0.8s ease;
+    }
+    .hud-element {
+      transition: opacity 1s ease;
+    }
+    @keyframes heartPulseGlow {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 18px rgba(244, 63, 94, 0.85)); }
+      50% { transform: scale(1.09); filter: drop-shadow(0 0 34px rgba(0, 240, 255, 0.95)); }
+    }
+    .heart-core-btn {
+      animation: heartPulseGlow 2.4s infinite ease-in-out;
+    }
+
+    /* Touch controls auto-hide & transitions */
+    .touch-only-control {
+      transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+    }
+    .touch-controls-hidden {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+      transform: translateY(20px) scale(0.95) !important;
+    }
+
+    /* Reticle Crosshair for PC Pointer Lock */
+    #arcane-crosshair {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 25;
+      transition: opacity 0.2s ease;
+    }
+
+    /* Hide scrollbars for top utility strip */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Custom Range Sliders */
+    input[type=range] {
+      accent-color: #f59e0b;
+      cursor: pointer;
     }
   </style>
 </head>
-<body class="relative w-screen h-screen overflow-hidden select-none">
+<body class="relative w-screen h-screen overflow-hidden select-none prologue-active cinema-mode">
 
-  <!-- Floating Combat Numbers Layer -->
-  <div id="combat-nums-container" class="fixed inset-0 pointer-events-none z-30 overflow-hidden"></div>
+  <!-- 2.39:1 Cinema Letterbox Bars -->
+  <div class="cinema-bar-top fixed top-0 left-0 right-0 border-b border-amber-500/20"></div>
+  <div class="cinema-bar-bottom fixed bottom-0 left-0 right-0 border-t border-amber-500/20"></div>
+
+  <!-- =====================================================================
+       0. INTERACTIVE MOVIE PROLOGUE OVERLAY ("0s, 1s, AND THE ARCHITECTURE OF LOVE")
+       ===================================================================== -->
+  <div id="prologue-overlay" class="fixed inset-0 z-50 bg-[#03060e] flex flex-col items-center justify-between py-14 px-6 transition-opacity duration-1000">
+    <!-- Interactive 2D Binary Matrix + Golden Heart Canvas -->
+    <canvas id="prologue-canvas" class="absolute inset-0 w-full h-full pointer-events-auto cursor-pointer"></canvas>
+
+    <!-- Top Workflow & Act Progress Strip -->
+    <div class="relative z-10 w-full max-w-3xl flex items-center justify-between text-[11px] font-mono uppercase tracking-widest text-slate-400">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+        <span id="prologue-step-badge" class="text-cyan-300 font-bold">WORKFLOW ACT I / IV — THE BINARY VOID</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="hidden sm:flex items-center gap-1.5">
+          <span id="wf-dot-0" class="w-6 h-1.5 rounded-full bg-cyan-400 transition-all"></span>
+          <span id="wf-dot-1" class="w-6 h-1.5 rounded-full bg-slate-700 transition-all"></span>
+          <span id="wf-dot-2" class="w-6 h-1.5 rounded-full bg-slate-700 transition-all"></span>
+          <span id="wf-dot-3" class="w-6 h-1.5 rounded-full bg-slate-700 transition-all"></span>
+        </div>
+        <button onclick="window.prologue && window.prologue.finishPrologue()" class="px-3 py-1 rounded-full bg-slate-900/90 border border-amber-500/40 text-amber-200 hover:text-white hover:border-amber-300 transition cursor-pointer">
+          Skip Intro &rarr;
+        </button>
+      </div>
+    </div>
+
+    <!-- Center Interactive Poetic Narrative & Heart Catalyst -->
+    <div class="relative z-10 max-w-2xl w-full text-center flex flex-col items-center my-auto pointer-events-none">
+      <div id="prologue-binary-tag" class="font-mono text-xs sm:text-sm tracking-[0.35em] text-cyan-400/90 mb-3 uppercase">
+        01001100 01001111 01010110 01000101
+      </div>
+
+      <h1 id="prologue-title" class="cinzel text-2xl sm:text-5xl font-extrabold tracking-wider text-amber-200 drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] mb-4 transition-all duration-500">
+        IN THE BEGINNING, THERE WERE ONLY 0s AND 1s
+      </h1>
+
+      <p id="prologue-subtitle" class="text-sm sm:text-lg text-slate-200/95 leading-relaxed max-w-xl font-normal italic mb-8 transition-all duration-500">
+        "Cold logic. Infinite silence. Millions of switches asking a single question: Can a universe built of numbers ever feel the warmth of a human heart?"
+      </p>
+
+      <!-- Interactive Heart / Binary Catalyst Button -->
+      <button id="prologue-action-btn" onclick="window.prologue && window.prologue.advanceAct()" class="pointer-events-auto heart-core-btn group relative px-8 py-4 rounded-full bg-gradient-to-r from-rose-950/90 via-slate-900/95 to-cyan-950/90 border-2 border-amber-400/80 shadow-[0_0_35px_rgba(244,63,94,0.45)] flex items-center gap-3.5 cursor-pointer transition-all">
+        <span id="prologue-btn-icon" class="text-2xl">❤️</span>
+        <div class="text-left">
+          <div id="prologue-btn-label" class="cinzel text-xs sm:text-sm font-extrabold tracking-widest text-amber-200 uppercase group-hover:text-white">
+            Infuse First Heartbeat [Click / Space]
+          </div>
+          <div id="prologue-btn-hint" class="text-[10px] font-mono text-cyan-300/90">
+            Move cursor to bend the 0s & 1s into starlight
+          </div>
+        </div>
+      </button>
+    </div>
+
+    <!-- Bottom Cinema Director Controls & Meaning Caption -->
+    <div class="relative z-10 w-full max-w-3xl flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-400 font-mono">
+      <span>INTERACTIVE CINEMA WORKFLOW • MOVE MOUSE TO WEAVE CODE & LOVE</span>
+      <span class="text-amber-300/90">Every labyrinth is a memory waiting to be found.</span>
+    </div>
+  </div>
+
 
   <!-- 3D WebGL Dungeon Canvas -->
   <canvas id="game-canvas"></canvas>
+
+  <!-- Arcane Aiming Reticle / Crosshair (Lights up during Pointer Lock) -->
+  <div id="arcane-crosshair" class="opacity-0">
+    <div class="relative w-8 h-8 flex items-center justify-center pointer-events-none">
+      <div class="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff]"></div>
+      <div class="absolute -top-1.5 w-0.5 h-2 bg-amber-400/80"></div>
+      <div class="absolute -bottom-1.5 w-0.5 h-2 bg-amber-400/80"></div>
+      <div class="absolute -left-1.5 w-2 h-0.5 bg-amber-400/80"></div>
+      <div class="absolute -right-1.5 w-2 h-0.5 bg-amber-400/80"></div>
+      <div class="absolute inset-0 rounded-full border border-amber-300/30"></div>
+    </div>
+  </div>
+
 
   <!-- Cinematic Dark Vignette -->
   <div class="vignette-overlay absolute inset-0 z-10"></div>
 
   <!-- =====================================================================
-       1. TOP-LEFT: ORNATE DIAMOND CREST + SLANTED HP & MP BARS
-       (Exact match to reference screenshot top-left)
+       1. TOP-LEFT: ORNATE DIAMOND CREST + SANCTUM RESONANCE & AETHER BARS
+       (Peaceful Exploration & Discovery HUD — No Health or Combat!)
        ===================================================================== -->
-  <div class="fixed top-5 left-5 z-20 flex items-center pointer-events-none">
+  <div class="hud-element fixed top-5 left-5 z-20 flex items-center pointer-events-none">
     <!-- Diamond Crystal Crest -->
     <div class="relative z-10 flex items-center justify-center mr-[-10px]">
       <div class="gold-crest-diamond flex items-center justify-center">
@@ -219,36 +322,46 @@
       </div>
     </div>
 
-    <!-- Slanted Bars Stack -->
+    <!-- Slanted Discovery & Aether Bars Stack -->
     <div class="flex flex-col gap-1.5 pl-1">
-      <!-- Upper Long Crimson/Orange Health Bar -->
-      <div class="slanted-bar-outer w-56 sm:w-72 h-4 relative">
-        <div id="hud-hp-bar" class="hp-bar-fill h-full w-full"></div>
-        <div class="absolute inset-0 bg-gradient-to-b from-white/25 via-transparent to-black/40"></div>
+      <!-- Upper Golden Sanctum Harmony / Discovery Progress Bar -->
+      <div class="slanted-bar-outer w-56 sm:w-72 h-4 relative" title="Sanctum Resonance Progress">
+        <div id="hud-discovery-bar" class="discovery-bar-fill h-full w-0"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-white/25 via-transparent to-black/40 flex items-center justify-end pr-3">
+          <span id="hud-discovery-pct" class="text-[9px] font-mono font-bold text-amber-100 drop-shadow">0% ATTUNED</span>
+        </div>
       </div>
 
-      <!-- Lower Shorter Blue/Cyan Mana Bar -->
+      <!-- Lower Infinite-Flowing Cyan Aether Energy Bar -->
       <div class="slanted-bar-outer w-40 sm:w-52 h-3 relative ml-1">
         <div id="hud-mp-bar" class="mp-bar-fill h-full w-full"></div>
         <div class="absolute inset-0 bg-gradient-to-b from-white/25 via-transparent to-black/40"></div>
       </div>
 
-      <!-- Subtle Chapter & Soul Shard Tracker Underneath -->
-      <div class="flex items-center gap-3 mt-1 pl-2 text-[11px] tracking-wider uppercase font-semibold text-amber-200/90 drop-shadow">
+      <!-- Subtle Chapter, Shards, Braziers & Lore Tracker Underneath -->
+      <div class="flex flex-wrap items-center gap-2.5 mt-1 pl-2 text-[11px] tracking-wider uppercase font-semibold text-amber-200/90 drop-shadow">
         <span id="hud-chapter-title" class="cinzel text-amber-300">Ch. I: Mossbound Sanctum</span>
         <span class="text-slate-500">•</span>
         <span class="text-cyan-300 flex items-center gap-1">
           <span class="inline-block w-2 h-2 rotate-45 bg-cyan-400 shadow-[0_0_6px_#00f0ff]"></span>
           Shards: <strong id="hud-shards">0/3</strong>
         </span>
+        <span class="text-slate-500">•</span>
+        <span class="text-orange-300 flex items-center gap-1">
+          🔥 Braziers: <strong id="hud-braziers">0/3</strong>
+        </span>
+        <span class="text-slate-500">•</span>
+        <span class="text-amber-200 flex items-center gap-1">
+          📜 Lore: <strong id="hud-lore">0/2</strong>
+        </span>
       </div>
     </div>
   </div>
 
   <!-- =====================================================================
-       2. TOP-CENTER: BOSS / ENEMY TARGET BAR OR ZANE OVERDRIVE BANNER
+       2. TOP-CENTER: EXPLORATION OBJECTIVE / LORE DISCOVERY BANNER
        ===================================================================== -->
-  <div id="hud-top-banner" class="fixed top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center transition-opacity duration-300 opacity-0">
+  <div id="hud-top-banner" class="hud-element fixed top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center transition-opacity duration-300 opacity-0">
     <div class="px-5 py-1.5 rounded-full bg-slate-950/85 gold-border flex items-center gap-2.5">
       <span id="hud-banner-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
       <span id="hud-banner-text" class="cinzel text-xs sm:text-sm font-bold tracking-widest text-amber-200 uppercase">
@@ -257,36 +370,29 @@
     </div>
   </div>
 
-  <!-- Top Utility Strip (FPS Monitor, Graphics Quality, Camera Switch, Cipher Shortcut, Fullscreen, Sound) -->
-  <div class="fixed top-3 sm:top-5 right-40 sm:right-52 md:right-56 z-20 flex items-center gap-1 sm:gap-2 max-w-[calc(100vw-11rem)] sm:max-w-none overflow-x-auto no-scrollbar py-1">
-    <div id="fps-badge" class="px-2 py-1 rounded bg-slate-950/90 gold-border text-[10px] sm:text-[11px] font-mono font-bold text-emerald-400 flex items-center gap-1 shrink-0" title="Real-Time Frame Rate">
-      <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-      <span id="fps-val">60</span><span class="hidden sm:inline"> FPS</span>
+  <!-- Top Utility Strip (Replay Intro Movie, FPS Monitor, Graphics Quality, Camera Switch, Cipher Shortcut, Sound) -->
+  <div class="hud-element fixed top-5 right-44 sm:right-52 z-20 hidden md:flex items-center gap-2">
+    <button onclick="window.prologue && window.prologue.replayPrologue()" class="px-2.5 py-1.5 rounded bg-rose-950/85 gold-border text-[11px] cinzel font-bold text-rose-200 hover:text-white transition flex items-center gap-1 cursor-pointer" title="Replay Interactive Intro Movie">
+      <span>🎬 INTRO</span>
+    </button>
+    <div id="fps-badge" class="px-2.5 py-1.5 rounded bg-slate-950/90 gold-border text-[11px] font-mono font-bold text-emerald-400 flex items-center gap-1.5" title="Real-Time Frame Rate">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span id="fps-val">60</span> <span>FPS</span>
     </div>
-    <button id="btn-perf-mode" class="px-2 sm:px-3 py-1 rounded bg-slate-950/85 gold-border text-[10px] sm:text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1 shrink-0 cursor-pointer" title="Cycle Graphics Performance Mode [P]">
-      <span>GFX:</span> <span id="perf-label" class="text-emerald-300">BALANCED</span>
+    <button id="btn-perf-mode" class="px-3 py-1.5 rounded bg-slate-950/85 gold-border text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1.5 cursor-pointer" title="Cycle Graphics Performance Mode [P]">
+      <span>GFX:</span> <span id="perf-label" class="text-emerald-300">BALANCED</span> <span class="text-[9px] text-slate-400">[P]</span>
     </button>
-    <button id="btn-camera-mode" class="px-2 sm:px-3 py-1 rounded bg-slate-950/85 gold-border text-[10px] sm:text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1 shrink-0 cursor-pointer" title="Switch Camera Perspective [C]">
-      <span>CAM:</span> <span id="cam-label" class="text-cyan-300">SHOULDER</span>
+    <button id="btn-camera-mode" class="px-3 py-1.5 rounded bg-slate-950/85 gold-border text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1.5 cursor-pointer" title="Switch Camera Angle [C]">
+      <span>CAM:</span> <span id="cam-label" class="text-cyan-300">SHOULDER</span> <span class="text-[9px] text-slate-400">[C]</span>
     </button>
-    <button id="btn-cipher-modal" class="px-2 sm:px-3 py-1 rounded bg-slate-950/85 gold-border text-[10px] sm:text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1 shrink-0 cursor-pointer" title="Open Ancient Wall Cipher [E]">
-      <span>🔒 CIPHER</span>
+    <button id="btn-cipher-modal" class="px-3 py-1.5 rounded bg-slate-950/85 gold-border text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1.5 cursor-pointer" title="Open Wall Cipher [E]">
+      <span>🔒 CIPHER</span> <span class="text-[9px] text-slate-400">[E]</span>
     </button>
-    <!-- In-Game Fullscreen Toggle Button -->
-    <button id="btn-fs-toggle" class="px-2 sm:px-2.5 py-1 rounded bg-slate-950/85 gold-border text-[10px] sm:text-[11px] cinzel font-bold text-amber-200 hover:text-white hover:border-amber-300 transition flex items-center gap-1 shrink-0 cursor-pointer" title="Toggle Fullscreen">
-      <svg id="svg-fs-enter" class="w-3.5 h-3.5 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-      </svg>
-      <svg id="svg-fs-exit" class="w-3.5 h-3.5 text-amber-300 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4 14h6m0 0v6m0-6L3 21m17-7h-6m0 0v6m0-6l7 7M10 10V4m0 6H4m6 0L3 3m10 7h6m-6 0V4m0 6l7-7" />
-      </svg>
-      <span class="hidden sm:inline" id="fs-label">FULL</span>
-    </button>
-    <button id="btn-audio-toggle" class="p-1 sm:p-1.5 rounded bg-slate-950/85 gold-border text-amber-200 hover:text-white transition cursor-pointer shrink-0" title="Toggle Audio">
-      <svg id="svg-audio-on" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <button id="btn-audio-toggle" class="p-1.5 rounded bg-slate-950/85 gold-border text-amber-200 hover:text-white transition cursor-pointer" title="Toggle Audio">
+      <svg id="svg-audio-on" class="w-4 h-4 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
       </svg>
-      <svg id="svg-audio-off" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg id="svg-audio-off" class="w-4 h-4 text-rose-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l4-4m0 4l-4-4"/>
       </svg>
     </button>
@@ -296,7 +402,7 @@
        3. TOP-RIGHT: CIRCULAR GOLD-RIMMED RADAR MINIMAP
        (Exact match to top-right circular radar in screenshot)
        ===================================================================== -->
-  <div class="fixed top-4 right-4 sm:right-6 z-20 pointer-events-none">
+  <div class="hud-element fixed top-4 right-4 sm:right-6 z-20 pointer-events-none">
     <div class="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full p-1 bg-gradient-to-b from-amber-200/80 via-amber-600/80 to-amber-900/90 shadow-[0_8px_30px_rgba(0,0,0,0.95)]">
       <div class="w-full h-full rounded-full overflow-hidden bg-[#0a0f16] relative border border-amber-400/40">
         <canvas id="radar-canvas" width="180" height="180" class="w-full h-full block"></canvas>
@@ -313,85 +419,77 @@
   </div>
 
   <!-- =====================================================================
-       4. MIDDLE-RIGHT: 4 ORNATE SPELL CARDS (SPELL 1 - SPELL 4)
-       (Responsive: Stacked cleanly on mobile, row on desktop)
+       4. MIDDLE-RIGHT: 4 EXPLORATION & PUZZLE SPELL CARDS (SPELL 1 - SPELL 4)
        ===================================================================== -->
-  <div class="fixed right-2 sm:right-6 top-1/2 -translate-y-1/2 z-20 flex flex-col sm:flex-row gap-1.5 sm:gap-2.5 items-center">
-    <!-- SPELL 1: BLINK -->
+  <div class="hud-element fixed right-4 sm:right-6 top-1/2 -translate-y-1/3 z-20 flex flex-row gap-2 sm:gap-2.5 items-center">
+    <!-- SPELL 1: BLINK (Phase Dash Forward) -->
     <div class="flex flex-col items-center">
-      <span class="cinzel text-[8px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-0.5 sm:mb-1 drop-shadow">SPELL 1</span>
-      <button id="spell-card-1" onclick="window.game && window.game.castSpell(1)" class="spell-card flex flex-col items-center justify-between p-1 sm:p-1.5">
-        <div class="spell-icon-box w-full h-14 rounded bg-gradient-to-b from-sky-950 via-blue-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-sky-400/30">
+      <span class="cinzel text-[9px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-1 drop-shadow">SPELL 1</span>
+      <button id="spell-card-1" onclick="window.game && window.game.castSpell(1)" class="spell-card flex flex-col items-center justify-between p-1.5" title="Teleport Dash Forward [1]">
+        <div class="w-full h-14 rounded bg-gradient-to-b from-sky-950 via-blue-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-sky-400/30">
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,240,255,0.35),transparent_70%)]"></div>
-          <!-- Dashing Blink Silhouette Icon -->
           <svg class="w-9 h-9 text-cyan-300 drop-shadow-[0_0_8px_#00f0ff]" viewBox="0 0 24 24" fill="currentColor">
             <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
             <path d="M2 11h4v1.5H2zm1 3h5v1.5H3zm-2 3h6v1.5H1z" opacity="0.75"/>
           </svg>
         </div>
-        <span class="cinzel text-[9px] sm:text-[11px] font-bold text-amber-100 tracking-wide">Blink</span>
-        <div id="cd-overlay-1" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-[10px] sm:text-xs font-bold text-cyan-300"></div>
+        <span class="cinzel text-[11px] font-bold text-amber-100 tracking-wide">Blink</span>
+        <div id="cd-overlay-1" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-xs font-bold text-cyan-300"></div>
       </button>
     </div>
 
-    <!-- SPELL 2: FLAME -->
+    <!-- SPELL 2: IGNITE (Light Ancient Braziers & Burn Bramble Vines) -->
     <div class="flex flex-col items-center">
-      <span class="cinzel text-[8px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-0.5 sm:mb-1 drop-shadow">SPELL 2</span>
-      <button id="spell-card-2" onclick="window.game && window.game.castSpell(2)" class="spell-card flex flex-col items-center justify-between p-1 sm:p-1.5">
-        <div class="spell-icon-box w-full h-14 rounded bg-gradient-to-b from-amber-950 via-red-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-orange-400/30">
+      <span class="cinzel text-[9px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-1 drop-shadow">SPELL 2</span>
+      <button id="spell-card-2" onclick="window.game && window.game.castSpell(2)" class="spell-card flex flex-col items-center justify-between p-1.5" title="Ignite Ancient Braziers & Clear Bramble Vines [2]">
+        <div class="w-full h-14 rounded bg-gradient-to-b from-amber-950 via-red-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-orange-400/30">
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,146,60,0.45),transparent_70%)]"></div>
-          <!-- Flame Fireball Icon -->
           <svg class="w-9 h-9 text-amber-400 drop-shadow-[0_0_10px_#f97316]" viewBox="0 0 24 24" fill="currentColor">
             <path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/>
           </svg>
         </div>
-        <span class="cinzel text-[9px] sm:text-[11px] font-bold text-amber-100 tracking-wide">Flame</span>
-        <div id="cd-overlay-2" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-[10px] sm:text-xs font-bold text-orange-300"></div>
+        <span class="cinzel text-[11px] font-bold text-amber-100 tracking-wide">Ignite</span>
+        <div id="cd-overlay-2" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-xs font-bold text-orange-300"></div>
       </button>
     </div>
 
-    <!-- SPELL 3: FREEZE -->
+    <!-- SPELL 3: WISP GUIDE (Summon Golden Pathfinding Trail to Nearest Relic) -->
     <div class="flex flex-col items-center">
-      <span class="cinzel text-[8px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-0.5 sm:mb-1 drop-shadow">SPELL 3</span>
-      <button id="spell-card-3" onclick="window.game && window.game.castSpell(3)" class="spell-card flex flex-col items-center justify-between p-1 sm:p-1.5">
-        <div class="spell-icon-box w-full h-14 rounded bg-gradient-to-b from-cyan-950 via-sky-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-cyan-300/30">
+      <span class="cinzel text-[9px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-1 drop-shadow">SPELL 3</span>
+      <button id="spell-card-3" onclick="window.game && window.game.castSpell(3)" class="spell-card flex flex-col items-center justify-between p-1.5" title="Summon Guiding Starlight Trail to Nearest Relic [3]">
+        <div class="w-full h-14 rounded bg-gradient-to-b from-cyan-950 via-sky-900/70 to-slate-950 flex items-center justify-center relative overflow-hidden border border-cyan-300/30">
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.45),transparent_70%)]"></div>
-          <!-- Snowflake Freeze Icon -->
           <svg class="w-9 h-9 text-sky-200 drop-shadow-[0_0_10px_#38bdf8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v20M17 4l-5 4-5-4M7 20l5-4 5 4M2 12h20M4 7l4 5-4 5M20 17l-4-5 4-5M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>
           </svg>
         </div>
-        <span class="cinzel text-[9px] sm:text-[11px] font-bold text-amber-100 tracking-wide">Freeze</span>
-        <div id="cd-overlay-3" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-[10px] sm:text-xs font-bold text-sky-300"></div>
+        <span class="cinzel text-[11px] font-bold text-amber-100 tracking-wide">Guide</span>
+        <div id="cd-overlay-3" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-xs font-bold text-sky-300"></div>
       </button>
     </div>
 
-    <!-- SPELL 4: SHIELD -->
+    <!-- SPELL 4: LUMOS (Illuminate the Entire Sanctum & Reveal Hidden Relics) -->
     <div class="flex flex-col items-center">
-      <span class="cinzel text-[8px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-0.5 sm:mb-1 drop-shadow">SPELL 4</span>
-      <button id="spell-card-4" onclick="window.game && window.game.castSpell(4)" class="spell-card flex flex-col items-center justify-between p-1 sm:p-1.5">
-        <div class="spell-icon-box w-full h-14 rounded bg-gradient-to-b from-indigo-950 via-blue-900/80 to-slate-950 flex items-center justify-center relative overflow-hidden border border-amber-300/40">
+      <span class="cinzel text-[9px] sm:text-[10px] tracking-widest text-amber-100/90 font-semibold mb-1 drop-shadow">SPELL 4</span>
+      <button id="spell-card-4" onclick="window.game && window.game.castSpell(4)" class="spell-card flex flex-col items-center justify-between p-1.5" title="Radiate Sanctuary Starlight & Magnetize Nearby Relics [4]">
+        <div class="w-full h-14 rounded bg-gradient-to-b from-indigo-950 via-blue-900/80 to-slate-950 flex items-center justify-center relative overflow-hidden border border-amber-300/40">
           <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.5),transparent_70%)]"></div>
-          <!-- Radiant Shield Icon -->
           <svg class="w-9 h-9 text-cyan-200 drop-shadow-[0_0_10px_#60a5fa]" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4.18l5 2.22v4.6c0 4.12-2.88 8.01-5 9.15-2.12-1.14-5-5.03-5-9.15V7.4l5-2.22z"/>
           </svg>
         </div>
-        <span class="cinzel text-[9px] sm:text-[11px] font-bold text-amber-100 tracking-wide">Shield</span>
-        <div id="cd-overlay-4" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-[10px] sm:text-xs font-bold text-amber-300"></div>
+        <span class="cinzel text-[11px] font-bold text-amber-100 tracking-wide">Lumos</span>
+        <div id="cd-overlay-4" class="absolute inset-0 bg-slate-950/80 hidden items-center justify-center font-mono text-xs font-bold text-amber-300"></div>
       </button>
     </div>
   </div>
 
   <!-- =====================================================================
-       5. WORLD-SPACE FLOATING WALL CIPHER BADGE ("[🔒] ACCESS WALL CIPHER")
-       (Positioned dynamically over the 3D Illuminated Runic Pedestal)
+       5. FLOATING WORLD-SPACE INTERACTION PROMPT ("ACCESS WALL CIPHER")
        ===================================================================== -->
-  <div id="cipher-world-prompt" onclick="window.game && window.game.openCipherModal()" class="fixed z-20 px-4 py-2 rounded-full flex items-center gap-2.5 cursor-pointer hover:scale-105 active:scale-95" style="left: 24%; top: 43%;">
-    <div class="w-7 h-7 rounded-full border border-amber-400/80 bg-amber-950/60 flex items-center justify-center text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.5)]">
-      <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-      </svg>
+  <div id="cipher-world-prompt" onclick="window.game && window.game.openCipherModal()" class="hud-element fixed z-20 px-3.5 py-2 rounded-full flex items-center gap-2.5 cursor-pointer hover:scale-105 active:scale-95" style="left: 24%; top: 41%;">
+    <div class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/80 flex items-center justify-center text-amber-300 text-xs">
+      🔒
     </div>
     <span class="cinzel text-xs sm:text-sm font-semibold tracking-wider text-amber-100 uppercase">ACCESS WALL CIPHER</span>
     <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30">[E]</span>
@@ -401,7 +499,7 @@
        6. BOTTOM-LEFT: AUTHENTIC GOLD-RINGED VIRTUAL THUMBSTICK
        (Responds to both WASD keys & Touch/Mouse Dragging)
        ===================================================================== -->
-  <div class="fixed bottom-7 left-7 sm:bottom-9 sm:left-10 z-20">
+  <div id="touch-joystick-container" class="hud-element touch-only-control fixed bottom-7 left-7 sm:bottom-9 sm:left-10 z-20">
     <div id="joystick-zone" class="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-slate-950/65 border-2 border-[#c5a059]/80 shadow-[0_0_25px_rgba(0,0,0,0.9),inset_0_0_20px_rgba(197,160,89,0.2)] relative flex items-center justify-center cursor-grab active:cursor-grabbing">
       <!-- Inner subtle ring -->
       <div class="absolute inset-2 rounded-full border border-amber-500/20 pointer-events-none"></div>
@@ -417,12 +515,11 @@
   </div>
 
   <!-- =====================================================================
-       7. BOTTOM-RIGHT: 3 CIRCULAR ACTION BUTTONS IN AN ARC
-       (Matches the 3 circular action icons on the bottom-right of screenshot)
+       7. BOTTOM-RIGHT: 3 CIRCULAR EXPLORATION & INTERACTION BUTTONS
        ===================================================================== -->
-  <div class="fixed bottom-7 right-6 sm:bottom-9 sm:right-8 z-20 w-44 h-44 pointer-events-none">
-    <!-- Top-Right Arc Button: Meteor / Heavy Mandala Nova [F] -->
-    <button onclick="window.game && window.game.triggerMandalaNova()" class="combat-round-btn pointer-events-auto w-14 h-14 rounded-full absolute top-0 right-1 flex items-center justify-center" title="Arcane Mandala Nova [F]">
+  <div id="touch-actions-container" class="hud-element touch-only-control fixed bottom-7 right-6 sm:bottom-9 sm:right-8 z-20 w-44 h-44 pointer-events-none">
+    <!-- Top-Right Arc Button: Guiding Starlight Compass [F] -->
+    <button onclick="window.game && window.game.triggerMandalaNova()" class="combat-round-btn pointer-events-auto w-14 h-14 rounded-full absolute top-0 right-1 flex items-center justify-center" title="Summon Guiding Starlight Trail [F]">
       <svg class="w-7 h-7 text-amber-200 drop-shadow-[0_0_6px_#fde047]" viewBox="0 0 24 24" fill="currentColor">
         <path d="M19 3l-5 5 2 2 5-5-2-2zm-3.5 6.5l-2-2-6.5 6.5c-1.5 1.5-1.5 4 0 5.5s4 1.5 5.5 0l6.5-6.5-3.5-3.5zM6 17c-.6-.6-.6-1.5 0-2.1l3.5-3.5 2.1 2.1L8.1 17c-.6.6-1.5.6-2.1 0z"/>
         <circle cx="17" cy="5" r="1.3"/>
@@ -431,8 +528,8 @@
       <span class="absolute -bottom-1 right-0 text-[9px] font-mono bg-slate-950 px-1 rounded border border-amber-500/50 text-amber-300">F</span>
     </button>
 
-    <!-- Center Large Primary Attack Button: Staff Arcane Slash/Bolt [SPACE / CLICK] -->
-    <button onclick="window.game && window.game.firePrimaryStaffBolt()" class="combat-round-btn pointer-events-auto w-20 h-20 rounded-full absolute top-14 right-7 flex items-center justify-center" title="Primary Catalyzer Bolt [Space]">
+    <!-- Center Large Primary Exploration Button: Cast Staff Resonance Orb [SPACE / CLICK] -->
+    <button onclick="window.game && window.game.firePrimaryStaffBolt()" class="combat-round-btn pointer-events-auto w-20 h-20 rounded-full absolute top-14 right-7 flex items-center justify-center" title="Cast Arcane Resonance Orb (Lights Braziers & Clears Vines) [Space]">
       <svg class="w-10 h-10 text-cyan-200 drop-shadow-[0_0_10px_#00f0ff]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19 5L5 19M15 5h4v4M9 9l6 6M6 12l6 6"/>
         <circle cx="17" cy="7" r="2" fill="#00f0ff"/>
@@ -440,8 +537,8 @@
       <span class="absolute -bottom-1 right-1 text-[9px] font-mono bg-slate-950 px-1.5 rounded border border-cyan-400/50 text-cyan-300">SPC</span>
     </button>
 
-    <!-- Bottom-Left Arc Button: Ground Rune Pulse / Attune [R] -->
-    <button onclick="window.game && window.game.triggerGroundRunePulse()" class="combat-round-btn pointer-events-auto w-14 h-14 rounded-full absolute bottom-0 left-2 flex items-center justify-center" title="Ground Rune Attunement [R]">
+    <!-- Bottom-Left Arc Button: Attune Nearby Pedestal / Read Lore / Collect [R] -->
+    <button onclick="window.game && window.game.triggerGroundRunePulse()" class="combat-round-btn pointer-events-auto w-14 h-14 rounded-full absolute bottom-0 left-2 flex items-center justify-center" title="Attune Nearby Shrines & Read Ancient Lore [R]">
       <svg class="w-7 h-7 text-amber-200 drop-shadow-[0_0_8px_#00f0ff]" viewBox="0 0 24 24" fill="currentColor">
         <polygon points="12,3 16,10 12,17 8,10"/>
         <ellipse cx="12" cy="19" rx="8" ry="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
@@ -451,90 +548,185 @@
   </div>
 
   <!-- =====================================================================
+       7B. BOTTOM-CENTER: FLOATING ANCIENT LORE SCROLL CARD (NON-INTRUSIVE)
+       ===================================================================== -->
+  <div id="lore-toast" class="hud-element fixed bottom-28 left-1/2 -translate-x-1/2 z-30 max-w-md w-[90%] bg-slate-950/90 gold-border rounded-2xl p-4 text-center shadow-2xl pointer-events-none transition-all duration-300 opacity-0 translate-y-4">
+    <div class="text-[10px] cinzel tracking-widest uppercase text-amber-400 font-bold mb-1" id="lore-toast-title">ANCIENT LORE MONOLITH DISCOVERED</div>
+    <p class="text-xs sm:text-sm text-amber-100/95 italic leading-relaxed" id="lore-toast-body">"The Elder Catalyzer responds not to wrath, but to wonder. Light the sleeping braziers and gather the fallen starlight."</p>
+  </div>
+
+
+  <!-- Bottom-Center PC Keyboard & Mouse Guide Bar (Visible on desktop PC) -->
+  <div id="pc-keybinds-bar" class="hud-element fixed bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none hidden md:flex items-center gap-2 sm:gap-3 px-4 py-1.5 rounded-full bg-slate-950/85 border border-amber-500/30 text-[11px] cinzel text-amber-200/90 shadow-2xl backdrop-blur-sm transition-opacity duration-500">
+    <span class="flex items-center gap-1 font-mono text-[10px]"><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-300 font-bold">WASD</kbd> Move</span>
+    <span class="text-amber-500/40">•</span>
+    <span class="flex items-center gap-1 font-mono text-[10px]"><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-300 font-bold">SHIFT</kbd> Sprint</span>
+    <span class="text-amber-500/40">•</span>
+    <span class="flex items-center gap-1 font-mono text-[10px]"><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-cyan-300 font-bold">L-CLICK / SPACE</kbd> Staff Bolt</span>
+    <span class="text-amber-500/40">•</span>
+    <span class="flex items-center gap-1 font-mono text-[10px]"><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-orange-300 font-bold">R-CLICK</kbd> Flame</span>
+    <span class="text-amber-500/40">•</span>
+    <span class="flex items-center gap-1 font-mono text-[10px]"><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-cyan-300 font-bold">1-4</kbd> Spells</span>
+    <span class="text-amber-500/40">•</span>
+    <span class="flex items-center gap-1 font-mono text-[10px]"><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-300 font-bold">E</kbd> Cipher</span>
+    <span class="text-amber-500/40">•</span>
+    <span class="flex items-center gap-1 font-mono text-[10px]"><kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-300 font-bold">O</kbd> Sens</span>
+  </div>
+
+  <!-- =====================================================================
        8. WALL CIPHER MODAL (TYPE "ZANE" FOR REALITY OVERDRIVE OR WARP SEED)
        ===================================================================== -->
-  <div id="cipher-modal" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-3 sm:p-4 overscroll-contain">
-    <div class="max-w-xl w-full max-h-[90vh] overflow-y-auto overscroll-contain bg-[#0b101d] gold-border rounded-2xl p-5 sm:p-7 shadow-2xl relative text-slate-100 custom-scrollbar">
+  <div id="cipher-modal" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="max-w-lg w-full bg-[#0b101d] gold-border rounded-2xl p-6 sm:p-8 shadow-2xl relative text-slate-100">
       <button onclick="window.game && window.game.closeCipherModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-900 border border-amber-500/40 text-amber-300 hover:text-white flex items-center justify-center cursor-pointer">✕</button>
 
       <div class="flex items-center gap-3 mb-3">
-        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-amber-300 shrink-0">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-amber-300">
           🔒
         </div>
         <div>
-          <h2 class="cinzel text-lg sm:text-2xl font-bold text-amber-300 tracking-wider">ANCIENT WALL CIPHER</h2>
-          <p class="text-[11px] sm:text-xs text-slate-400">Inscribe an Elder Rune Word to alter the Labyrinth reality</p>
+          <h2 class="cinzel text-xl sm:text-2xl font-bold text-amber-300 tracking-wider">ANCIENT WALL CIPHER</h2>
+          <p class="text-xs text-slate-400">Inscribe an Elder Rune Word to alter the Labyrinth reality</p>
         </div>
       </div>
 
-      <div class="my-4">
-        <label class="block text-[11px] cinzel uppercase tracking-widest text-amber-200/80 mb-1.5">Enter Rune Cipher or Custom Dungeon Seed:</label>
+      <div class="my-5">
+        <label class="block text-[11px] cinzel uppercase tracking-widest text-amber-200/80 mb-2">Enter Rune Cipher or Custom Dungeon Seed:</label>
         <div class="flex gap-2">
-          <input id="cipher-input" type="text" placeholder="Type ZANE, GOD, HEAL, GHOST, NUKE..." class="flex-1 bg-slate-950 border-2 border-amber-500/60 focus:border-cyan-400 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base font-mono uppercase tracking-widest text-cyan-300 outline-none" />
-          <button onclick="window.game && window.game.submitCipherCode()" class="px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 cinzel font-extrabold text-xs sm:text-sm tracking-wider hover:brightness-110 transition cursor-pointer shrink-0">
+          <input id="cipher-input" type="text" placeholder="Type ZANE, ASTRAL, GHOST, or any seed..." class="flex-1 bg-slate-950 border-2 border-amber-500/60 focus:border-cyan-400 rounded-xl px-4 py-3 text-base font-mono uppercase tracking-widest text-cyan-300 outline-none" />
+          <button onclick="window.game && window.game.submitCipherCode()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 cinzel font-extrabold text-sm tracking-wider hover:brightness-110 transition cursor-pointer">
             EVOKE
           </button>
         </div>
       </div>
 
-      <!-- Quick Clickable Cheat / Rune Presets (1-Tap for Mobile) -->
-      <div class="mb-4">
-        <div class="text-[11px] cinzel uppercase tracking-widest text-slate-400 mb-2">Elder Glyphs (1-Tap Activation):</div>
+      <!-- Quick Clickable Cheat / Rune Presets -->
+      <div class="mb-5">
+        <div class="text-[11px] cinzel uppercase tracking-widest text-slate-400 mb-2">Quick Elder Glyphs (Click to Activate):</div>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
           <button onclick="window.game && window.game.applyCipherWord('ZANE')" class="p-2.5 rounded-xl bg-gradient-to-r from-fuchsia-950/90 to-cyan-950/90 border border-fuchsia-400/60 text-fuchsia-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-fuchsia-300">⚡ ZANE</div>
-            <div class="text-[10px] text-slate-300">Astral Overdrive & Mana</div>
+            <div class="font-mono text-fuchsia-300">ZANE</div>
+            <div class="text-[10px] text-slate-300">Rainbow Astral Overdrive</div>
           </button>
-          <button onclick="window.game && window.game.applyCipherWord('OPERATOR')" class="p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/90 to-cyan-950/90 border border-emerald-400/60 text-emerald-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-emerald-300">🛡️ OPERATOR</div>
-            <div class="text-[10px] text-slate-300">Declassify Node 03</div>
-          </button>
-          <button onclick="window.game && window.game.applyCipherWord('GOD')" class="p-2.5 rounded-xl bg-gradient-to-r from-amber-950/90 to-yellow-950/90 border border-amber-400/60 text-amber-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-amber-300">👑 GOD</div>
-            <div class="text-[10px] text-slate-300">Invulnerability Ward</div>
-          </button>
-          <button onclick="window.game && window.game.applyCipherWord('HEAL')" class="p-2.5 rounded-xl bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-500/40 text-emerald-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-emerald-300">💚 HEAL</div>
-            <div class="text-[10px] text-slate-300">Restore 100% HP & Mana</div>
-          </button>
-          <button onclick="window.game && window.game.applyCipherWord('RADAR')" class="p-2.5 rounded-xl bg-gradient-to-r from-cyan-950/80 to-slate-900 border border-cyan-500/40 text-cyan-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-cyan-300">👁️ RADAR</div>
-            <div class="text-[10px] text-slate-300">Reveal Shards & Exit</div>
-          </button>
-          <button onclick="window.game && window.game.applyCipherWord('NUKE')" class="p-2.5 rounded-xl bg-gradient-to-r from-red-950/80 to-slate-900 border border-red-500/40 text-red-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-red-300">💥 NUKE</div>
-            <div class="text-[10px] text-slate-300">Annihilate All Monsters</div>
+          <button onclick="window.game && window.game.applyCipherWord('LOVE')" class="p-2.5 rounded-xl bg-gradient-to-r from-rose-950/90 to-amber-950/90 border border-rose-400/60 text-rose-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
+            <div class="font-mono text-rose-300">LOVE</div>
+            <div class="text-[10px] text-slate-300">Binary 0 & 1 Heart Resonance</div>
           </button>
           <button onclick="window.game && window.game.applyCipherWord('GHOST')" class="p-2.5 rounded-xl bg-slate-900 border border-cyan-500/40 text-cyan-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-cyan-300">👻 GHOST</div>
-            <div class="text-[10px] text-slate-400">Walk Through Walls</div>
+            <div class="font-mono text-cyan-300">GHOST</div>
+            <div class="text-[10px] text-slate-400">Phase Walk Through Walls</div>
           </button>
           <button onclick="window.game && window.game.applyCipherWord('ARCHMAGE')" class="p-2.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-amber-300">✨ ARCHMAGE</div>
-            <div class="text-[10px] text-slate-400">0s Cooldown Spells</div>
-          </button>
-          <button onclick="window.game && window.game.applyCipherWord('SPEED')" class="p-2.5 rounded-xl bg-slate-900 border border-blue-500/40 text-blue-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-blue-300">🏃 SPEED</div>
-            <div class="text-[10px] text-slate-400">+150% Movement Sprint</div>
-          </button>
-          <button onclick="window.game && window.game.applyCipherWord('CHAPTER1')" class="p-2.5 rounded-xl bg-slate-900 border border-sky-500/40 text-sky-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-sky-300">CHAPTER 1</div>
-            <div class="text-[10px] text-slate-400">Sanctum of the Elder</div>
+            <div class="font-mono text-amber-300">ARCHMAGE</div>
+            <div class="text-[10px] text-slate-400">Zero Cooldowns + Max Mana</div>
           </button>
           <button onclick="window.game && window.game.applyCipherWord('CHAPTER2')" class="p-2.5 rounded-xl bg-slate-900 border border-orange-500/40 text-orange-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-orange-300">CHAPTER 2</div>
+            <div class="font-mono text-orange-300">CHAPTER2</div>
             <div class="text-[10px] text-slate-400">Catacombs of Cinder</div>
           </button>
-          <button onclick="window.game && window.game.applyCipherWord('CHAPTER3')" class="p-2.5 rounded-xl bg-slate-900 border border-indigo-500/40 text-indigo-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
-            <div class="font-mono text-indigo-300">CHAPTER 3</div>
-            <div class="text-[10px] text-slate-400">The Astral Spire</div>
+          <button onclick="window.game && window.game.applyCipherWord('ABYSS')" class="p-2.5 rounded-xl bg-slate-900 border border-emerald-500/40 text-emerald-200 font-bold hover:scale-[1.02] transition cursor-pointer text-left">
+            <div class="font-mono text-emerald-300">ABYSS</div>
+            <div class="text-[10px] text-slate-400">Infinite Seeded Labyrinth</div>
           </button>
         </div>
       </div>
 
       <div class="text-[11px] text-slate-400 flex justify-between items-center border-t border-slate-800 pt-3">
-        <span>WASD Move • 1-4 Spells • Space Bolt • C Cam</span>
+        <span>Controls: <strong>WASD / Arrows</strong> Move • <strong>1-4</strong> Spells • <strong>Space</strong> Staff Bolt • <strong>Q/E</strong> Rotate</span>
         <button onclick="window.game && window.game.closeCipherModal()" class="text-amber-300 hover:underline font-semibold cursor-pointer">Resume</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =====================================================================
+       8B. CONTROLS, SENSITIVITY & SCREEN ERGONOMICS MODAL
+       ===================================================================== -->
+  <div id="settings-modal" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-3 sm:p-4 overscroll-contain">
+    <div class="max-w-md w-full bg-[#0b101d] gold-border rounded-2xl p-5 sm:p-6 shadow-2xl relative text-slate-100">
+      <button onclick="window.game && window.game.closeSettingsModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-900 border border-amber-500/40 text-amber-300 hover:text-white flex items-center justify-center cursor-pointer">✕</button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-amber-300 shrink-0">
+          ⚙️
+        </div>
+        <div>
+          <h2 class="cinzel text-lg sm:text-xl font-bold text-amber-300 tracking-wider">CONTROLS & SENSITIVITY</h2>
+          <p class="text-[11px] text-slate-400">Calibrate mouse aiming, touch look, and on-screen HUD</p>
+        </div>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <!-- Mouse Look Sensitivity -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="cinzel font-semibold text-amber-200 uppercase tracking-wide">Mouse Sensitivity (PC Aim)</label>
+            <span id="lbl-mouse-sens" class="font-mono text-cyan-300 font-bold">1.00x</span>
+          </div>
+          <input type="range" id="input-mouse-sens" min="0.1" max="3.5" step="0.05" value="1.0" class="w-full h-2 bg-slate-900 rounded-lg outline-none" />
+          <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+            <span>0.1x (Precise)</span>
+            <span>1.0x (Standard)</span>
+            <span>3.5x (Swift)</span>
+          </div>
+        </div>
+
+        <!-- Touch Look Sensitivity (Mobile) -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="cinzel font-semibold text-amber-200 uppercase tracking-wide">Touch Sensitivity (Mobile Drag)</label>
+            <span id="lbl-touch-sens" class="font-mono text-cyan-300 font-bold">1.00x</span>
+          </div>
+          <input type="range" id="input-touch-sens" min="0.1" max="3.5" step="0.05" value="1.0" class="w-full h-2 bg-slate-900 rounded-lg outline-none" />
+          <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+            <span>0.1x (Slow)</span>
+            <span>1.0x (Default)</span>
+            <span>3.5x (Fast)</span>
+          </div>
+        </div>
+
+        <!-- Invert Vertical Pitch Look -->
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+          <div>
+            <div class="cinzel font-semibold text-amber-200">Invert Y-Axis (Pitch Look)</div>
+            <div class="text-[10px] text-slate-400">Looking up pulls camera down (Flight style)</div>
+          </div>
+          <button id="btn-toggle-inverty" onclick="window.game && window.game.toggleInvertY()" class="px-3 py-1 rounded bg-slate-800 border border-slate-700 font-mono font-bold text-slate-400 cursor-pointer">
+            OFF
+          </button>
+        </div>
+
+        <!-- Pointer Lock Mode -->
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+          <div>
+            <div class="cinzel font-semibold text-amber-200">FPS Pointer Lock on Canvas Click</div>
+            <div class="text-[10px] text-slate-400">Locks mouse cursor for true 3D aim (ESC to release)</div>
+          </div>
+          <button id="btn-toggle-pointerlock" onclick="window.game && window.game.togglePointerLockEnabled()" class="px-3 py-1 rounded bg-cyan-950/80 border border-cyan-400 text-cyan-300 font-mono font-bold cursor-pointer">
+            ON
+          </button>
+        </div>
+
+        <!-- On-Screen Virtual Controls Mode -->
+        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+          <div class="flex justify-between items-center mb-1.5">
+            <span class="cinzel font-semibold text-amber-200">Virtual Touch Overlays</span>
+            <span id="lbl-touch-mode" class="font-mono text-amber-300 font-bold">AUTO</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 text-center font-mono text-[11px]">
+            <button id="btn-touch-mode-auto" onclick="window.game && window.game.setTouchControlsMode('auto')" class="py-1.5 rounded bg-amber-500/20 border border-amber-400 text-amber-300 font-bold cursor-pointer">AUTO</button>
+            <button id="btn-touch-mode-hide" onclick="window.game && window.game.setTouchControlsMode('hide')" class="py-1.5 rounded bg-slate-950 border border-slate-700 text-slate-400 cursor-pointer">HIDE (PC)</button>
+            <button id="btn-touch-mode-show" onclick="window.game && window.game.setTouchControlsMode('show')" class="py-1.5 rounded bg-slate-950 border border-slate-700 text-slate-400 cursor-pointer">SHOW</button>
+          </div>
+          <div class="text-[10px] text-slate-400 mt-1">AUTO hides on desktop PC and auto-reveals on phone/touch.</div>
+        </div>
+      </div>
+
+      <div class="mt-5 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
+        <button onclick="window.game && window.game.resetSettingsToDefaults()" class="text-rose-400 hover:underline cursor-pointer">Reset Defaults</button>
+        <button onclick="window.game && window.game.closeSettingsModal()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 cinzel font-bold hover:brightness-110 transition cursor-pointer">
+          SAVE & RESUME [ESC]
+        </button>
       </div>
     </div>
   </div>
@@ -552,12 +744,16 @@
 
       <div class="bg-slate-950/80 border border-amber-500/30 rounded-xl p-4 mb-6 space-y-2 text-xs font-mono text-left">
         <div class="flex justify-between">
-          <span class="text-slate-400">Realm Cleared:</span>
+          <span class="text-slate-400">Realm Explored:</span>
           <span id="vic-realm" class="text-amber-200 font-bold">Chapter I</span>
         </div>
         <div class="flex justify-between">
-          <span class="text-slate-400">Hollow Guardians Vanquished:</span>
-          <span id="vic-kills" class="text-cyan-300 font-bold">0</span>
+          <span class="text-slate-400">Ancient Braziers Kindled:</span>
+          <span id="vic-braziers" class="text-orange-300 font-bold">0/3</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Lore Monoliths Deciphered:</span>
+          <span id="vic-lore" class="text-cyan-300 font-bold">0/2</span>
         </div>
         <div class="flex justify-between">
           <span class="text-slate-400">Reality Mode:</span>
@@ -709,9 +905,295 @@
           osc.stop(now + i * 0.05 + 0.52);
         });
       }
+
+      playHeartbeatWarmth(stepIndex = 0) {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+
+        // Warm low heartbeat thump ("Lub-Dub")
+        [0, 0.22].forEach((offset, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(idx === 0 ? 68 : 54, now + offset);
+          osc.frequency.exponentialRampToValueAtTime(28, now + offset + 0.22);
+          gain.gain.setValueAtTime(idx === 0 ? 0.22 : 0.16, now + offset);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.24);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + offset);
+          osc.stop(now + offset + 0.25);
+        });
+
+        // Ascending emotional cinematic chord pad
+        const chords = [
+          [261.63, 329.63, 392.00, 523.25], // C Major
+          [293.66, 369.99, 440.00, 587.33], // D Major
+          [329.63, 415.30, 493.88, 659.25], // E Major
+          [349.23, 440.00, 523.25, 698.46, 880.0] // F Major 9th
+        ];
+        const chord = chords[stepIndex % chords.length];
+        chord.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = i % 2 === 0 ? 'sine' : 'triangle';
+          osc.frequency.setValueAtTime(freq, now + 0.1 + i * 0.04);
+          gain.gain.setValueAtTime(0.045, now + 0.1 + i * 0.04);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + 0.1 + i * 0.04);
+          osc.stop(now + 1.85);
+        });
+      }
     }
 
     const audio = new ArcaneAudio();
+
+    /* =========================================================================
+       1B. INTERACTIVE MOVIE PROLOGUE DIRECTOR (0s & 1s -> HEART CONSTELLATION -> 3D SANCTUM)
+       ========================================================================= */
+    class InteractiveMoviePrologue {
+      constructor() {
+        this.canvas = document.getElementById('prologue-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.overlay = document.getElementById('prologue-overlay');
+        this.active = true;
+        this.actIndex = 0;
+        this.mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2, radius: 150 };
+        this.heartScale = 0;
+        this.particles = [];
+
+        this.acts = [
+          {
+            badge: 'WORKFLOW ACT I / IV — THE BINARY VOID',
+            binary: '01010110 01001111 01001001 01000100',
+            title: 'IN THE BEGINNING, THERE WERE ONLY 0s AND 1s',
+            subtitle: '"Cold logic. Infinite silence. Millions of switches asking a single question: Can a universe built of numbers ever feel the warmth of a human heart?"',
+            btnIcon: '❤️',
+            btnLabel: 'Infuse First Heartbeat [Click / Space]',
+            btnHint: 'Move your cursor to awaken the sleeping binary stream'
+          },
+          {
+            badge: 'WORKFLOW ACT II / IV — THE SPARK OF CONNECTION',
+            binary: '01000110 01000101 01000101 01001100',
+            title: 'BETWEEN ZERO AND ONE LIES INFINITY',
+            subtitle: '"0 is the quiet darkness before we meet. 1 is the spark when two souls recognize each other across the void. Together, code becomes memory."',
+            btnIcon: '✨',
+            btnLabel: 'Weave the Constellation of Love [Click]',
+            btnHint: 'Watch the 0s and 1s converge into a living heart'
+          },
+          {
+            badge: 'WORKFLOW ACT III / IV — THE ARCHITECTURE OF MEANING',
+            binary: '01010011 01001111 01010101 01001100',
+            title: 'EVERY LABYRINTH IS BUILT TO PROTECT WHAT WE LOVE',
+            subtitle: '"The stone arches, the sleeping braziers, the glowing Elder Shards—they are not a prison. They are fragments of a promise waiting to be remembered."',
+            btnIcon: '🔥',
+            btnLabel: 'Ignite the Sanctum of Memory [Click]',
+            btnHint: 'Your staff carries the light that turns cold stone into home'
+          },
+          {
+            badge: 'WORKFLOW ACT IV / IV — AWAKENING',
+            binary: '01001100 01001111 01010110 01000101',
+            title: 'STEP INTO THE LIVING SANCTUM',
+            subtitle: '"Walk gently, Traveler. There are no monsters here—only forgotten warmth waiting for your flame, and starlight waiting to guide you home."',
+            btnIcon: '🚪',
+            btnLabel: 'Enter the 3D Interactive Movie &rarr;',
+            btnHint: 'Tip: Inscribe LOVE or ZANE at the Wall Cipher Pedestal anytime'
+          }
+        ];
+
+        this.resize();
+        this.initParticles();
+        this.bindEvents();
+        this.animate = this.animate.bind(this);
+        requestAnimationFrame(this.animate);
+      }
+
+      resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+      }
+
+      initParticles() {
+        this.particles = [];
+        const count = 170;
+        for (let i = 0; i < count; i++) {
+          // Parametric Heart Target Coordinates for Act II-IV
+          const t = (i / count) * Math.PI * 2;
+          const hx = 16 * Math.pow(Math.sin(t), 3);
+          const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+
+          this.particles.push({
+            x: Math.random() * this.canvas.width,
+            y: Math.random() * this.canvas.height,
+            vx: (Math.random() - 0.5) * 0.6,
+            vy: 0.7 + Math.random() * 1.4,
+            bit: i % 2 === 0 ? '1' : '0',
+            hx,
+            hy,
+            size: 12 + (i % 5) * 2,
+            alpha: 0.35 + Math.random() * 0.55
+          });
+        }
+      }
+
+      bindEvents() {
+        window.addEventListener('resize', () => this.resize());
+        this.canvas.addEventListener('mousemove', (e) => {
+          this.mouse.x = e.clientX;
+          this.mouse.y = e.clientY;
+        });
+        this.canvas.addEventListener('click', () => {
+          if (this.active) this.advanceAct();
+        });
+      }
+
+      advanceAct() {
+        audio.playHeartbeatWarmth(this.actIndex);
+        this.actIndex++;
+
+        if (this.actIndex >= this.acts.length) {
+          this.finishPrologue();
+          return;
+        }
+
+        this.syncUI();
+      }
+
+      syncUI() {
+        const data = this.acts[this.actIndex];
+        document.getElementById('prologue-step-badge').innerText = data.badge;
+        document.getElementById('prologue-binary-tag').innerText = data.binary;
+        document.getElementById('prologue-title').innerText = data.title;
+        document.getElementById('prologue-subtitle').innerText = data.subtitle;
+        document.getElementById('prologue-btn-icon').innerText = data.btnIcon;
+        document.getElementById('prologue-btn-label').innerHTML = data.btnLabel;
+        document.getElementById('prologue-btn-hint').innerText = data.btnHint;
+
+        for (let i = 0; i < 4; i++) {
+          const dot = document.getElementById(`wf-dot-${i}`);
+          if (dot) {
+            dot.className = i <= this.actIndex
+              ? 'w-6 h-1.5 rounded-full bg-rose-400 shadow-[0_0_8px_#fb7185] transition-all'
+              : 'w-6 h-1.5 rounded-full bg-slate-700 transition-all';
+          }
+        }
+      }
+
+      finishPrologue() {
+        if (!this.active) return;
+        this.active = false;
+        audio.playCastMandala();
+        this.overlay.classList.add('opacity-0', 'pointer-events-none');
+        document.body.classList.remove('prologue-active', 'cinema-mode');
+
+        // Trigger a gentle cinematic camera dolly reveal inside the 3D Sanctum
+        if (window.game) {
+          window.game.triggerPrologueCameraDolly();
+          window.game.showLoreToast(
+            'PROLOGUE COMPLETE — THE ARCHITECTURE OF LOVE',
+            '"Every 0 and 1 has awakened into stone and starlight. Kindle the braziers, attune the Elder Shards, or inscribe LOVE at the Wall Cipher."'
+          );
+        }
+      }
+
+      replayPrologue() {
+        this.actIndex = 0;
+        this.active = true;
+        this.syncUI();
+        this.overlay.classList.remove('opacity-0', 'pointer-events-none');
+        document.body.classList.add('prologue-active', 'cinema-mode');
+        audio.playHeartbeatWarmth(0);
+      }
+
+      animate(now) {
+        requestAnimationFrame(this.animate);
+        if (!this.active) return;
+
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        const cx = w / 2;
+        const cy = h / 2 - 15;
+
+        // Soft motion trail fade
+        ctx.fillStyle = 'rgba(3, 6, 14, 0.26)';
+        ctx.fillRect(0, 0, w, h);
+
+        // Ambient radial glow behind the heart
+        const pulse = 1 + Math.sin(now * 0.004) * 0.08;
+        const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, 290 * pulse);
+        if (this.actIndex === 0) {
+          grad.addColorStop(0, 'rgba(0, 240, 255, 0.14)');
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        } else {
+          grad.addColorStop(0, 'rgba(244, 63, 94, 0.22)');
+          grad.addColorStop(0.5, 'rgba(251, 191, 36, 0.12)');
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        }
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 290 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+
+        const formHeart = this.actIndex >= 1;
+        const heartRadius = Math.min(w, h) * 0.0145 * pulse;
+
+        ctx.font = 'bold 14px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        for (let i = 0; i < this.particles.length; i++) {
+          const p = this.particles[i];
+
+          if (formHeart) {
+            // Pull binary 0s and 1s into a beating golden-rose Heart Constellation!
+            const targetX = cx + p.hx * heartRadius;
+            const targetY = cy + p.hy * heartRadius;
+            p.x += (targetX - p.x) * 0.055;
+            p.y += (targetY - p.y) * 0.055;
+          } else {
+            // Matrix rain in Act I
+            p.y += p.vy;
+            p.x += Math.sin(now * 0.001 + i) * 0.35;
+            if (p.y > h + 20) {
+              p.y = -15;
+              p.x = Math.random() * w;
+            }
+          }
+
+          // Interactive cursor warmth repulsion / attraction
+          const dx = this.mouse.x - p.x;
+          const dy = this.mouse.y - p.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 130 && dist > 1) {
+            p.x -= (dx / dist) * 2.2;
+            p.y -= (dy / dist) * 2.2;
+          }
+
+          // Color transitions from Cyan Binary (Act I) -> Rose/Gold Love Resonance (Act II-IV)
+          if (this.actIndex === 0) {
+            ctx.fillStyle = p.bit === '1'
+              ? `rgba(0, 240, 255, ${p.alpha})`
+              : `rgba(148, 163, 184, ${p.alpha * 0.7})`;
+          } else if (this.actIndex === 1) {
+            ctx.fillStyle = p.bit === '1'
+              ? `rgba(251, 113, 133, ${p.alpha + 0.2})`
+              : `rgba(56, 189, 248, ${p.alpha + 0.15})`;
+          } else {
+            ctx.fillStyle = i % 3 === 0
+              ? 'rgba(253, 224, 71, 0.92)'
+              : i % 2 === 0
+                ? 'rgba(251, 113, 133, 0.92)'
+                : 'rgba(0, 240, 255, 0.88)';
+          }
+
+          ctx.fillText(p.bit, p.x, p.y);
+        }
+      }
+    }
 
     /* =========================================================================
        2. PROCEDURAL TEXTURES (Gothic Stone, Wet Puddle Cobblestone, Runic Mandala)
@@ -924,9 +1406,6 @@
         this.zaneMode = false;
         this.ghostMode = false;
         this.archmageMode = false;
-        this.godMode = false;
-        this.speedBoost = false;
-        this.clairvoyance = false;
 
         // Performance & Graphics Quality State ('BALANCED' | 'TURBO' | 'ULTRA')
         this.perfModes = ['BALANCED', 'TURBO', 'ULTRA'];
@@ -948,16 +1427,17 @@
         this._pMax = new THREE.Vector3();
         this._dummyMatrix = new THREE.Object3D();
 
-        // Player RPG Stats
-        this.hp = 100;
-        this.maxHp = 100;
+        // Peaceful Exploration & Discovery Stats (No Health, No Enemies, No Stress!)
         this.mp = 100;
         this.maxMp = 100;
         this.shardsCollected = 0;
         this.shardsRequired = 3;
-        this.enemiesDefeated = 0;
+        this.braziersLit = 0;
+        this.braziersTotal = 3;
+        this.loreRead = 0;
+        this.loreTotal = 2;
         this.portalUnlocked = false;
-        this._lastHudHp = -1;
+        this._lastDiscoveryPct = -1;
         this._lastHudMp = -1;
 
         // Camera Modes: 0 = Over-The-Shoulder (Screenshot Default), 1 = Tactical Top-Down, 2 = 1st-Person
@@ -965,35 +1445,36 @@
         this.playerPos = new THREE.Vector3(0, 0, 0);
         this.playerYaw = 0; // Facing North (-Z) initially so screenshot composition matches immediately!
         this.cameraPitch = 0.06;
+        this.prologueDollyTimer = 0;
 
-        // Spell Cooldowns
+        // Spell Cooldowns (Short & snappy for pure exploration fun)
         this.cooldowns = { 1: 0, 2: 0, 3: 0, 4: 0 };
         this._lastCdText = { 1: '', 2: '', 3: '', 4: '' };
         this.activeMandalaTimer = 2.8; // Start with the iconic Mandala active right away!
-        this.shieldWardTimer = 0;
+        this.lumosTimer = 0;
 
         // Input state
         this.keys = {};
         this.joyVec = { x: 0, y: 0, active: false };
         this.isMouseDragging = false;
-        this.isPointerLocked = false;
         this.lastMousePos = { x: 0, y: 0 };
 
         // Cached DOM Elements for Fast Access
         this.dom = {
-          hpBar: document.getElementById('hud-hp-bar'),
+          discoveryBar: document.getElementById('hud-discovery-bar'),
+          discoveryPct: document.getElementById('hud-discovery-pct'),
           mpBar: document.getElementById('hud-mp-bar'),
           shards: document.getElementById('hud-shards'),
+          braziers: document.getElementById('hud-braziers'),
+          lore: document.getElementById('hud-lore'),
           chapterTitle: document.getElementById('hud-chapter-title'),
           cipherPrompt: document.getElementById('cipher-world-prompt'),
           joyPuck: document.getElementById('joystick-puck'),
           fpsVal: document.getElementById('fps-val'),
           perfLabel: document.getElementById('perf-label'),
-          combatNums: document.getElementById('combat-nums-container'),
-          fsBtn: document.getElementById('btn-fs-toggle'),
-          fsLabel: document.getElementById('fs-label'),
-          svgFsEnter: document.getElementById('svg-fs-enter'),
-          svgFsExit: document.getElementById('svg-fs-exit'),
+          loreToast: document.getElementById('lore-toast'),
+          loreToastTitle: document.getElementById('lore-toast-title'),
+          loreToastBody: document.getElementById('lore-toast-body'),
           cdOverlays: {
             1: document.getElementById('cd-overlay-1'),
             2: document.getElementById('cd-overlay-2'),
@@ -1007,9 +1488,11 @@
         this.wallBoxes = [];
         this.torches = [];
         this.shards = [];
-        this.enemies = [];
+        this.braziers = [];
+        this.vineBarriers = [];
+        this.loreStones = [];
+        this.guideOrbs = [];
         this.projectiles = [];
-        this.barricades = [];
         this.cipherPedestalPos = new THREE.Vector3();
         this.portalPos = new THREE.Vector3();
         this.portalMesh = null;
@@ -1310,19 +1793,6 @@
         this.rightArmGroup.add(this.staffGroup);
         this.wizardGroup.add(this.rightArmGroup);
 
-        // 10. Golden Mandala Aegis Ward (Spell 4)
-        const shieldGeo = new THREE.SphereGeometry(1.45, 16, 16);
-        const shieldMat = new THREE.MeshBasicMaterial({
-          color: 0xfde047,
-          transparent: true,
-          opacity: 0.38,
-          wireframe: true
-        });
-        this.shieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
-        this.shieldMesh.position.set(0, 1.1, 0);
-        this.shieldMesh.visible = false;
-        this.wizardGroup.add(this.shieldMesh);
-
         this.scene.add(this.wizardGroup);
       }
 
@@ -1410,6 +1880,8 @@
         this.chapter = chapterNum;
         this.seedString = seedStr || `CHAPTER-${chapterNum}`;
         this.shardsCollected = 0;
+        this.braziersLit = 0;
+        this.loreRead = 0;
         this.portalUnlocked = false;
 
         // Clear existing level geometry cleanly
@@ -1423,10 +1895,14 @@
         this.torches = [];
         this.shards.forEach(s => this.scene.remove(s.group));
         this.shards = [];
-        this.enemies.forEach(e => this.scene.remove(e.group));
-        this.enemies = [];
-        this.barricades.forEach(b => this.scene.remove(b.group));
-        this.barricades = [];
+        this.braziers.forEach(b => this.scene.remove(b.group));
+        this.braziers = [];
+        this.vineBarriers.forEach(v => this.scene.remove(v.group));
+        this.vineBarriers = [];
+        this.loreStones.forEach(l => this.scene.remove(l.group));
+        this.loreStones = [];
+        this.guideOrbs.forEach(g => this.scene.remove(g.mesh));
+        this.guideOrbs = [];
         if (this.portalMesh) this.scene.remove(this.portalMesh);
 
         // Update Chapter UI Title
@@ -1438,6 +1914,9 @@
         this.dom.chapterTitle.innerText =
           chapterNames[this.chapter] || `Abyss Seed: ${this.seedString}`;
         this.dom.shards.innerText = `0/${this.shardsRequired}`;
+        this.dom.braziers.innerText = `0/${this.braziersTotal}`;
+        this.dom.lore.innerText = `0/${this.loreTotal}`;
+        this.updateStatusBars();
 
         // Design a dramatic Grand Vaulted Hallway at Spawn (0,0) leading North (-Z)
         // with branching side wings so the initial view is 100% identical to the screenshot!
@@ -1581,17 +2060,46 @@
           this.createElderSoulShard(new THREE.Vector3(sx, 1.3, sz));
         });
 
-        // Spawn Patrolling Hollow Knights & Shadow Wraiths
-        const enemySpawns = [
-          [7, 6, 'Hollow Knight'],
-          [10, 8, 'Shadow Wraith'],
-          [5, 4, 'Hollow Knight'],
-          [3, 8, 'Abyssal Sentinel']
+        // Place 3 Ancient Unlit Sanctum Braziers (Light them by walking near or casting Ignite/Orb!)
+        const brazierCoords = [
+          [10, 6],
+          [6, 6],
+          [3, 8]
         ];
-        enemySpawns.forEach(([er, ec, name]) => {
-          const ex = (ec - Math.floor(cols / 2)) * CELL_SIZE;
-          const ez = (er - Math.floor(rows / 2)) * CELL_SIZE;
-          this.spawnEnemy(new THREE.Vector3(ex, 0, ez), name);
+        brazierCoords.forEach(([br, bc]) => {
+          const bx = (bc - Math.floor(cols / 2)) * CELL_SIZE;
+          const bz = (br - Math.floor(rows / 2)) * CELL_SIZE;
+          this.createAncientBrazier(new THREE.Vector3(bx + 1.45, 0, bz));
+        });
+
+        // Place Overgrown Bramble Vine Barriers in side passages (Burn away with Ignite or Staff Orb!)
+        const vineCoords = [
+          [11, 5],
+          [6, 5]
+        ];
+        vineCoords.forEach(([vr, vc]) => {
+          const vx = (vc - Math.floor(cols / 2)) * CELL_SIZE;
+          const vz = (vr - Math.floor(rows / 2)) * CELL_SIZE;
+          this.createBrambleVineBarrier(new THREE.Vector3(vx, 0, vz));
+        });
+
+        // Place 2 Ancient Lore Monoliths with atmospheric story inscriptions
+        const loreEntries = [
+          {
+            r: 11, c: 7,
+            title: 'I. THE SLEEPING SANCTUM',
+            text: '"Long ago, the Archmages sealed their memories inside floating Elder Shards. Cast GUIDE [3] whenever you seek the path forward."'
+          },
+          {
+            r: 5, c: 9,
+            title: 'II. THE CIPHER OF ZANE',
+            text: '"Upon the golden lectern by the entrance, those who inscribe the word ZANE shall witness the stone walls dissolve into astral starlight."'
+          }
+        ];
+        loreEntries.forEach((entry) => {
+          const lx = (entry.c - Math.floor(cols / 2)) * CELL_SIZE;
+          const lz = (entry.r - Math.floor(rows / 2)) * CELL_SIZE;
+          this.createLoreMonolith(new THREE.Vector3(lx, 0, lz), entry.title, entry.text);
         });
       }
 
@@ -1770,72 +2278,111 @@
         this.shards.push({ group, mesh, ring, baseY: pos.y, collected: false });
       }
 
-      spawnEnemy(pos, name) {
+      createAncientBrazier(pos) {
         const group = new THREE.Group();
         group.position.copy(pos);
 
-        const armorMat = new THREE.MeshStandardMaterial({
-          color: 0x1e293b,
-          metalness: 0.75,
-          roughness: 0.35
-        });
-        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.25, 1.45, 10), armorMat);
-        body.position.y = 0.85;
-        group.add(body);
-
-        // Glowing crimson eyes visor
-        const visor = new THREE.Mesh(
-          new THREE.BoxGeometry(0.28, 0.08, 0.25),
-          new THREE.MeshBasicMaterial({ color: 0xf43f5e })
+        const pedestal = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.42, 0.55, 1.05, 8),
+          this.shared.ironMat
         );
-        visor.position.set(0, 1.42, 0.15);
-        group.add(visor);
+        pedestal.position.y = 0.525;
+        group.add(pedestal);
 
-        // Ice Block Cage (hidden until frozen by Spell 3 Freeze!)
-        const iceCage = new THREE.Mesh(
-          new THREE.BoxGeometry(1.1, 2.0, 1.1),
-          new THREE.MeshStandardMaterial({
-            color: 0x7dd3fc,
-            emissive: 0x0284c7,
-            emissiveIntensity: 0.4,
-            transparent: true,
-            opacity: 0.65,
-            roughness: 0.1
-          })
+        const bowl = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.62, 0.32, 0.35, 10),
+          this.shared.ironMat
         );
-        iceCage.position.y = 1.0;
-        iceCage.visible = false;
-        group.add(iceCage);
+        bowl.position.y = 1.15;
+        group.add(bowl);
+
+        // Flame & Glow Halo (hidden until kindled!)
+        const flame = new THREE.Mesh(
+          new THREE.ConeGeometry(0.32, 0.78, 8),
+          this.shared.flameMat
+        );
+        flame.position.y = 1.55;
+        flame.visible = false;
+        group.add(flame);
+
+        const halo = new THREE.Mesh(
+          new THREE.PlaneGeometry(2.2, 2.2),
+          this.shared.torchGlowSpriteMat
+        );
+        halo.position.y = 1.65;
+        halo.visible = false;
+        group.add(halo);
 
         this.scene.add(group);
-        this.enemies.push({
-          group,
-          name,
-          hp: 60,
-          maxHp: 60,
-          frozenTimer: 0,
-          iceCage,
-          patrolOrigin: pos.clone(),
-          patrolPhase: Math.random() * Math.PI * 2,
-          alive: true
-        });
+        this.braziers.push({ group, flame, halo, lit: false });
+      }
+
+      createBrambleVineBarrier(pos) {
+        const group = new THREE.Group();
+        group.position.copy(pos);
+
+        for (let i = 0; i < 6; i++) {
+          const post = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.09, 0.14, 3.2, 6),
+            this.shared.rootMat
+          );
+          post.position.set((i - 2.5) * 0.55, 1.6, (Math.random() - 0.5) * 0.35);
+          post.rotation.z = (Math.random() - 0.5) * 0.4;
+          group.add(post);
+        }
+
+        const box = new THREE.Box3(
+          new THREE.Vector3(pos.x - 1.8, 0, pos.z - 1.8),
+          new THREE.Vector3(pos.x + 1.8, WALL_HEIGHT, pos.z + 1.8)
+        );
+
+        this.scene.add(group);
+        this.vineBarriers.push({ group, pos: pos.clone(), box, cleared: false });
+      }
+
+      createLoreMonolith(pos, title, text) {
+        const group = new THREE.Group();
+        group.position.copy(pos);
+
+        const slab = new THREE.Mesh(
+          new THREE.BoxGeometry(0.85, 2.1, 0.32),
+          new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5, metalness: 0.4 })
+        );
+        slab.position.y = 1.05;
+        group.add(slab);
+
+        const runeCrystal = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.24, 0),
+          new THREE.MeshBasicMaterial({ color: 0xfde047 })
+        );
+        runeCrystal.position.y = 2.45;
+        group.add(runeCrystal);
+
+        this.scene.add(group);
+        this.loreStones.push({ group, runeCrystal, pos: pos.clone(), title, text, read: false });
+      }
+
+      showLoreToast(title, text) {
+        if (!this.dom.loreToast) return;
+        this.dom.loreToastTitle.innerText = title;
+        this.dom.loreToastBody.innerText = text;
+        this.dom.loreToast.classList.remove('opacity-0', 'translate-y-4');
+        this.dom.loreToast.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(this.loreToastTimer);
+        this.loreToastTimer = setTimeout(() => {
+          this.dom.loreToast.classList.remove('opacity-100', 'translate-y-0');
+          this.dom.loreToast.classList.add('opacity-0', 'translate-y-4');
+        }, 6000);
       }
 
       /* =========================================================================
-         5. SPELLCASTING & COMBAT SYSTEM (BLINK, FLAME, FREEZE, SHIELD + STAFF BOLT)
+         5. EXPLORATION & PUZZLE SPELLCASTING (BLINK, IGNITE, GUIDE WISP, LUMOS)
          ========================================================================= */
       castSpell(slot) {
         if (this.cooldowns[slot] > 0 && !this.archmageMode && !this.zaneMode) return;
 
-        const costs = { 1: 15, 2: 20, 3: 25, 4: 20 };
-        if (this.mp < costs[slot] && !this.archmageMode && !this.zaneMode) {
-          this.showTopBanner('Insufficient Arcane Mana!', '#38bdf8');
-          return;
-        }
-
         if (!this.archmageMode && !this.zaneMode) {
-          this.mp = Math.max(0, this.mp - costs[slot]);
-          const cdTimes = { 1: 2.5, 2: 2.0, 3: 4.0, 4: 5.0 };
+          const cdTimes = { 1: 1.2, 2: 1.0, 3: 1.8, 4: 2.5 };
           this.cooldowns[slot] = cdTimes[slot];
         }
 
@@ -1849,11 +2396,10 @@
         }
 
         if (slot === 1) {
-          // SPELL 1: BLINK (Teleport forward along facing direction + Phase Ripple)
+          // SPELL 1: BLINK (Smooth Teleport Dash Forward along corridor)
           audio.playBlink();
           const forward = new THREE.Vector3(-Math.sin(this.playerYaw), 0, -Math.cos(this.playerYaw));
-          this.spawnImpactBurst(this.playerPos.clone().add(new THREE.Vector3(0, 1.0, 0)), 0x38bdf8);
-          const stepDist = 1.35;
+          const stepDist = 1.25;
           for (let s = 0; s < 5; s++) {
             const testPos = this.playerPos.clone().addScaledVector(forward, stepDist);
             if (!this.checkCollisionAt(testPos.x, testPos.z)) {
@@ -1862,26 +2408,23 @@
               break;
             }
           }
-          this.spawnImpactBurst(this.playerPos.clone().add(new THREE.Vector3(0, 1.0, 0)), 0x00f0ff);
-          this.showTopBanner('SPELL 1: Phase Blink Evoked', '#38bdf8');
+          this.showTopBanner('SPELL 1: Phase Blink Dash', '#38bdf8');
         } else if (slot === 2) {
-          // SPELL 2: FLAME (Launch explosive scorching fireball down the corridor)
+          // SPELL 2: IGNITE (Launch Warm Fire Orb to Kindle Braziers & Clear Bramble Vines)
           audio.playFireball();
           this.spawnProjectile('flame');
-          this.showTopBanner('SPELL 2: Elder Flame Torrent', '#f97316');
+          this.igniteNearbyBraziersAndVines(7.5);
+          this.showTopBanner('SPELL 2: Sanctum Flame Kindled', '#f97316');
         } else if (slot === 3) {
-          // SPELL 3: FREEZE (Glacial Blizzard AoE freezing nearby enemies in crystal ice)
+          // SPELL 3: GUIDE (Summon Golden Starlight Trail leading to Nearest Uncollected Shard or Portal)
           audio.playFreeze();
-          this.triggerFreezeNova();
-          this.showTopBanner('SPELL 3: Glacial Frost Nova', '#7dd3fc');
+          this.summonGuidingStarlightTrail();
         } else if (slot === 4) {
-          // SPELL 4: SHIELD (Golden Mandala Aegis Ward + Heal HP)
+          // SPELL 4: LUMOS (Illuminate the Entire Dungeon & Magnetize Nearby Shards)
           audio.playCastMandala();
-          this.shieldWardTimer = 7.0;
-          this.hp = Math.min(this.maxHp, this.hp + 35);
-          if (this.shieldMesh) this.shieldMesh.visible = true;
-          this.spawnCombatNumber(this.playerPos, '+35 HP', '#4ade80');
-          this.showTopBanner('SPELL 4: Golden Mandala Aegis Active (+35 HP)', '#fde047');
+          this.lumosTimer = 8.0;
+          this.ambientLight.intensity = 2.1;
+          this.showTopBanner('SPELL 4: Sanctuary Lumos Illumination Active', '#fde047');
         }
 
         this.updateStatusBars();
@@ -1891,35 +2434,101 @@
         audio.playCastMandala();
         this.activeMandalaTimer = 2.4;
         this.spawnProjectile('arcane');
+        this.igniteNearbyBraziersAndVines(5.5);
       }
 
       triggerMandalaNova() {
         audio.playCastMandala();
         this.activeMandalaTimer = 4.0;
-        // Fire 3 fan bolts
-        [-0.22, 0, 0.22].forEach(angleOffset => {
-          this.spawnProjectile('arcane', angleOffset);
-        });
-        this.showTopBanner('Arcane Catalyzer Nova Unleashed!', '#fde047');
+        this.summonGuidingStarlightTrail();
       }
 
       triggerGroundRunePulse() {
         audio.playCastMandala();
         this.activeMandalaTimer = 3.5;
         // Check if near Wall Cipher Lectern
-        if (this.playerPos.distanceTo(this.cipherPedestalPos) < 4.5) {
+        if (this.playerPos.distanceTo(this.cipherPedestalPos) < 5.0) {
           this.openCipherModal();
           return;
         }
-        // Pull nearby shards or damage nearby enemies
-        this.enemies.forEach(en => {
-          if (en.alive && en.group.position.distanceTo(this.playerPos) < 7.5) {
-            en.hp -= 35;
-            this.spawnCombatNumber(en.group.position, '-35', '#00f0ff');
-            if (en.hp <= 0) this.killEnemy(en);
+        this.igniteNearbyBraziersAndVines(8.0);
+        this.showTopBanner('Ground Rune Resonance Attuned!', '#00f0ff');
+      }
+
+      igniteNearbyBraziersAndVines(radius) {
+        // Kindle any unlit braziers within radius
+        this.braziers.forEach((b) => {
+          if (!b.lit && b.group.position.distanceTo(this.playerPos) < radius) {
+            this.kindleBrazier(b);
           }
         });
-        this.showTopBanner('Ground Rune Resonance Pulse!', '#00f0ff');
+        // Clear any overgrown bramble vine barriers within radius
+        this.vineBarriers.forEach((v) => {
+          if (!v.cleared && v.pos.distanceTo(this.playerPos) < radius) {
+            this.clearVineBarrier(v);
+          }
+        });
+      }
+
+      kindleBrazier(b) {
+        if (b.lit) return;
+        b.lit = true;
+        b.flame.visible = true;
+        b.halo.visible = true;
+        this.braziersLit++;
+        audio.playFireball();
+        this.dom.braziers.innerText = `${this.braziersLit}/${this.braziersTotal}`;
+        this.updateStatusBars();
+        this.showTopBanner(`🔥 Ancient Brazier Kindled (${this.braziersLit}/${this.braziersTotal})`, '#f97316');
+      }
+
+      clearVineBarrier(v) {
+        if (v.cleared) return;
+        v.cleared = true;
+        this.scene.remove(v.group);
+        audio.playFireball();
+        this.showTopBanner('🌿 Overgrown Bramble Vines Cleared! Secret Passage Open!', '#4ade80');
+      }
+
+      summonGuidingStarlightTrail() {
+        // Clear previous guide orbs
+        this.guideOrbs.forEach(g => this.scene.remove(g.mesh));
+        this.guideOrbs = [];
+
+        // Find nearest uncollected Elder Shard, or fallback to Archway Rift Portal
+        let targetPos = this.portalPos;
+        let targetName = 'Archway Rift Portal';
+        let bestDist = Infinity;
+
+        this.shards.forEach((s) => {
+          if (!s.collected) {
+            const d = this.playerPos.distanceTo(s.group.position);
+            if (d < bestDist) {
+              bestDist = d;
+              targetPos = s.group.position;
+              targetName = 'Elder Soul Shard';
+            }
+          }
+        });
+
+        // Create a trail of 14 floating golden-cyan wisp orbs arcing toward the target
+        const count = 14;
+        for (let i = 1; i <= count; i++) {
+          const t = i / count;
+          const pos = new THREE.Vector3().lerpVectors(this.playerPos, targetPos, t);
+          pos.y = 1.0 + Math.sin(t * Math.PI) * 0.6;
+
+          const mesh = new THREE.Mesh(
+            this.shared.projArcaneGeo,
+            i % 2 === 0 ? this.shared.projArcaneMat : this.shared.shardRingMat
+          );
+          mesh.scale.setScalar(0.65);
+          mesh.position.copy(pos);
+          this.scene.add(mesh);
+          this.guideOrbs.push({ mesh, baseY: pos.y, phase: i * 0.4, life: 5.5 });
+        }
+
+        this.showTopBanner(`✨ Guiding Wisp Trail Summoned toward ${targetName}`, '#38bdf8');
       }
 
       spawnProjectile(type = 'arcane', yawOffset = 0) {
@@ -1941,110 +2550,24 @@
         this.projectiles.push({
           mesh,
           dir,
-          speed: isFlame ? 18 : 24,
-          damage: isFlame ? 45 : 25,
-          life: 2.0
+          speed: 22,
+          life: 1.8
         });
-      }
-
-      triggerFreezeNova() {
-        // Expanding icy ring mesh
-        const ringGeo = new THREE.RingGeometry(0.4, 6.0, 32);
-        const ringMat = new THREE.MeshBasicMaterial({
-          color: 0x38bdf8,
-          transparent: true,
-          opacity: 0.75,
-          side: THREE.DoubleSide
-        });
-        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-        ringMesh.rotation.x = -Math.PI / 2;
-        ringMesh.position.copy(this.playerPos).add(new THREE.Vector3(0, 0.08, 0));
-        this.scene.add(ringMesh);
-        setTimeout(() => this.scene.remove(ringMesh), 650);
-
-        this.enemies.forEach(en => {
-          if (en.alive && en.group.position.distanceTo(this.playerPos) < 9.0) {
-            en.frozenTimer = 6.0;
-            en.iceCage.visible = true;
-            en.hp -= 25;
-            this.spawnCombatNumber(en.group.position, 'FROZEN! -25', '#38bdf8', true);
-            if (en.hp <= 0) this.killEnemy(en);
-          }
-        });
-      }
-
-      spawnImpactBurst(pos, colorHex = 0x00f0ff) {
-        const burstGeo = new THREE.SphereGeometry(0.55, 8, 8);
-        const burstMat = new THREE.MeshBasicMaterial({
-          color: colorHex,
-          transparent: true,
-          opacity: 0.85,
-          wireframe: true
-        });
-        const burstMesh = new THREE.Mesh(burstGeo, burstMat);
-        burstMesh.position.copy(pos);
-        this.scene.add(burstMesh);
-
-        const startTime = performance.now();
-        const anim = () => {
-          const t = (performance.now() - startTime) / 220;
-          if (t >= 1) {
-            this.scene.remove(burstMesh);
-            burstGeo.dispose();
-            burstMat.dispose();
-          } else {
-            burstMesh.scale.setScalar(1 + t * 2.2);
-            burstMat.opacity = 0.85 * (1 - t);
-            requestAnimationFrame(anim);
-          }
-        };
-        requestAnimationFrame(anim);
-      }
-
-      spawnCombatNumber(worldPos, text, color = '#fde047', isCrit = false) {
-        if (!this.dom.combatNums) return;
-        this._vWorldPrompt.copy(worldPos);
-        this._vWorldPrompt.y += 1.8;
-        this._vWorldPrompt.project(this.camera);
-        if (this._vWorldPrompt.z > 1) return; // Behind camera
-        const x = (this._vWorldPrompt.x * 0.5 + 0.5) * window.innerWidth;
-        const y = (-this._vWorldPrompt.y * 0.5 + 0.5) * window.innerHeight;
-
-        const el = document.createElement('div');
-        el.className = 'combat-num-float';
-        el.style.left = `${x}px`;
-        el.style.top = `${y}px`;
-        el.style.color = color;
-        if (isCrit) {
-          el.style.fontSize = '18px';
-          el.style.textShadow = '0 0 12px ' + color;
-        }
-        el.innerText = text;
-        this.dom.combatNums.appendChild(el);
-        setTimeout(() => el.remove(), 750);
-      }
-
-      killEnemy(en) {
-        en.alive = false;
-        this.scene.remove(en.group);
-        this.enemiesDefeated++;
-        this.mp = Math.min(this.maxMp, this.mp + 20);
-        this.updateStatusBars();
-        this.spawnImpactBurst(en.group.position.clone().add(new THREE.Vector3(0, 1.0, 0)), 0xfde047);
-        this.spawnCombatNumber(en.group.position, 'VANQUISHED! +20 MP', '#fde047', true);
-        this.showTopBanner(`${en.name} Vanquished! (+20 Mana)`, '#fde047');
       }
 
       /* =========================================================================
          6. WALL CIPHER & "ZANE" REALITY OVERDRIVE SYSTEM
          ========================================================================= */
       openCipherModal() {
+        if (document.pointerLockElement) {
+          document.exitPointerLock?.();
+        }
         const modal = document.getElementById('cipher-modal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         const input = document.getElementById('cipher-input');
         input.value = '';
-        setTimeout(() => input.focus(), 50);
+        setTimeout(() => input.focus(), 60);
       }
 
       closeCipherModal() {
@@ -2062,30 +2585,40 @@
         const code = word.trim().toUpperCase();
         this.closeCipherModal();
 
-        const notifyParent = (payload) => {
-          try {
-            if (window.parent && window.parent !== window) {
-              window.parent.postMessage({ source: 'ZANEX_ARCANE_MAZE', ...payload }, '*');
-            }
-          } catch (e) {}
-        };
+        if (code.startsWith('SENS')) {
+          const parts = code.split(' ');
+          const val = parseFloat(parts[1]);
+          if (!isNaN(val) && val >= 0.1 && val <= 3.5) {
+            this.settings.mouseSens = val;
+            this.syncSettingsUI();
+            this.showTopBanner(`Mouse Sensitivity calibrated to ${val.toFixed(2)}x`, '#f59e0b');
+            return;
+          }
+        }
 
-        if (code === 'OPERATOR' || code === 'ZANEX' || code === 'ROOT' || code === 'CLEARANCE') {
-          audio.playZaneActivation();
-          this.hp = this.maxHp;
-          this.mp = this.maxMp;
-          this.updateStatusBars();
-          this.showTopBanner('⚡ OPERATOR CLEARANCE TOKEN UNLOCKED: BLACK-OPS DOSSIER DECLASSIFIED!', '#00f0ff');
-          notifyParent({
-            type: 'ZANEX_MAZE_EVENT',
+        if (code === 'OPERATOR') {
+          window.parent && window.parent.postMessage({
+            source: 'ZANEX_ARCANE_MAZE',
             action: 'CLEARANCE_UNLOCKED',
-            code,
+            code: 'OPERATOR',
             flag: 'ZANEX{ARCANE_MAZE_OPERATOR_ROOT_99}'
-          });
+          }, '*');
+          audio.playCastMandala();
+          this.showTopBanner('🛡️ BLACK-OPS CLEARANCE UNLOCKED: CTF Node 03 Declassified!', '#34d399');
+          this.showLoreToast(
+            'OPERATOR ARCHIVES DECLASSIFIED',
+            'Clearance granted. Secret Flag captured: ZANEX{ARCANE_MAZE_OPERATOR_ROOT_99}. All projects declassified.'
+          );
         } else if (code === 'ZANE') {
           this.zaneMode = !this.zaneMode;
           audio.playZaneActivation();
           document.body.classList.toggle('zane-overdrive-active', this.zaneMode);
+
+          // Signal parent portfolio window
+          window.parent && window.parent.postMessage({
+            source: 'ZANEX_ARCANE_MAZE',
+            action: 'ZANE_OVERDRIVE'
+          }, '*');
 
           // Re-skin textures & lighting into ZANE Astral Overdrive
           this.wallTexture = ProceduralArt.createGothicWallTexture(this.zaneMode ? 'zane' : 'gothic');
@@ -2095,23 +2628,47 @@
           this.floorMandala.material.map = this.mandalaTexture;
           this.scene.fog.color.setHex(this.zaneMode ? 0x140429 : 0x071120);
           this.activeMandalaTimer = 9999;
-          this.hp = this.maxHp;
           this.mp = this.maxMp;
           this.updateStatusBars();
 
           this.loadChapter(this.chapter, this.seedString);
           this.showTopBanner(
             this.zaneMode
-              ? '⚡ ZANE OVERDRIVE ACTIVATED: Astral Rainbow Dimension & Infinite Mana!'
+              ? '⚡ ZANE OVERDRIVE ACTIVATED: Astral Rainbow Dimension & Infinite Discovery!'
               : 'Returned to Standard Gothic Sanctum',
             '#ff00e5'
           );
-
-          notifyParent({
-            type: 'ZANEX_MAZE_EVENT',
-            action: 'ZANE_OVERDRIVE',
-            active: this.zaneMode
-          });
+        } else if (code === 'GOD') {
+          this.godMode = !this.godMode;
+          this.showTopBanner(this.godMode ? '👑 GOD MODE: Sanctuary Ward Active' : 'God Mode Disabled', '#fbbf24');
+        } else if (code === 'HEAL') {
+          this.mp = this.maxMp;
+          this.updateStatusBars();
+          this.showTopBanner('💚 FULL HEAL: 100% Mana & Sanctum Resonance Restored', '#34d399');
+        } else if (code === 'RADAR') {
+          this.summonGuidingStarlightTrail();
+          this.showTopBanner('👁️ RADAR PULSE: All Shards, Braziers & Exit Highlighted', '#00f0ff');
+        } else if (code === 'NUKE') {
+          this.igniteNearbyBraziersAndVines(999);
+          this.showTopBanner('🔥 NUKE WAVE: All Braziers Kindled & Brambles Cleared!', '#f97316');
+        } else if (code === 'SPEED') {
+          this.speedBoost = !this.speedBoost;
+          this.showTopBanner(this.speedBoost ? '🏃 SPEED SURGE: +150% Sprint Active' : 'Normal Sprint', '#60a5fa');
+        } else if (code === 'CHAPTER1') {
+          this.loadChapter(1, 'SANCTUM-1');
+          this.showTopBanner('Warped to Chapter I: Mossbound Sanctum', '#38bdf8');
+        } else if (code === 'LOVE' || code === '01') {
+          audio.playHeartbeatWarmth(3);
+          this.activeMandalaTimer = 9999;
+          this.lumosTimer = 30.0;
+          this.ambientLight.intensity = 1.85;
+          this.hemiLight.color.setHex(0xfb7185);
+          this.summonGuidingStarlightTrail();
+          this.showLoreToast(
+            '01001100 01001111 01010110 01000101 — BINARY HEART RESONANCE',
+            '"Across every 0 and 1 of this digital labyrinth, love is the compiler that turns code into soul."'
+          );
+          this.showTopBanner('❤️ LOVE CIPHER AWAKENED: Rose-Gold Starlight & Guiding Heart Trail', '#fb7185');
         } else if (code === 'GHOST') {
           this.ghostMode = !this.ghostMode;
           this.showTopBanner(
@@ -2120,51 +2677,9 @@
           );
         } else if (code === 'ARCHMAGE') {
           this.archmageMode = !this.archmageMode;
-          this.hp = this.maxHp;
           this.mp = this.maxMp;
           this.updateStatusBars();
-          this.showTopBanner('✨ ARCHMAGE MODE: Infinite Mana & Zero Cooldowns!', '#fde047');
-        } else if (code === 'GOD' || code === 'IMMORTAL' || code === 'INVINCIBLE') {
-          this.godMode = !this.godMode;
-          this.hp = this.maxHp;
-          this.updateStatusBars();
-          this.showTopBanner(
-            this.godMode ? '👑 GOD MODE: Complete Invulnerability from Monsters!' : 'God Mode Disabled',
-            '#f59e0b'
-          );
-        } else if (code === 'HEAL' || code === 'POTION' || code === 'LIFE') {
-          this.hp = this.maxHp;
-          this.mp = this.maxMp;
-          this.updateStatusBars();
-          audio.playCastMandala();
-          this.spawnImpactBurst(this.playerPos.clone().add(new THREE.Vector3(0, 1.0, 0)), 0x10b981);
-          this.spawnCombatNumber(this.playerPos, 'FULL RESTORE +100 HP', '#10b981', true);
-          this.showTopBanner('💚 FULL VITALITY: 100% HP & Arcane Mana Restored!', '#10b981');
-        } else if (code === 'RADAR' || code === 'MAP' || code === 'REVEAL') {
-          this.clairvoyance = !this.clairvoyance;
-          this.showTopBanner(
-            this.clairvoyance ? '👁️ CLAIRVOYANCE: Entire Labyrinth Secrets & Exit Revealed!' : 'Clairvoyance Deactivated',
-            '#06b6d4'
-          );
-        } else if (code === 'NUKE' || code === 'EXTERMINATE' || code === 'KILLALL') {
-          audio.playFireball();
-          let count = 0;
-          this.enemies.forEach(en => {
-            if (en.alive) {
-              this.killEnemy(en);
-              count++;
-            }
-          });
-          this.showTopBanner(`💥 CATACLYSMIC NUKE: ${count} Monsters Obliterated!`, '#ef4444');
-        } else if (code === 'SPEED' || code === 'SANIC') {
-          this.speedBoost = !this.speedBoost;
-          this.showTopBanner(
-            this.speedBoost ? '🏃 SPEED BOOST: +150% Movement Velocity Active!' : 'Speed Boost Disabled',
-            '#3b82f6'
-          );
-        } else if (code === 'CHAPTER1') {
-          this.loadChapter(1, 'SANCTUM-1');
-          this.showTopBanner('Warped to Chapter I: Sanctum of the Blind Elder', '#38bdf8');
+          this.showTopBanner('✨ ARCHMAGE MODE: Zero Cooldowns & Instant Discovery!', '#fde047');
         } else if (code === 'CHAPTER2') {
           this.loadChapter(2, 'CINDER-2');
           this.showTopBanner('Warped to Chapter II: Catacombs of Cinder', '#f97316');
@@ -2179,21 +2694,202 @@
       }
 
       /* =========================================================================
+         6B. ERGONOMICS, SENSITIVITY & SETTINGS SYSTEM
+         ========================================================================= */
+      updateTouchControlsVisibility() {
+        const mode = this.settings.touchControlsMode; // 'auto', 'hide', 'show'
+        const joy = this.dom.joyContainer || document.getElementById('touch-joystick-container');
+        const act = this.dom.actionsContainer || document.getElementById('touch-actions-container');
+        const keybar = this.dom.pcKeybar || document.getElementById('pc-keybinds-bar');
+
+        let showTouch = false;
+        if (mode === 'show') {
+          showTouch = true;
+        } else if (mode === 'hide') {
+          showTouch = false;
+        } else {
+          // 'auto': Show if real touch is received or coarse touch pointer on mobile width
+          const isCoarse = window.matchMedia('(pointer: coarse)').matches;
+          const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+          showTouch = (this.hasReceivedTouchInput || (hasTouch && isCoarse)) && window.innerWidth <= 1024;
+        }
+
+        if (joy) joy.classList.toggle('touch-controls-hidden', !showTouch);
+        if (act) act.classList.toggle('touch-controls-hidden', !showTouch);
+        if (keybar) keybar.classList.toggle('hidden', showTouch);
+      }
+
+      openSettingsModal() {
+        if (document.pointerLockElement) {
+          document.exitPointerLock?.();
+        }
+        this.syncSettingsUI();
+        const m = this.dom.settingsModal || document.getElementById('settings-modal');
+        if (m) {
+          m.classList.remove('hidden');
+          m.classList.add('flex');
+        }
+      }
+
+      closeSettingsModal() {
+        const m = this.dom.settingsModal || document.getElementById('settings-modal');
+        if (m) {
+          m.classList.add('hidden');
+          m.classList.remove('flex');
+        }
+        try {
+          localStorage.setItem('arcane_engine_settings', JSON.stringify(this.settings));
+        } catch(e) {}
+        this.updateTouchControlsVisibility();
+      }
+
+      toggleSettingsModal() {
+        const m = this.dom.settingsModal || document.getElementById('settings-modal');
+        if (m && !m.classList.contains('hidden')) {
+          this.closeSettingsModal();
+        } else {
+          this.openSettingsModal();
+        }
+      }
+
+      syncSettingsUI() {
+        const s = this.settings;
+        if (this.dom.inputMouseSens) this.dom.inputMouseSens.value = s.mouseSens;
+        if (this.dom.lblMouseSens) this.dom.lblMouseSens.innerText = `${Number(s.mouseSens).toFixed(2)}x`;
+        if (this.dom.inputTouchSens) this.dom.inputTouchSens.value = s.touchSens;
+        if (this.dom.lblTouchSens) this.dom.lblTouchSens.innerText = `${Number(s.touchSens).toFixed(2)}x`;
+        if (this.dom.btnToggleInvertY) {
+          this.dom.btnToggleInvertY.innerText = s.invertY ? 'ON' : 'OFF';
+          this.dom.btnToggleInvertY.className = s.invertY
+            ? 'px-3 py-1 rounded bg-amber-500/20 border border-amber-400 font-mono font-bold text-amber-300 cursor-pointer'
+            : 'px-3 py-1 rounded bg-slate-800 border border-slate-700 font-mono font-bold text-slate-400 cursor-pointer';
+        }
+        if (this.dom.btnTogglePointerLock) {
+          this.dom.btnTogglePointerLock.innerText = s.pointerLockEnabled ? 'ON' : 'OFF';
+          this.dom.btnTogglePointerLock.className = s.pointerLockEnabled
+            ? 'px-3 py-1 rounded bg-cyan-950/80 border border-cyan-400 text-cyan-300 font-mono font-bold cursor-pointer'
+            : 'px-3 py-1 rounded bg-slate-800 border border-slate-700 font-mono font-bold text-slate-400 cursor-pointer';
+        }
+        if (this.dom.lblTouchMode) this.dom.lblTouchMode.innerText = s.touchControlsMode.toUpperCase();
+        ['auto', 'hide', 'show'].forEach(m => {
+          const btn = document.getElementById(`btn-touch-mode-${m}`);
+          if (btn) {
+            const active = s.touchControlsMode === m;
+            btn.className = active
+              ? 'py-1.5 rounded bg-amber-500/20 border border-amber-400 text-amber-300 font-bold cursor-pointer'
+              : 'py-1.5 rounded bg-slate-950 border border-slate-700 text-slate-400 cursor-pointer';
+          }
+        });
+      }
+
+      toggleInvertY() {
+        this.settings.invertY = !this.settings.invertY;
+        this.syncSettingsUI();
+      }
+
+      togglePointerLockEnabled() {
+        this.settings.pointerLockEnabled = !this.settings.pointerLockEnabled;
+        if (!this.settings.pointerLockEnabled && document.pointerLockElement) {
+          document.exitPointerLock?.();
+        }
+        this.syncSettingsUI();
+      }
+
+      setTouchControlsMode(mode) {
+        this.settings.touchControlsMode = mode;
+        this.syncSettingsUI();
+        this.updateTouchControlsVisibility();
+      }
+
+      resetSettingsToDefaults() {
+        this.settings = {
+          mouseSens: 1.0,
+          touchSens: 1.0,
+          invertY: false,
+          pointerLockEnabled: true,
+          touchControlsMode: 'auto'
+        };
+        this.syncSettingsUI();
+        this.updateTouchControlsVisibility();
+        this.showTopBanner('Controls reset to defaults', '#f59e0b');
+      }
+
+      toggleFullscreen() {
+        const doc = document;
+        const isFs = Boolean(
+          doc.fullscreenElement ||
+          doc.webkitFullscreenElement ||
+          doc.mozFullScreenElement ||
+          doc.msFullscreenElement
+        );
+
+        if (!isFs) {
+          const el = document.documentElement;
+          const rfs =
+            el.requestFullscreen ||
+            el.webkitRequestFullscreen ||
+            el.mozRequestFullScreen ||
+            el.msRequestFullscreen;
+          if (rfs) rfs.call(el).catch(() => {});
+          window.parent && window.parent.postMessage({ source: 'ZANEX_ARCANE_MAZE', action: 'TOGGLE_FULLSCREEN' }, '*');
+        } else {
+          const efs =
+            doc.exitFullscreen ||
+            doc.webkitExitFullscreen ||
+            doc.mozCancelFullScreen ||
+            doc.msExitFullscreen;
+          if (efs) efs.call(doc).catch(() => {});
+          window.parent && window.parent.postMessage({ source: 'ZANEX_ARCANE_MAZE', action: 'EXIT_FULLSCREEN' }, '*');
+        }
+      }
+
+      /* =========================================================================
          7. CONTROLS (WASD, ARROWS, VIRTUAL JOYSTICK, CAMERA MODES)
          ========================================================================= */
       initControls() {
+        const canvas = document.getElementById('game-canvas');
+
         window.addEventListener('resize', () => {
           this.camera.aspect = window.innerWidth / window.innerHeight;
           this.camera.updateProjectionMatrix();
           this.renderer.setSize(window.innerWidth, window.innerHeight);
+          this.updateTouchControlsVisibility();
         });
 
+        // Initial controls setup
+        this.updateTouchControlsVisibility();
+        this.syncSettingsUI();
+
         window.addEventListener('keydown', (e) => {
+          // If Interactive Movie Prologue is active, Space or Enter advances the story act!
+          if (window.prologue && window.prologue.active) {
+            if (e.code === 'Space' || e.code === 'Enter') {
+              e.preventDefault();
+              window.prologue.advanceAct();
+            } else if (e.code === 'Escape') {
+              window.prologue.finishPrologue();
+            }
+            return;
+          }
+
           // Do not intercept keys when typing inside the Wall Cipher input
           if (document.activeElement && document.activeElement.id === 'cipher-input') {
             if (e.key === 'Enter') this.submitCipherCode();
             if (e.key === 'Escape') this.closeCipherModal();
             return;
+          }
+
+          if (e.code === 'Escape') {
+            const setModal = document.getElementById('settings-modal');
+            if (setModal && !setModal.classList.contains('hidden')) {
+              this.closeSettingsModal();
+              return;
+            }
+            const cipModal = document.getElementById('cipher-modal');
+            if (cipModal && !cipModal.classList.contains('hidden')) {
+              this.closeCipherModal();
+              return;
+            }
           }
 
           this.keys[e.code] = true;
@@ -2209,6 +2905,7 @@
           if (e.code === 'KeyF') this.triggerMandalaNova();
           if (e.code === 'KeyR') this.triggerGroundRunePulse();
           if (e.code === 'KeyE') this.openCipherModal();
+          if (e.code === 'KeyO') this.toggleSettingsModal();
           if (e.code === 'KeyC') this.cycleCameraMode();
           if (e.code === 'KeyP') this.cyclePerformanceMode();
         });
@@ -2221,43 +2918,95 @@
         document.getElementById('btn-perf-mode').addEventListener('click', () => this.cyclePerformanceMode());
         document.getElementById('btn-camera-mode').addEventListener('click', () => this.cycleCameraMode());
         document.getElementById('btn-cipher-modal').addEventListener('click', () => this.openCipherModal());
+        document.getElementById('btn-settings-modal').addEventListener('click', () => this.toggleSettingsModal());
+        document.getElementById('btn-fs-toggle').addEventListener('click', () => this.toggleFullscreen());
         document.getElementById('btn-audio-toggle').addEventListener('click', () => {
           const on = audio.toggle();
           document.getElementById('svg-audio-on').classList.toggle('hidden', !on);
           document.getElementById('svg-audio-off').classList.toggle('hidden', on);
         });
 
-        // Fullscreen Toggle & Change Listeners
-        if (this.dom.fsBtn) {
-          this.dom.fsBtn.addEventListener('click', () => this.toggleFullscreen());
+        // Settings Range Sliders live listeners
+        if (this.dom.inputMouseSens) {
+          this.dom.inputMouseSens.addEventListener('input', (e) => {
+            this.settings.mouseSens = parseFloat(e.target.value);
+            if (this.dom.lblMouseSens) this.dom.lblMouseSens.innerText = `${this.settings.mouseSens.toFixed(2)}x`;
+          });
         }
-        const onFsChange = () => {
-          const isFs = Boolean(
-            document.fullscreenElement ||
-            document.webkitFullscreenElement ||
-            document.mozFullScreenElement ||
-            document.msFullscreenElement
-          );
-          if (this.dom.svgFsEnter) this.dom.svgFsEnter.classList.toggle('hidden', isFs);
-          if (this.dom.svgFsExit) this.dom.svgFsExit.classList.toggle('hidden', !isFs);
-          if (this.dom.fsLabel) this.dom.fsLabel.innerText = isFs ? 'EXIT' : 'FULL';
+        if (this.dom.inputTouchSens) {
+          this.dom.inputTouchSens.addEventListener('input', (e) => {
+            this.settings.touchSens = parseFloat(e.target.value);
+            if (this.dom.lblTouchSens) this.dom.lblTouchSens.innerText = `${this.settings.touchSens.toFixed(2)}x`;
+          });
+        }
+
+        // Pointer Lock on Canvas Click (FPS-style mouse look)
+        canvas.addEventListener('click', () => {
+          if (this.settings.pointerLockEnabled && !this.isPointerLocked) {
+            canvas.requestPointerLock?.();
+          }
+        });
+
+        const onPointerLockChange = () => {
+          this.isPointerLocked = (document.pointerLockElement === canvas);
+          if (this.dom.crosshair) {
+            this.dom.crosshair.classList.toggle('opacity-0', !this.isPointerLocked);
+            this.dom.crosshair.classList.toggle('opacity-85', this.isPointerLocked);
+          }
+          if (this.isPointerLocked) {
+            this.showTopBanner('✦ MOUSE LOCKED [ESC TO RELEASE] ✦', '#00f0ff');
+          }
         };
-        document.addEventListener('fullscreenchange', onFsChange);
-        document.addEventListener('webkitfullscreenchange', onFsChange);
-        document.addEventListener('mozfullscreenchange', onFsChange);
-        document.addEventListener('MSFullscreenChange', onFsChange);
+        document.addEventListener('pointerlockchange', onPointerLockChange);
+        document.addEventListener('mozpointerlockchange', onPointerLockChange);
+        document.addEventListener('webkitpointerlockchange', onPointerLockChange);
 
-        // Canvas Look & Perspective Controls (Mobile Touch + Desktop Drag/PointerLock)
-        const canvas = document.getElementById('game-canvas');
+        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
-        // Touch Drag Look for Mobile Phones (Right side of screen)
+        // Mouse Controls
+        canvas.addEventListener('mousedown', (e) => {
+          if (this.isPointerLocked) {
+            if (e.button === 0) {
+              this.firePrimaryStaffBolt();
+            } else if (e.button === 2) {
+              this.castSpell(2);
+            }
+          } else {
+            this.isMouseDragging = true;
+            this.lastMousePos = { x: e.clientX, y: e.clientY };
+          }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (this.isPointerLocked) {
+            const sens = 0.0022 * this.settings.mouseSens;
+            const invert = this.settings.invertY ? -1 : 1;
+            this.playerYaw -= e.movementX * sens;
+            this.cameraPitch = Math.max(-0.75, Math.min(0.75, this.cameraPitch + e.movementY * sens * invert));
+          } else if (this.isMouseDragging) {
+            const dx = e.clientX - this.lastMousePos.x;
+            const dy = e.clientY - this.lastMousePos.y;
+            this.lastMousePos = { x: e.clientX, y: e.clientY };
+            const sens = 0.0035 * this.settings.mouseSens;
+            const invert = this.settings.invertY ? -1 : 1;
+            this.playerYaw -= dx * sens;
+            this.cameraPitch = Math.max(-0.75, Math.min(0.75, this.cameraPitch + dy * sens * invert));
+          }
+        });
+
+        window.addEventListener('mouseup', () => {
+          this.isMouseDragging = false;
+        });
+
+        // Mobile Dual-Thumb Touch-Look Drag
         let touchLookId = null;
         let lastTouchPos = { x: 0, y: 0 };
 
         canvas.addEventListener('touchstart', (e) => {
+          this.hasReceivedTouchInput = true;
+          this.updateTouchControlsVisibility();
           for (let i = 0; i < e.changedTouches.length; i++) {
             const t = e.changedTouches[i];
-            // If touch starts on the right 62% of the screen (away from joystick)
             if (t.clientX > window.innerWidth * 0.35 && touchLookId === null) {
               touchLookId = t.identifier;
               lastTouchPos = { x: t.clientX, y: t.clientY };
@@ -2274,8 +3023,10 @@
               const dx = t.clientX - lastTouchPos.x;
               const dy = t.clientY - lastTouchPos.y;
               lastTouchPos = { x: t.clientX, y: t.clientY };
-              this.playerYaw -= dx * 0.0065;
-              this.cameraPitch = Math.max(-0.65, Math.min(0.65, this.cameraPitch + dy * 0.0045));
+              const sens = 0.0060 * this.settings.touchSens;
+              const invert = this.settings.invertY ? -1 : 1;
+              this.playerYaw -= dx * sens;
+              this.cameraPitch = Math.max(-0.75, Math.min(0.75, this.cameraPitch + dy * sens * invert));
               break;
             }
           }
@@ -2293,33 +3044,14 @@
         canvas.addEventListener('touchend', endTouchLook, { passive: true });
         canvas.addEventListener('touchcancel', endTouchLook, { passive: true });
 
-        // Smooth Mouse Drag Look on Canvas
-        canvas.addEventListener('mousedown', (e) => {
-          this.isMouseDragging = true;
-          this.lastMousePos = { x: e.clientX, y: e.clientY };
-        });
-        window.addEventListener('mousemove', (e) => {
-          if (this.isPointerLocked) {
-            this.playerYaw -= e.movementX * 0.003;
-            this.cameraPitch = Math.max(-0.65, Math.min(0.65, this.cameraPitch + e.movementY * 0.0025));
-          } else if (this.isMouseDragging) {
-            const dx = e.clientX - this.lastMousePos.x;
-            const dy = e.clientY - this.lastMousePos.y;
-            this.lastMousePos = { x: e.clientX, y: e.clientY };
-            this.playerYaw -= dx * 0.0045;
-            this.cameraPitch = Math.max(-0.65, Math.min(0.65, this.cameraPitch + dy * 0.003));
-          }
-        });
-        window.addEventListener('mouseup', () => {
-          this.isMouseDragging = false;
-        });
-
         // Bottom-Left Interactive Virtual Joystick (Mouse & Touch)
         const joyZone = document.getElementById('joystick-zone');
         const joyPuck = document.getElementById('joystick-puck');
         let joyCenter = { x: 0, y: 0 };
 
         const startJoy = (clientX, clientY) => {
+          this.hasReceivedTouchInput = true;
+          this.updateTouchControlsVisibility();
           const rect = joyZone.getBoundingClientRect();
           joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
           this.joyVec.active = true;
@@ -2370,10 +3102,14 @@
       cycleCameraMode() {
         this.cameraMode = (this.cameraMode + 1) % 3;
         const labels = ['SHOULDER', 'TACTICAL', 'FIRST-PERSON'];
-        const labelEl = document.getElementById('cam-label');
-        if (labelEl) labelEl.innerText = labels[this.cameraMode];
-        this.wizardGroup.visible = (this.cameraMode !== 2);
-        this.showTopBanner(`Camera Perspective: ${labels[this.cameraMode]}`, '#38bdf8');
+        document.getElementById('cam-label').innerText = labels[this.cameraMode];
+        this.wizardGroup.visible = this.cameraMode !== 2;
+      }
+
+      triggerPrologueCameraDolly() {
+        // Start camera high & far down the corridor, then smoothly glide into the iconic Over-The-Shoulder angle
+        this.camera.position.set(this.playerPos.x + 1.8, this.playerPos.y + 4.8, this.playerPos.z + 7.5);
+        this.activeMandalaTimer = 4.5;
       }
 
       showTopBanner(text, dotColor = '#fde047') {
@@ -2392,12 +3128,17 @@
       }
 
       updateStatusBars() {
-        const hpPct = Math.round((this.hp / this.maxHp) * 100);
-        const mpPct = Math.round((this.mp / this.maxMp) * 100);
-        if (hpPct !== this._lastHudHp) {
-          this.dom.hpBar.style.width = `${hpPct}%`;
-          this._lastHudHp = hpPct;
+        const totalGoals = this.shardsRequired + this.braziersTotal + this.loreTotal;
+        const completedGoals = this.shardsCollected + this.braziersLit + this.loreRead;
+        const discPct = Math.min(100, Math.round((completedGoals / totalGoals) * 100));
+
+        if (discPct !== this._lastDiscoveryPct) {
+          if (this.dom.discoveryBar) this.dom.discoveryBar.style.width = `${discPct}%`;
+          if (this.dom.discoveryPct) this.dom.discoveryPct.innerText = `${discPct}% ATTUNED`;
+          this._lastDiscoveryPct = discPct;
         }
+
+        const mpPct = Math.round((this.mp / this.maxMp) * 100);
         if (mpPct !== this._lastHudMp) {
           this.dom.mpBar.style.width = `${mpPct}%`;
           this._lastHudMp = mpPct;
@@ -2413,6 +3154,10 @@
         for (let i = 0; i < this.wallBoxes.length; i++) {
           if (this.wallBoxes[i].intersectsBox(this._pBox)) return true;
         }
+        for (let i = 0; i < this.vineBarriers.length; i++) {
+          const v = this.vineBarriers[i];
+          if (!v.cleared && v.box.intersectsBox(this._pBox)) return true;
+        }
         return false;
       }
 
@@ -2422,10 +3167,12 @@
       update(dt, elapsed) {
         this.frameCounter++;
 
-        // Regenerate Mana slowly (only touch DOM when integer percentage changes)
-        if (this.mp < this.maxMp) {
-          this.mp = Math.min(this.maxMp, this.mp + dt * 4.5);
-          this.updateStatusBars();
+        // Handle Lumos Sanctuary Illumination timer
+        if (this.lumosTimer > 0) {
+          this.lumosTimer -= dt;
+          if (this.lumosTimer <= 0) {
+            this.ambientLight.intensity = 0.92;
+          }
         }
 
         // Update Cooldowns with minimal DOM writes
@@ -2470,7 +3217,9 @@
         }
 
         const isMoving = Math.hypot(moveX, moveZ) > 0.05;
-        const speed = (this.zaneMode ? 9.5 : this.speedBoost ? 10.5 : 5.8) * dt;
+        let baseSpeed = this.zaneMode ? 9.5 : (this.keys['ShiftLeft'] || this.keys['ShiftRight'] ? 7.6 : 5.4);
+        if (this.speedBoost) baseSpeed *= 1.8;
+        const speed = baseSpeed * dt;
 
         if (isMoving) {
           const len = Math.hypot(moveX, moveZ);
@@ -2553,72 +3302,84 @@
           t.flame.scale.y = 1.0 + flicker * 0.25;
         }
 
-        // Update Projectiles
+        // Update Projectiles (Ignite Braziers & Clear Bramble Vines on impact!)
         for (let i = this.projectiles.length - 1; i >= 0; i--) {
           const p = this.projectiles[i];
           p.life -= dt;
           p.mesh.position.addScaledVector(p.dir, p.speed * dt);
 
           let hit = false;
-          if (this.checkCollisionAt(p.mesh.position.x, p.mesh.position.z)) {
-            hit = true;
-          }
-
-          for (let j = 0; j < this.enemies.length; j++) {
-            const en = this.enemies[j];
-            if (en.alive && en.group.position.distanceToSquared(p.mesh.position) < 1.82) {
-              en.hp -= p.damage;
-              const isFlame = (p.damage > 30);
-              this.spawnCombatNumber(en.group.position, `-${p.damage}`, isFlame ? '#fb923c' : '#38bdf8', isFlame);
-              if (en.hp <= 0) this.killEnemy(en);
+          // Check if projectile hits any unlit Brazier
+          for (let j = 0; j < this.braziers.length; j++) {
+            const b = this.braziers[j];
+            if (!b.lit && b.group.position.distanceToSquared(p.mesh.position) < 4.5) {
+              this.kindleBrazier(b);
               hit = true;
               break;
             }
           }
 
+          // Check if projectile hits any Bramble Vine Barrier
+          for (let j = 0; j < this.vineBarriers.length; j++) {
+            const v = this.vineBarriers[j];
+            if (!v.cleared && v.pos.distanceToSquared(p.mesh.position) < 5.5) {
+              this.clearVineBarrier(v);
+              hit = true;
+              break;
+          }
+          }
+
+          if (this.checkCollisionAt(p.mesh.position.x, p.mesh.position.z)) {
+            hit = true;
+          }
+
           if (hit || p.life <= 0) {
-            if (hit) {
-              this.spawnImpactBurst(p.mesh.position, (p.damage > 30) ? 0xf97316 : 0x00f0ff);
-            }
             this.scene.remove(p.mesh);
             this.projectiles.splice(i, 1);
           }
         }
 
-        // Update Patrolling Enemies
-        for (let i = 0; i < this.enemies.length; i++) {
-          const en = this.enemies[i];
-          if (!en.alive) continue;
-          if (en.frozenTimer > 0) {
-            en.frozenTimer -= dt;
-            if (en.frozenTimer <= 0) en.iceCage.visible = false;
-            continue;
+        // Auto-Kindle Braziers when walking close to them & animate lit flames
+        for (let i = 0; i < this.braziers.length; i++) {
+          const b = this.braziers[i];
+          if (!b.lit && this.playerPos.distanceToSquared(b.group.position) < 6.2) {
+            this.kindleBrazier(b);
           }
-          en.patrolPhase += dt * 1.4;
-          en.group.position.x = en.patrolOrigin.x + Math.sin(en.patrolPhase) * 1.4;
-          en.group.lookAt(this.playerPos.x, 0, this.playerPos.z);
+          if (b.lit) {
+            b.flame.scale.y = 1.0 + Math.sin(elapsed * 12 + i) * 0.2;
+            b.halo.lookAt(this.camera.position);
+          }
+        }
 
-          if (en.group.position.distanceToSquared(this.playerPos) < 1.82 && this.shieldWardTimer <= 0 && !this.zaneMode && !this.godMode) {
-            this.hp = Math.max(10, this.hp - dt * 12);
-            if (this.frameCounter % 24 === 0) {
-              this.spawnCombatNumber(this.playerPos, '-6', '#ef4444');
-            }
+        // Update Ancient Lore Monoliths (Auto-decipher when walking near!)
+        for (let i = 0; i < this.loreStones.length; i++) {
+          const l = this.loreStones[i];
+          l.runeCrystal.rotation.y += dt * 1.8;
+          l.runeCrystal.position.y = 2.45 + Math.sin(elapsed * 2.5 + i) * 0.12;
+          if (!l.read && this.playerPos.distanceToSquared(l.pos) < 7.5) {
+            l.read = true;
+            l.runeCrystal.material.color.setHex(0x00f0ff);
+            this.loreRead++;
+            audio.playCastMandala();
+            this.dom.lore.innerText = `${this.loreRead}/${this.loreTotal}`;
             this.updateStatusBars();
+            this.showLoreToast(l.title, l.text);
           }
         }
 
-        if (this.shieldWardTimer > 0) {
-          this.shieldWardTimer = Math.max(0, this.shieldWardTimer - dt);
-          if (this.shieldMesh) {
-            this.shieldMesh.visible = true;
-            this.shieldMesh.rotation.y += dt * 2.5;
-            this.shieldMesh.rotation.z += dt * 1.5;
+        // Animate Guiding Starlight Trail Orbs
+        for (let i = this.guideOrbs.length - 1; i >= 0; i--) {
+          const g = this.guideOrbs[i];
+          g.life -= dt;
+          g.mesh.position.y = g.baseY + Math.sin(elapsed * 4 + g.phase) * 0.18;
+          if (g.life <= 0) {
+            this.scene.remove(g.mesh);
+            this.guideOrbs.splice(i, 1);
           }
-        } else if (this.shieldMesh) {
-          this.shieldMesh.visible = false;
         }
 
-        // Update Elder Soul Shards
+        // Update Elder Soul Shards (Gentle magnet pull when close or when Lumos is active)
+        const magnetDistSq = this.lumosTimer > 0 ? 36.0 : 4.8;
         for (let idx = 0; idx < this.shards.length; idx++) {
           const s = this.shards[idx];
           if (s.collected) continue;
@@ -2626,12 +3387,18 @@
           s.ring.rotation.x = elapsed * 2 + idx;
           s.group.position.y = s.baseY + Math.sin(elapsed * 3 + idx) * 0.18;
 
-          if (this.playerPos.distanceToSquared(s.group.position) < 3.42) {
+          const dSq = this.playerPos.distanceToSquared(s.group.position);
+          if (dSq < magnetDistSq && dSq > 2.2) {
+            s.group.position.lerp(this.playerPos, dt * 3.5);
+          }
+
+          if (dSq < 3.8) {
             s.collected = true;
             this.scene.remove(s.group);
             this.shardsCollected++;
             audio.playCastMandala();
             this.dom.shards.innerText = `${this.shardsCollected}/${this.shardsRequired}`;
+            this.updateStatusBars();
 
             if (this.shardsCollected >= this.shardsRequired) {
               this.portalUnlocked = true;
@@ -2658,7 +3425,7 @@
 
       updateCamera() {
         if (this.cameraMode === 0) {
-          // OVER-THE-SHOULDER CAMERA (With wall-collision pull-in)
+          // OVER-THE-SHOULDER CAMERA (With wall collision auto-pull)
           let backDist = 3.15;
           const rightShift = 0.42;
           const heightOffset = 1.72;
@@ -2666,11 +3433,10 @@
           this._vForward.set(-Math.sin(this.playerYaw), 0, -Math.cos(this.playerYaw));
           this._vRight.set(Math.cos(this.playerYaw), 0, -Math.sin(this.playerYaw));
 
-          // Test if camera would penetrate a wall directly behind player
-          const testBackX = this.playerPos.x - this._vForward.x * backDist;
-          const testBackZ = this.playerPos.z - this._vForward.z * backDist;
-          if (this.checkCollisionAt(testBackX, testBackZ)) {
-            backDist = 1.35; // Pull in close so camera never clips into black void
+          // Detect wall directly behind player to prevent clipping outside map
+          const testBehind = this.playerPos.clone().addScaledVector(this._vForward, -backDist);
+          if (this.checkCollisionAt(testBehind.x, testBehind.z)) {
+            backDist = 1.35;
           }
 
           this._vDesiredCam.copy(this.playerPos)
@@ -2678,75 +3444,28 @@
             .addScaledVector(this._vRight, rightShift);
           this._vDesiredCam.y += heightOffset;
 
-          this.camera.position.lerp(this._vDesiredCam, 0.2);
+          this.camera.position.lerp(this._vDesiredCam, 0.18);
 
           this._vLookTarget.copy(this.playerPos)
             .addScaledVector(this._vForward, 6.5)
             .addScaledVector(this._vRight, 0.55);
-          this._vLookTarget.y += 1.35 + Math.sin(this.cameraPitch) * 4.0;
+          this._vLookTarget.y += 1.35 - this.cameraPitch * 3.0;
 
           this.camera.lookAt(this._vLookTarget);
         } else if (this.cameraMode === 1) {
-          // TACTICAL TOP-DOWN / ISOMETRIC CAMERA
-          this._vDesiredCam.set(
-            this.playerPos.x - Math.sin(this.playerYaw) * 6.5,
-            this.playerPos.y + 12.0,
-            this.playerPos.z - Math.cos(this.playerYaw) * 6.5
-          );
-          this.camera.position.lerp(this._vDesiredCam, 0.16);
-          this._vLookTarget.set(this.playerPos.x, this.playerPos.y + 1, this.playerPos.z);
+          // TACTICAL TOP-DOWN CAMERA
+          this._vDesiredCam.set(this.playerPos.x, this.playerPos.y + 14, this.playerPos.z + 7);
+          this.camera.position.lerp(this._vDesiredCam, 0.15);
+          this._vLookTarget.set(this.playerPos.x, this.playerPos.y + 1, this.playerPos.z - 2);
           this.camera.lookAt(this._vLookTarget);
         } else {
-          // FIRST-PERSON CAMERA (Accurate 3D Pitch and Yaw Look)
+          // FIRST-PERSON CAMERA (Spherical Trigonometry vertical pitch look)
           const cp = Math.cos(this.cameraPitch);
           const sp = Math.sin(this.cameraPitch);
           this._vForward.set(-Math.sin(this.playerYaw) * cp, sp, -Math.cos(this.playerYaw) * cp);
-          this.camera.position.set(this.playerPos.x, this.playerPos.y + 1.62, this.playerPos.z);
+          this.camera.position.set(this.playerPos.x, this.playerPos.y + 1.65, this.playerPos.z);
           this._vLookTarget.copy(this.camera.position).add(this._vForward);
           this.camera.lookAt(this._vLookTarget);
-        }
-      }
-
-      toggleFullscreen() {
-        const doc = document;
-        const isFs = Boolean(
-          doc.fullscreenElement ||
-          doc.webkitFullscreenElement ||
-          doc.mozFullScreenElement ||
-          doc.msFullscreenElement
-        );
-
-        const notifyParent = (action) => {
-          try {
-            if (window.parent && window.parent !== window) {
-              window.parent.postMessage({ source: 'ZANEX_ARCANE_MAZE', action }, '*');
-            }
-          } catch (e) {}
-        };
-
-        if (!isFs) {
-          const el = document.documentElement;
-          const rfs =
-            el.requestFullscreen ||
-            el.webkitRequestFullscreen ||
-            el.mozRequestFullScreen ||
-            el.msRequestFullscreen;
-
-          if (rfs) {
-            rfs.call(el).catch(() => {
-              notifyParent('TOGGLE_FULLSCREEN');
-            });
-          } else {
-            notifyParent('TOGGLE_FULLSCREEN');
-          }
-        } else {
-          const efs =
-            doc.exitFullscreen ||
-            doc.webkitExitFullscreen ||
-            doc.mozCancelFullScreen ||
-            doc.msExitFullscreen;
-          if (efs) efs.call(doc).catch(() => {});
-          notifyParent('EXIT_FULLSCREEN');
         }
       }
 
@@ -2802,15 +3521,10 @@
         // Draw Portal Icon on Radar
         const px = (this.portalPos.x - this.playerPos.x) * scale;
         const pz = (this.portalPos.z - this.playerPos.z) * scale;
-        ctx.fillStyle = this.portalUnlocked ? '#00f0ff' : '#38bdf8';
+        ctx.fillStyle = '#38bdf8';
         ctx.beginPath();
-        ctx.arc(px, pz, this.clairvoyance ? 7 : 5, 0, Math.PI * 2);
+        ctx.arc(px, pz, 5, 0, Math.PI * 2);
         ctx.fill();
-        if (this.clairvoyance) {
-          ctx.strokeStyle = '#00f0ff';
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-        }
 
         // Draw Soul Shards (Green/Gold markers)
         ctx.fillStyle = '#4ade80';
@@ -2820,37 +3534,22 @@
           const sx = (s.group.position.x - this.playerPos.x) * scale;
           const sz = (s.group.position.z - this.playerPos.z) * scale;
           ctx.beginPath();
-          ctx.arc(sx, sz, this.clairvoyance ? 5.5 : 3.8, 0, Math.PI * 2);
+          ctx.arc(sx, sz, 3.8, 0, Math.PI * 2);
           ctx.fill();
-          if (this.clairvoyance) {
-            ctx.strokeStyle = '#fde047';
-            ctx.lineWidth = 1.2;
-            ctx.stroke();
-          }
         }
 
-        // Draw Enemies (Orange/Red dots)
-        ctx.fillStyle = '#f97316';
-        for (let i = 0; i < this.enemies.length; i++) {
-          const en = this.enemies[i];
-          if (!en.alive) continue;
-          const ex = (en.group.position.x - this.playerPos.x) * scale;
-          const ez = (en.group.position.z - this.playerPos.z) * scale;
+        // Draw Ancient Braziers (Warm Orange/Gold dots on radar)
+        for (let i = 0; i < this.braziers.length; i++) {
+          const b = this.braziers[i];
+          ctx.fillStyle = b.lit ? '#fde047' : '#f97316';
+          const bx = (b.group.position.x - this.playerPos.x) * scale;
+          const bz = (b.group.position.z - this.playerPos.z) * scale;
           ctx.beginPath();
-          ctx.arc(ex, ez, 3.5, 0, Math.PI * 2);
+          ctx.arc(bx, bz, 3.2, 0, Math.PI * 2);
           ctx.fill();
         }
 
         ctx.restore();
-
-        // Clairvoyance Radar Sweep Ring
-        if (this.clairvoyance) {
-          ctx.strokeStyle = 'rgba(6, 182, 212, 0.65)';
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.arc(cx, cy, (performance.now() * 0.04) % (w / 2), 0, Math.PI * 2);
-          ctx.stroke();
-        }
 
         // Draw Green FOV Cone
         if (!this._radarConeGrad) {
@@ -2880,23 +3579,11 @@
         if (!modal.classList.contains('hidden')) return;
         audio.playZaneActivation();
         document.getElementById('vic-realm').innerText = `Chapter ${this.chapter}`;
-        document.getElementById('vic-kills').innerText = this.enemiesDefeated;
+        document.getElementById('vic-braziers').innerText = `${this.braziersLit}/${this.braziersTotal}`;
+        document.getElementById('vic-lore').innerText = `${this.loreRead}/${this.loreTotal}`;
         document.getElementById('vic-mode').innerText = this.zaneMode ? 'ZANE Astral Overdrive' : 'Dark Gothic Realism';
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-
-        try {
-          if (window.parent && window.parent !== window) {
-            window.parent.postMessage({
-              source: 'ZANEX_ARCANE_MAZE',
-              type: 'ZANEX_MAZE_EVENT',
-              action: 'CHAPTER_CLEAR',
-              chapter: this.chapter,
-              kills: this.enemiesDefeated,
-              zaneMode: this.zaneMode
-            }, '*');
-          }
-        } catch (e) {}
       }
 
       advanceNextChapter() {
@@ -2929,6 +3616,7 @@
 
     window.onload = () => {
       window.game = new DarkFantasyGame();
+      window.prologue = new InteractiveMoviePrologue();
     };
   </script>
 </body>

@@ -198,7 +198,7 @@ export const ArcaneGamePage: React.FC = () => {
           src="/games/arcane-maze/index.html"
           title="Elder Catalyzer 3D Arcane Realm Standalone"
           className="w-full h-full border-0 block"
-          allow="autoplay; fullscreen; accelerometer; gyroscope"
+          allow="autoplay; fullscreen; accelerometer; gyroscope; pointer-lock"
           allowFullScreen={true}
         />
       </div>

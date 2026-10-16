@@ -250,7 +250,7 @@ export const ArcaneMazeModal: React.FC<ArcaneMazeModalProps> = ({ isOpen, onClos
             src="/games/arcane-maze/index.html"
             title="Elder Catalyzer 3D Arcane Maze"
             className="w-full h-full border-0 block"
-            allow="autoplay; fullscreen; accelerometer; gyroscope"
+            allow="autoplay; fullscreen; accelerometer; gyroscope; pointer-lock"
             allowFullScreen={true}
           />
         </div>
