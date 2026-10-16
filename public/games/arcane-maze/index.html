@@ -501,7 +501,7 @@
   <!-- =====================================================================
        5. FLOATING WORLD-SPACE INTERACTION PROMPT ("ACCESS WALL CIPHER")
        ===================================================================== -->
-  <div id="cipher-world-prompt" onclick="window.game && window.game.openCipherModal()" class="hud-element fixed z-20 px-3.5 py-2 rounded-full flex items-center gap-2.5 cursor-pointer hover:scale-105 active:scale-95" style="left: 24%; top: 41%;">
+  <div id="cipher-world-prompt" onclick="window.game && window.game.openCipherModal()" class="hud-element fixed z-20 px-3.5 py-2 rounded-full flex items-center gap-2.5 cursor-pointer hover:scale-105 active:scale-95" style="left: 0; top: 0; transform: translate3d(-9999px, -9999px, 0); will-change: transform;">
     <div class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-400/80 flex items-center justify-center text-amber-300 text-xs">
       🔒
     </div>
@@ -733,6 +733,20 @@
             <button id="btn-touch-mode-show" onclick="window.game && window.game.setTouchControlsMode('show')" class="py-1.5 rounded bg-slate-950 border border-slate-700 text-slate-400 cursor-pointer">SHOW</button>
           </div>
           <div class="text-[10px] text-slate-400 mt-1">AUTO hides on desktop PC and auto-reveals on phone/touch.</div>
+        </div>
+
+        <!-- Graphics Engine & Performance Preset -->
+        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+          <div class="flex justify-between items-center mb-1.5">
+            <span class="cinzel font-semibold text-amber-200">Graphics & Performance</span>
+            <span id="lbl-perf-mode" class="font-mono text-emerald-400 font-bold">TURBO 60FPS</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 text-center font-mono text-[11px]">
+            <button id="btn-perf-turbo" onclick="window.game && window.game.setPerformanceMode('TURBO')" class="py-1.5 rounded bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-bold cursor-pointer">TURBO (60 FPS)</button>
+            <button id="btn-perf-balanced" onclick="window.game && window.game.setPerformanceMode('BALANCED')" class="py-1.5 rounded bg-slate-950 border border-slate-700 text-slate-400 cursor-pointer">BALANCED</button>
+            <button id="btn-perf-ultra" onclick="window.game && window.game.setPerformanceMode('ULTRA')" class="py-1.5 rounded bg-slate-950 border border-slate-700 text-slate-400 cursor-pointer">ULTRA</button>
+          </div>
+          <div class="text-[10px] text-slate-400 mt-1">TURBO guarantees locked 60 FPS on phones and laptops.</div>
         </div>
       </div>
 
@@ -1022,7 +1036,7 @@
         this.initParticles();
         this.bindEvents();
         this.animate = this.animate.bind(this);
-        requestAnimationFrame(this.animate);
+        this.animId = requestAnimationFrame(this.animate);
       }
 
       resize() {
@@ -1112,6 +1126,13 @@
       finishPrologue() {
         if (!this.active) return;
         this.active = false;
+        if (this.animId) {
+          cancelAnimationFrame(this.animId);
+          this.animId = null;
+        }
+        if (this.ctx) {
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
         audio.playCastMandala();
         this.overlay.classList.add('opacity-0', 'pointer-events-none');
         document.body.classList.remove('prologue-active', 'cinema-mode');
@@ -1133,11 +1154,20 @@
         this.overlay.classList.remove('opacity-0', 'pointer-events-none');
         document.body.classList.add('prologue-active', 'cinema-mode');
         audio.playHeartbeatWarmth(0);
+        if (!this.animId) {
+          this.animId = requestAnimationFrame(this.animate);
+        }
       }
 
       animate(now) {
-        requestAnimationFrame(this.animate);
-        if (!this.active) return;
+        if (!this.active) {
+          if (this.animId) {
+            cancelAnimationFrame(this.animId);
+            this.animId = null;
+          }
+          return;
+        }
+        this.animId = requestAnimationFrame(this.animate);
 
         const ctx = this.ctx;
         const w = this.canvas.width;
@@ -1428,13 +1458,17 @@
 
     class DarkFantasyGame {
       constructor() {
+        const isMobile = ('ontouchstart' in window) || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
+        this.isMobile = isMobile;
+
         // Input & Controls Settings (Persisted in localStorage)
         const defaultSettings = {
           mouseSens: 1.0,
           touchSens: 1.0,
           invertY: false,
           pointerLockEnabled: true,
-          touchControlsMode: 'auto' // 'auto', 'hide', 'show'
+          touchControlsMode: 'auto', // 'auto', 'hide', 'show'
+          graphicsQuality: isMobile ? 'TURBO' : 'BALANCED'
         };
         try {
           const saved = JSON.parse(localStorage.getItem('arcane_engine_settings') || '{}');
@@ -1454,9 +1488,11 @@
         this.ghostMode = false;
         this.archmageMode = false;
 
-        // Performance & Graphics Quality State ('BALANCED' | 'TURBO' | 'ULTRA')
-        this.perfModes = ['BALANCED', 'TURBO', 'ULTRA'];
-        this.perfIndex = 0; // Default BALANCED for silky-smooth 60+ FPS
+        // Performance & Graphics Quality State ('TURBO' | 'BALANCED' | 'ULTRA')
+        this.perfModes = ['TURBO', 'BALANCED', 'ULTRA'];
+        this.perfIndex = this.perfModes.indexOf(this.settings.graphicsQuality);
+        if (this.perfIndex === -1) this.perfIndex = isMobile ? 0 : 1;
+        this.radarThrottle = (this.perfIndex === 0) ? 5 : (this.perfIndex === 1 ? 3 : 2);
         this.frameCounter = 0;
         this.fpsFrames = 0;
         this.fpsLastTime = performance.now();
@@ -1570,8 +1606,11 @@
           depth: true
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        // Cap pixel ratio at 1.25 in BALANCED mode to prevent 4K/Retina fill-rate bottlenecks
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+        // Set pixel ratio according to detected device & selected graphics profile
+        const initialPixelRatio = (this.perfIndex === 0)
+          ? 1.0
+          : (this.perfIndex === 1 ? Math.min(window.devicePixelRatio, 1.15) : Math.min(window.devicePixelRatio, 1.5));
+        this.renderer.setPixelRatio(initialPixelRatio);
         this.renderer.shadowMap.enabled = false; // Disabled expensive real-time point light shadows by default for 3x FPS boost
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1.12;
@@ -1600,6 +1639,7 @@
           pillarGeo: new THREE.BoxGeometry(0.75, WALL_HEIGHT, 0.85),
           capGeo: new THREE.BoxGeometry(0.95, 0.35, 1.05),
           archTorusGeo: new THREE.TorusGeometry(CELL_SIZE * 0.44, 0.36, 8, 16, Math.PI),
+          rootGeo: new THREE.CylinderGeometry(0.04, 0.07, 2.4, 5),
           leafGeo: new THREE.CircleGeometry(0.18, 5),
           leafMat: new THREE.MeshLambertMaterial({ color: 0x244723, side: THREE.DoubleSide }),
           rootMat: new THREE.MeshLambertMaterial({ color: 0x2d2417 }),
@@ -1631,37 +1671,72 @@
         };
       }
 
+      setPerformanceMode(mode) {
+        if (!this.perfModes.includes(mode)) return;
+        this.perfIndex = this.perfModes.indexOf(mode);
+        this.applyPerformanceMode();
+      }
+
       cyclePerformanceMode() {
         this.perfIndex = (this.perfIndex + 1) % this.perfModes.length;
+        this.applyPerformanceMode();
+      }
+
+      applyPerformanceMode() {
         const mode = this.perfModes[this.perfIndex];
-        this.dom.perfLabel.innerText = mode;
+        this.settings.graphicsQuality = mode;
+        try {
+          localStorage.setItem('arcane_engine_settings', JSON.stringify(this.settings));
+        } catch(e) {}
+
+        if (this.dom.perfLabel) this.dom.perfLabel.innerText = mode;
+
+        const lblPerfMode = document.getElementById('lbl-perf-mode');
+        if (lblPerfMode) {
+          lblPerfMode.innerText = mode === 'TURBO' ? 'TURBO 60FPS' : mode;
+          lblPerfMode.className = mode === 'TURBO'
+            ? 'font-mono text-emerald-400 font-bold'
+            : (mode === 'BALANCED' ? 'font-mono text-cyan-400 font-bold' : 'font-mono text-amber-400 font-bold');
+        }
+        ['turbo', 'balanced', 'ultra'].forEach(m => {
+          const btn = document.getElementById(`btn-perf-${m}`);
+          if (btn) {
+            btn.className = (m === mode.toLowerCase())
+              ? 'py-1.5 rounded bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-bold cursor-pointer'
+              : 'py-1.5 rounded bg-slate-950 border border-slate-700 text-slate-400 cursor-pointer';
+          }
+        });
 
         if (mode === 'TURBO') {
           this.renderer.setPixelRatio(1.0);
           this.renderer.shadowMap.enabled = false;
           this.camera.far = 58;
+          this.radarThrottle = 5;
           this.torches.forEach((t, i) => {
-            if (t.light) t.light.visible = (i === 0); // Only nearest torch casts dynamic light in Turbo
+            if (t.light) t.light.visible = (i === 0);
           });
-          this.showTopBanner('⚡ TURBO GFX MODE: 1.0x Pixel Scale & Max Frame Rate', '#34d399');
+          this.showTopBanner('⚡ TURBO GFX MODE: 1.0x Pixel Scale & Locked 60 FPS Profile Active', '#34d399');
         } else if (mode === 'BALANCED') {
-          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.15));
           this.renderer.shadowMap.enabled = false;
           this.camera.far = 75;
+          this.radarThrottle = 3;
           this.torches.forEach((t, i) => {
             if (t.light) t.light.visible = (i < 2);
           });
           this.showTopBanner('⚖️ BALANCED GFX MODE: Crisp HD & High FPS', '#38bdf8');
         } else if (mode === 'ULTRA') {
-          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
           this.renderer.shadowMap.enabled = true;
           this.camera.far = 95;
+          this.radarThrottle = 2;
           this.torches.forEach(t => {
             if (t.light) t.light.visible = true;
           });
-          this.showTopBanner('✨ ULTRA GFX MODE: Full Resolution & All Dynamic Lights', '#fde047');
+          this.showTopBanner('✨ ULTRA GFX MODE: Full Resolution & Max Fidelity', '#fde047');
         }
         this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
       }
 
       /* =========================================================================
@@ -1870,13 +1945,11 @@
         this.floorMandala.position.set(0.28, 0.04, -1.65);
         this.mandalaGroup.add(this.floorMandala);
 
-        // 3. Swirling Prismatic Rainbow & Cyan-Gold Sparkle Ring Particles
+        // 3. Swirling Prismatic Rainbow & Cyan-Gold Sparkle Ring Particles (GPU Optimized)
         const count = 160;
         const pGeo = new THREE.BufferGeometry();
         const positions = new Float32Array(count * 3);
         const colors = new Float32Array(count * 3);
-        this.sparkleAngles = new Float32Array(count);
-        this.sparkleRadii = new Float32Array(count);
 
         const palette = [
           new THREE.Color(0x00f0ff), // Cyan
@@ -1889,12 +1962,11 @@
         for (let i = 0; i < count; i++) {
           const angle = Math.random() * Math.PI * 2;
           const radius = 0.55 + Math.random() * 0.95;
-          this.sparkleAngles[i] = angle;
-          this.sparkleRadii[i] = radius;
 
-          positions[i * 3] = 0.28 + Math.cos(angle) * radius;
-          positions[i * 3 + 1] = 1.35 + Math.sin(angle) * radius;
-          positions[i * 3 + 2] = -1.55 + (Math.random() - 0.5) * 0.6;
+          // Local coordinates centered around mandala plane
+          positions[i * 3] = Math.cos(angle) * radius;
+          positions[i * 3 + 1] = Math.sin(angle) * radius;
+          positions[i * 3 + 2] = (Math.random() - 0.5) * 0.35;
 
           const col = palette[i % palette.length];
           colors[i * 3] = col.r;
@@ -1915,6 +1987,7 @@
         });
 
         this.mandalaSparkles = new THREE.Points(pGeo, pMat);
+        this.mandalaSparkles.position.set(0.28, 1.48, -1.65);
         this.mandalaGroup.add(this.mandalaSparkles);
 
         this.wizardGroup.add(this.mandalaGroup);
@@ -2011,6 +2084,27 @@
         }
         this.gridData = { grid, cols, rows, openCells };
 
+        // Pre-render static dungeon layout onto offscreen canvas for 1-blit radar (huge performance win)
+        const scale = 3.2;
+        const mapW = Math.ceil(cols * CELL_SIZE * scale + 40);
+        const mapH = Math.ceil(rows * CELL_SIZE * scale + 40);
+        this.cachedMapCanvas = document.createElement('canvas');
+        this.cachedMapCanvas.width = mapW;
+        this.cachedMapCanvas.height = mapH;
+        const mCtx = this.cachedMapCanvas.getContext('2d');
+        const mapCx = mapW / 2;
+        const mapCy = mapH / 2;
+        const cellPx = CELL_SIZE * scale + 0.8;
+        const halfCellPx = (CELL_SIZE * scale) / 2;
+
+        mCtx.fillStyle = 'rgba(100, 116, 139, 0.45)';
+        for (let i = 0; i < openCells.length; i++) {
+          const cell = openCells[i];
+          const wx = mapCx + cell.wx * scale;
+          const wz = mapCy + cell.wz * scale;
+          mCtx.fillRect(wx - halfCellPx, wz - halfCellPx, cellPx, cellPx);
+        }
+
         // Materials
         const wallMat = new THREE.MeshStandardMaterial({
           map: this.wallTexture,
@@ -2072,14 +2166,8 @@
         this.playerPos.set(spawnX, 0, spawnZ);
         this.playerYaw = 0;
 
-        // Add Vaulted Gothic Stone Archways, Torches, Creeping Floor Roots & Hanging Ivy along the main corridor
-        for (let r = 11; r >= 2; r -= 2) {
-          const az = (r - Math.floor(rows / 2)) * CELL_SIZE;
-          this.createGothicArchway(0, az, wallMat);
-          this.createCreepingFloorRoots(0, az + 1.8);
-          this.createWallIvyPatch(-CELL_SIZE * 0.48, az + 1.2, 1);
-          this.createWallIvyPatch(CELL_SIZE * 0.48, az - 1.0, -1);
-        }
+        // Add GPU-Instanced Vaulted Gothic Stone Archways, Torches, Creeping Floor Roots & Hanging Ivy
+        this.buildCorridorInstancedDecorations(wallMat, rows);
 
         // Flickering Wall Sconce Torches (Left near pedestal & right down corridor, matching screenshot!)
         this.createWallTorch(-CELL_SIZE * 0.45, spawnZ - 4.2, 1, true);
@@ -2150,78 +2238,127 @@
         });
       }
 
-      createGothicArchway(x, z, mat) {
-        const archGroup = new THREE.Group();
-        archGroup.position.set(x, 0, z);
-
-        // Left & Right Carved Stone Pillars using shared geometries
-        const leftPillar = new THREE.Mesh(this.shared.pillarGeo, mat);
-        leftPillar.position.set(-CELL_SIZE * 0.44, WALL_HEIGHT / 2, 0);
-        const rightPillar = new THREE.Mesh(this.shared.pillarGeo, mat);
-        rightPillar.position.set(CELL_SIZE * 0.44, WALL_HEIGHT / 2, 0);
-
-        // Stone Capitals
-        const leftCap = new THREE.Mesh(this.shared.capGeo, mat);
-        leftCap.position.set(-CELL_SIZE * 0.44, 3.6, 0);
-        const rightCap = new THREE.Mesh(this.shared.capGeo, mat);
-        rightCap.position.set(CELL_SIZE * 0.44, 3.6, 0);
-
-        // Curved Vaulted Arch Ring overhead
-        const archTorus = new THREE.Mesh(this.shared.archTorusGeo, mat);
-        archTorus.position.set(0, 3.6, 0);
-
-        archGroup.add(leftPillar, rightPillar, leftCap, rightCap, archTorus);
-        archGroup.matrixAutoUpdate = false;
-        archGroup.updateMatrix();
-        this.scene.add(archGroup);
-        this.levelMeshes.push(archGroup);
-      }
-
-      createCreepingFloorRoots(x, z) {
-        const rootGroup = new THREE.Group();
-        rootGroup.position.set(x, 0.03, z);
-
-        for (let i = 0; i < 4; i++) {
-          const curve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3((Math.random() - 0.5) * 3.8, 0.02, (Math.random() - 0.5) * 2.2),
-            new THREE.Vector3((Math.random() - 0.5) * 2.0, 0.07, (Math.random() - 0.5) * 1.5),
-            new THREE.Vector3((Math.random() - 0.5) * 3.8, 0.01, (Math.random() - 0.5) * 2.2)
-          ]);
-          const tubeGeo = new THREE.TubeGeometry(curve, 7, 0.05 + Math.random() * 0.035, 5, false);
-          const rootMesh = new THREE.Mesh(tubeGeo, this.shared.rootMat);
-          rootGroup.add(rootMesh);
+      buildCorridorInstancedDecorations(wallMat, rows) {
+        const archPositionsZ = [];
+        for (let r = 11; r >= 2; r -= 2) {
+          archPositionsZ.push((r - Math.floor(rows / 2)) * CELL_SIZE);
         }
+        const archCount = archPositionsZ.length;
+        if (archCount === 0) return;
 
-        rootGroup.matrixAutoUpdate = false;
-        rootGroup.updateMatrix();
-        this.scene.add(rootGroup);
-        this.levelMeshes.push(rootGroup);
-      }
-
-      createWallIvyPatch(x, z, sideDir) {
-        // GPU InstancedMesh for Ivy leaves (1 draw call per patch instead of 28)
-        const leafCount = 18;
-        const instancedLeaves = new THREE.InstancedMesh(this.shared.leafGeo, this.shared.leafMat, leafCount);
-        instancedLeaves.position.set(x, 2.6, z);
-
-        for (let i = 0; i < leafCount; i++) {
-          this._dummyMatrix.position.set(
-            sideDir * (0.05 + Math.random() * 0.08),
-            (Math.random() - 0.5) * 3.4,
-            (Math.random() - 0.5) * 2.2
-          );
-          this._dummyMatrix.rotation.set(0, sideDir * Math.PI / 2 + (Math.random() - 0.5) * 0.5, 0);
-          const s = 0.8 + Math.random() * 0.6;
-          this._dummyMatrix.scale.set(s, s, s);
+        // 1. Instanced Left & Right Carved Stone Pillars (1 draw call for all pillars!)
+        const pillarMesh = new THREE.InstancedMesh(this.shared.pillarGeo, wallMat, archCount * 2);
+        let pIdx = 0;
+        archPositionsZ.forEach(az => {
+          // Left Pillar
+          this._dummyMatrix.position.set(-CELL_SIZE * 0.44, WALL_HEIGHT / 2, az);
+          this._dummyMatrix.rotation.set(0, 0, 0);
+          this._dummyMatrix.scale.set(1, 1, 1);
           this._dummyMatrix.updateMatrix();
-          instancedLeaves.setMatrixAt(i, this._dummyMatrix.matrix);
-        }
-        instancedLeaves.instanceMatrix.needsUpdate = true;
-        instancedLeaves.matrixAutoUpdate = false;
-        instancedLeaves.updateMatrix();
+          pillarMesh.setMatrixAt(pIdx++, this._dummyMatrix.matrix);
 
-        this.scene.add(instancedLeaves);
-        this.levelMeshes.push(instancedLeaves);
+          // Right Pillar
+          this._dummyMatrix.position.set(CELL_SIZE * 0.44, WALL_HEIGHT / 2, az);
+          this._dummyMatrix.updateMatrix();
+          pillarMesh.setMatrixAt(pIdx++, this._dummyMatrix.matrix);
+        });
+        pillarMesh.instanceMatrix.needsUpdate = true;
+        this.scene.add(pillarMesh);
+        this.levelMeshes.push(pillarMesh);
+
+        // 2. Instanced Stone Capitals (1 draw call for all capitals!)
+        const capMesh = new THREE.InstancedMesh(this.shared.capGeo, wallMat, archCount * 2);
+        let cIdx = 0;
+        archPositionsZ.forEach(az => {
+          this._dummyMatrix.position.set(-CELL_SIZE * 0.44, 3.6, az);
+          this._dummyMatrix.rotation.set(0, 0, 0);
+          this._dummyMatrix.scale.set(1, 1, 1);
+          this._dummyMatrix.updateMatrix();
+          capMesh.setMatrixAt(cIdx++, this._dummyMatrix.matrix);
+
+          this._dummyMatrix.position.set(CELL_SIZE * 0.44, 3.6, az);
+          this._dummyMatrix.updateMatrix();
+          capMesh.setMatrixAt(cIdx++, this._dummyMatrix.matrix);
+        });
+        capMesh.instanceMatrix.needsUpdate = true;
+        this.scene.add(capMesh);
+        this.levelMeshes.push(capMesh);
+
+        // 3. Instanced Overhead Vaulted Torus Arches (1 draw call for all arches!)
+        const torusMesh = new THREE.InstancedMesh(this.shared.archTorusGeo, wallMat, archCount);
+        let tIdx = 0;
+        archPositionsZ.forEach(az => {
+          this._dummyMatrix.position.set(0, 3.6, az);
+          this._dummyMatrix.rotation.set(0, 0, 0);
+          this._dummyMatrix.scale.set(1, 1, 1);
+          this._dummyMatrix.updateMatrix();
+          torusMesh.setMatrixAt(tIdx++, this._dummyMatrix.matrix);
+        });
+        torusMesh.instanceMatrix.needsUpdate = true;
+        this.scene.add(torusMesh);
+        this.levelMeshes.push(torusMesh);
+
+        // 4. Instanced Creeping Stone Floor Roots (1 draw call for all roots!)
+        const totalRoots = archCount * 4;
+        const rootMesh = new THREE.InstancedMesh(this.shared.rootGeo, this.shared.rootMat, totalRoots);
+        let rIdx = 0;
+        archPositionsZ.forEach(az => {
+          for (let i = 0; i < 4; i++) {
+            this._dummyMatrix.position.set(
+              (Math.random() - 0.5) * 3.0,
+              0.04,
+              az + 1.8 + (Math.random() - 0.5) * 1.5
+            );
+            this._dummyMatrix.rotation.set(
+              Math.PI / 2,
+              (Math.random() - 0.5) * 0.6,
+              Math.random() * Math.PI
+            );
+            const s = 0.7 + Math.random() * 0.6;
+            this._dummyMatrix.scale.set(s, 1, s);
+            this._dummyMatrix.updateMatrix();
+            rootMesh.setMatrixAt(rIdx++, this._dummyMatrix.matrix);
+          }
+        });
+        rootMesh.instanceMatrix.needsUpdate = true;
+        this.scene.add(rootMesh);
+        this.levelMeshes.push(rootMesh);
+
+        // 5. Instanced Hanging Wall Ivy Leaves (1 draw call for all ivy!)
+        const totalLeaves = archCount * 2 * 18;
+        const ivyMesh = new THREE.InstancedMesh(this.shared.leafGeo, this.shared.leafMat, totalLeaves);
+        let leafIdx = 0;
+        archPositionsZ.forEach(az => {
+          // Left patch
+          for (let i = 0; i < 18; i++) {
+            this._dummyMatrix.position.set(
+              -CELL_SIZE * 0.48 + (0.05 + Math.random() * 0.08),
+              2.6 + (Math.random() - 0.5) * 3.4,
+              az + 1.2 + (Math.random() - 0.5) * 2.2
+            );
+            this._dummyMatrix.rotation.set(0, Math.PI / 2 + (Math.random() - 0.5) * 0.5, 0);
+            const s = 0.8 + Math.random() * 0.6;
+            this._dummyMatrix.scale.set(s, s, s);
+            this._dummyMatrix.updateMatrix();
+            ivyMesh.setMatrixAt(leafIdx++, this._dummyMatrix.matrix);
+          }
+          // Right patch
+          for (let i = 0; i < 18; i++) {
+            this._dummyMatrix.position.set(
+              CELL_SIZE * 0.48 - (0.05 + Math.random() * 0.08),
+              2.6 + (Math.random() - 0.5) * 3.4,
+              az - 1.0 + (Math.random() - 0.5) * 2.2
+            );
+            this._dummyMatrix.rotation.set(0, -Math.PI / 2 + (Math.random() - 0.5) * 0.5, 0);
+            const s = 0.8 + Math.random() * 0.6;
+            this._dummyMatrix.scale.set(s, s, s);
+            this._dummyMatrix.updateMatrix();
+            ivyMesh.setMatrixAt(leafIdx++, this._dummyMatrix.matrix);
+          }
+        });
+        ivyMesh.instanceMatrix.needsUpdate = true;
+        this.scene.add(ivyMesh);
+        this.levelMeshes.push(ivyMesh);
       }
 
       createWallTorch(x, z, sideDir, hasRealLight = true) {
@@ -2827,6 +2964,24 @@
               : 'py-1.5 rounded bg-slate-950 border border-slate-700 text-slate-400 cursor-pointer';
           }
         });
+
+        // Sync Performance Mode in Settings Modal
+        const currentMode = this.perfModes[this.perfIndex];
+        const lblPerfMode = document.getElementById('lbl-perf-mode');
+        if (lblPerfMode) {
+          lblPerfMode.innerText = currentMode === 'TURBO' ? 'TURBO 60FPS' : currentMode;
+          lblPerfMode.className = currentMode === 'TURBO'
+            ? 'font-mono text-emerald-400 font-bold'
+            : (currentMode === 'BALANCED' ? 'font-mono text-cyan-400 font-bold' : 'font-mono text-amber-400 font-bold');
+        }
+        ['turbo', 'balanced', 'ultra'].forEach(m => {
+          const btn = document.getElementById(`btn-perf-${m}`);
+          if (btn) {
+            btn.className = (m === currentMode.toLowerCase())
+              ? 'py-1.5 rounded bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-bold cursor-pointer'
+              : 'py-1.5 rounded bg-slate-950 border border-slate-700 text-slate-400 cursor-pointer';
+          }
+        });
       }
 
       toggleInvertY() {
@@ -2854,11 +3009,14 @@
           touchSens: 1.0,
           invertY: false,
           pointerLockEnabled: true,
-          touchControlsMode: 'auto'
+          touchControlsMode: 'auto',
+          graphicsQuality: this.isMobile ? 'TURBO' : 'BALANCED'
         };
+        this.perfIndex = this.perfModes.indexOf(this.settings.graphicsQuality);
+        this.applyPerformanceMode();
         this.syncSettingsUI();
         this.updateTouchControlsVisibility();
-        this.showTopBanner('Controls reset to defaults', '#f59e0b');
+        this.showTopBanner('Controls and Graphics reset to defaults', '#f59e0b');
       }
 
       toggleFullscreen() {
@@ -3326,27 +3484,33 @@
         this.verticalMandala.scale.setScalar(mandalaScale + Math.sin(elapsed * 4) * 0.04);
         this.floorMandala.scale.setScalar(mandalaScale);
 
-        // Swirl the rainbow particles around the staff mandala
-        const spPos = this.mandalaSparkles.geometry.attributes.position;
-        for (let i = 0; i < this.sparkleAngles.length; i++) {
-          this.sparkleAngles[i] += dt * (1.8 + (i % 5) * 0.35);
-          const ang = this.sparkleAngles[i];
-          const rad = this.sparkleRadii[i] * mandalaScale;
-          spPos.setXYZ(
-            i,
-            0.28 + Math.cos(ang) * rad,
-            1.38 + Math.sin(ang) * rad,
-            -1.55 + Math.sin(elapsed * 3 + i) * 0.25
-          );
-        }
-        spPos.needsUpdate = true;
+        // Swirl the rainbow particles around the staff mandala (Pure GPU rotation, zero CPU buffer uploads!)
+        this.mandalaSparkles.rotation.z += dt * 1.6;
+        this.mandalaSparkles.scale.setScalar(mandalaScale);
 
-        // Flicker Wall Torches
+        // Distance-cull dynamic point lights to avoid GPU fragment shader overhead
+        const maxLightDistSq = (this.perfModes[this.perfIndex] === 'TURBO') ? 144 : 256;
         for (let idx = 0; idx < this.torches.length; idx++) {
           const t = this.torches[idx];
-          const flicker = Math.sin(elapsed * 14 + idx * 3.1) * 0.25 + Math.cos(elapsed * 23 + idx) * 0.15;
-          if (t.light && t.light.visible) t.light.intensity = t.baseIntensity + flicker;
-          t.flame.scale.y = 1.0 + flicker * 0.25;
+          if (t.light) {
+            const distSq = this.playerPos.distanceToSquared(t.group.position);
+            const inRange = distSq < maxLightDistSq;
+            if (t.light.visible !== inRange) t.light.visible = inRange;
+            if (inRange) {
+              const flicker = Math.sin(elapsed * 14 + idx * 3.1) * 0.25 + Math.cos(elapsed * 23 + idx) * 0.15;
+              t.light.intensity = t.baseIntensity + flicker;
+            }
+          }
+          t.flame.scale.y = 1.0 + Math.sin(elapsed * 12 + idx) * 0.2;
+        }
+
+        if (this.portalLight) {
+          const portalDistSq = this.playerPos.distanceToSquared(this.portalPos);
+          this.portalLight.visible = (portalDistSq < maxLightDistSq * 1.5);
+        }
+        if (this.pedLight) {
+          const pedDistSq = this.playerPos.distanceToSquared(this.cipherPedestalPos);
+          this.pedLight.visible = (pedDistSq < maxLightDistSq);
         }
 
         // Update Projectiles (Ignite Braziers & Clear Bramble Vines on impact!)
@@ -3463,8 +3627,9 @@
 
         this.updateCamera();
 
-        // Throttle 2D Canvas Radar & World Prompt Projection to every 2nd frame
-        if (this.frameCounter % 2 === 0) {
+        // Throttle 2D Canvas Radar & World Prompt Projection according to graphics profile
+        const throttle = this.radarThrottle || 4;
+        if (this.frameCounter % throttle === 0) {
           this.updateWorldSpacePrompt();
           this.renderCircularRadar();
         }
@@ -3518,6 +3683,7 @@
 
       updateWorldSpacePrompt() {
         const promptEl = this.dom.cipherPrompt;
+        if (!promptEl) return;
         this._vWorldPrompt.set(
           this.cipherPedestalPos.x,
           this.cipherPedestalPos.y + 1.85,
@@ -3529,11 +3695,12 @@
         if (this._vWorldPrompt.z < 1 && distSq < 196) {
           const sx = (this._vWorldPrompt.x * 0.5 + 0.5) * window.innerWidth;
           const sy = (-(this._vWorldPrompt.y * 0.5) + 0.5) * window.innerHeight;
-          promptEl.style.left = `${Math.max(120, Math.min(window.innerWidth - 220, sx))}px`;
-          promptEl.style.top = `${Math.max(90, Math.min(window.innerHeight - 120, sy))}px`;
+          promptEl.style.transform = `translate3d(${Math.round(sx)}px, ${Math.round(sy)}px, 0)`;
           promptEl.style.opacity = '1';
+          promptEl.style.pointerEvents = 'auto';
         } else {
-          promptEl.style.opacity = '0.65';
+          promptEl.style.opacity = '0';
+          promptEl.style.pointerEvents = 'none';
         }
       }
 
@@ -3547,22 +3714,19 @@
         ctx.fillRect(0, 0, w, h);
 
         if (!this.gridData) return;
-        const { openCells } = this.gridData;
         const scale = 3.2;
-        const cellPx = CELL_SIZE * scale + 0.8;
-        const halfCellPx = (CELL_SIZE * scale) / 2;
 
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate(this.playerYaw);
 
-        // Draw Precomputed Open Dungeon Passages
-        ctx.fillStyle = 'rgba(100, 116, 139, 0.45)';
-        for (let i = 0; i < openCells.length; i++) {
-          const cell = openCells[i];
-          const wx = (cell.wx - this.playerPos.x) * scale;
-          const wz = (cell.wz - this.playerPos.z) * scale;
-          ctx.fillRect(wx - halfCellPx, wz - halfCellPx, cellPx, cellPx);
+        // Blit pre-cached dungeon layout in a single ultra-fast drawImage call!
+        if (this.cachedMapCanvas) {
+          ctx.drawImage(
+            this.cachedMapCanvas,
+            -this.cachedMapCanvas.width / 2 - this.playerPos.x * scale,
+            -this.cachedMapCanvas.height / 2 - this.playerPos.z * scale
+          );
         }
 
         // Draw Portal Icon on Radar
@@ -3643,6 +3807,15 @@
 
       animate(now) {
         requestAnimationFrame(this.animate);
+
+        // Pause heavy 3D WebGL rendering when interactive prologue covers the screen
+        if (window.prologue && window.prologue.active) {
+          this.lastFrameTime = now;
+          this.fpsLastTime = now;
+          this.fpsFrames = 0;
+          return;
+        }
+
         const dt = Math.min(0.05, (now - this.lastFrameTime) / 1000);
         this.lastFrameTime = now;
         const elapsed = now * 0.001;
