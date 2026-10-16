@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Terminal as TerminalIcon, X, Maximize2, Minimize2, CornerDownLeft, ExternalLink } from "lucide-react";
 import { systemSpecsByPersona, projectsData, skillsData, terminalCommandsHelp } from "@/data/portfolio";
 import { usePersona } from "@/context/PersonaContext";
+import { useMusic } from "@/context/MusicContext";
 import { sound } from "@/lib/sound";
 
 interface TerminalOverlayProps {
@@ -41,6 +42,7 @@ export const TerminalOverlay = ({
   onOpenMegaCenter
 }: TerminalOverlayProps) => {
   const { persona, setPersona, telemetry, deviceChoice, setDeviceChoice, spoofActive } = usePersona();
+  const { currentTrack, isPlaying, togglePlay, play, pause, nextTrack, prevTrack, playlist, selectTrack, setIsFullPlayerOpen } = useMusic();
   const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.guest;
   const shellUser = persona === "friend" ? "homie@zane-lounge" : persona === "operator" ? "zane@kali" : "guest@zanex-portfolio";
 
@@ -145,6 +147,69 @@ export const TerminalOverlay = ({
         }
         break;
 
+      case "music":
+      case "zanophy":
+      case "spotify":
+        if (arg === "play") {
+          play();
+          newLogs.push({
+            type: "output",
+            content: `▶ Playing: ${currentTrack.title} — ${currentTrack.artist}`
+          });
+        } else if (arg === "pause" || arg === "stop") {
+          pause();
+          newLogs.push({
+            type: "output",
+            content: `⏸ Music paused.`
+          });
+        } else if (arg === "next") {
+          nextTrack();
+          newLogs.push({
+            type: "output",
+            content: `⏭ Skipped to next track.`
+          });
+        } else if (arg === "prev") {
+          prevTrack();
+          newLogs.push({
+            type: "output",
+            content: `⏮ Returned to previous track.`
+          });
+        } else if (arg === "list" || arg === "tracks") {
+          newLogs.push({
+            type: "output",
+            content: (
+              <div className="space-y-1 font-mono text-xs my-2">
+                <p className="text-emerald-400 font-bold">=== ZANOPHY // ZANE'S 3 AM PLAYLIST ===</p>
+                <div className="space-y-0.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                  {playlist.map((t, idx) => (
+                    <div key={t.id} className="flex gap-2 text-foreground/80 hover:text-emerald-300">
+                      <span className="text-emerald-400 font-bold w-6 shrink-0">{idx + 1}.</span>
+                      <span className="truncate">{t.title} — <span className="text-muted-foreground">{t.artist}</span></span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-primary/60 mt-1">
+                  Type <span className="text-primary font-bold">music &lt;number&gt;</span> to play track or <span className="text-primary font-bold">music gui</span> to launch full player.
+                </p>
+              </div>
+            )
+          });
+        } else if (!isNaN(Number(arg)) && Number(arg) >= 1 && Number(arg) <= playlist.length) {
+          const idx = Number(arg) - 1;
+          selectTrack(idx);
+          newLogs.push({
+            type: "output",
+            content: `▶ Selected Track #${Number(arg)}: ${playlist[idx].title} — ${playlist[idx].artist}`
+          });
+        } else {
+          setIsFullPlayerOpen(true);
+          newLogs.push({
+            type: "output",
+            content: `Launching Zanophy Cyberpunk Music Deck... [Now Playing: ${currentTrack.title} — ${currentTrack.artist}]`
+          });
+        }
+        break;
+
       case "help":
         newLogs.push({
           type: "output",
@@ -165,6 +230,10 @@ export const TerminalOverlay = ({
                 <div className="flex gap-2">
                   <span className="text-primary font-bold w-24 shrink-0">device</span>
                   <span className="text-muted-foreground text-[11px]">Query hardware telemetry (phone/desktop check)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-primary font-bold w-24 shrink-0">music</span>
+                  <span className="text-muted-foreground text-[11px]">Zanophy player: play, pause, next, list, gui</span>
                 </div>
               </div>
             </div>
@@ -743,7 +812,7 @@ Allow: /
   };
 
   const quickChips = [
-    "help", "ctf", "csi", "robin", "hardware", "device", "whoami", "neofetch", 
+    "music", "help", "ctf", "csi", "robin", "hardware", "device", "whoami", "neofetch", 
     "projects", "breach", "matrix", "clear"
   ];
 

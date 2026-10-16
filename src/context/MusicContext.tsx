@@ -1,0 +1,411 @@
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
+import { Track, ZANOPHY_PLAYLIST, extractYouTubeVideoId } from "@/data/playlist";
+import { sound } from "@/lib/sound";
+
+// Extend window for YouTube API
+declare global {
+  interface Window {
+    YT?: any;
+    onYouTubeIframeAPIReady?: () => void;
+  }
+}
+
+interface MusicContextType {
+  playlist: Track[];
+  currentTrackIndex: number;
+  currentTrack: Track;
+  isPlaying: boolean;
+  isBuffering: boolean;
+  currentTime: number;
+  duration: number;
+  volume: number;
+  isMuted: boolean;
+  isShuffle: boolean;
+  isLoop: boolean;
+  isFullPlayerOpen: boolean;
+  setIsFullPlayerOpen: (open: boolean) => void;
+  togglePlay: () => void;
+  play: () => void;
+  pause: () => void;
+  nextTrack: () => void;
+  prevTrack: () => void;
+  selectTrack: (index: number) => void;
+  seekTo: (seconds: number) => void;
+  setVolume: (vol: number) => void;
+  toggleMute: () => void;
+  toggleShuffle: () => void;
+  toggleLoop: () => void;
+  addCustomTrack: (url: string, title?: string, artist?: string) => boolean;
+}
+
+const MusicContext = createContext<MusicContextType | undefined>(undefined);
+
+const STORAGE_PLAYLIST_KEY = "zanophy_custom_tracks";
+const STORAGE_VOLUME_KEY = "zanophy_volume";
+
+export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [playlist, setPlaylist] = useState<Track[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_PLAYLIST_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return [...ZANOPHY_PLAYLIST, ...parsed];
+        }
+      }
+    } catch {}
+    return ZANOPHY_PLAYLIST;
+  });
+
+  const [currentTrackIndex, setCurrentTrackIndex] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isBuffering, setIsBuffering] = useState<boolean>(false);
+  const [currentTime, setCurrentTime] = useState<number>(0);
+  const [duration, setDuration] = useState<number>(0);
+  const [volume, setVolumeState] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_VOLUME_KEY);
+      return saved !== null ? Number(saved) : 80;
+    } catch {
+      return 80;
+    }
+  });
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isShuffle, setIsShuffle] = useState<boolean>(false);
+  const [isLoop, setIsLoop] = useState<boolean>(false);
+  const [isFullPlayerOpen, setIsFullPlayerOpen] = useState<boolean>(false);
+
+  const playerRef = useRef<any>(null);
+  const isApiReadyRef = useRef<boolean>(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const pollTimerRef = useRef<any>(null);
+
+  const currentTrack = playlist[currentTrackIndex] || playlist[0];
+
+  // Initialize YouTube IFrame API script
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const loadPlayer = () => {
+      if (!window.YT || !window.YT.Player) return;
+      isApiReadyRef.current = true;
+
+      if (!playerRef.current && document.getElementById("zanophy-yt-player-iframe")) {
+        try {
+          playerRef.current = new window.YT.Player("zanophy-yt-player-iframe", {
+            height: "1",
+            width: "1",
+            videoId: currentTrack.videoId,
+            playerVars: {
+              autoplay: 0,
+              controls: 0,
+              disablekb: 1,
+              fs: 0,
+              modestbranding: 1,
+              rel: 0,
+              playsinline: 1,
+              enablejsapi: 1
+            },
+            events: {
+              onReady: (event: any) => {
+                event.target.setVolume(volume);
+                if (isMuted) event.target.mute();
+              },
+              onStateChange: (event: any) => {
+                // 1 = PLAYING, 2 = PAUSED, 3 = BUFFERING, 0 = ENDED
+                if (event.data === 1) {
+                  setIsPlaying(true);
+                  setIsBuffering(false);
+                } else if (event.data === 2) {
+                  setIsPlaying(false);
+                  setIsBuffering(false);
+                } else if (event.data === 3) {
+                  setIsBuffering(true);
+                } else if (event.data === 0) {
+                  handleTrackEnded();
+                }
+              },
+              onError: (err: any) => {
+                console.warn("[Zanophy] YouTube player error, auto-skipping:", err);
+                // On restricted or blocked video, skip to next after 1 second
+                setTimeout(() => nextTrack(), 1000);
+              }
+            }
+          });
+        } catch (e) {
+          console.warn("[Zanophy] Error creating YT.Player:", e);
+        }
+      }
+    };
+
+    if (window.YT && window.YT.Player) {
+      loadPlayer();
+    } else {
+      const existingTag = document.getElementById("zanophy-yt-script");
+      if (!existingTag) {
+        const tag = document.createElement("script");
+        tag.id = "zanophy-yt-script";
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName("script")[0];
+        firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+      }
+
+      const prevCallback = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        if (prevCallback) prevCallback();
+        loadPlayer();
+      };
+    }
+
+    return () => {
+      if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+    };
+  }, []);
+
+  // Poll current time & duration when playing
+  useEffect(() => {
+    if (isPlaying) {
+      pollTimerRef.current = setInterval(() => {
+        if (playerRef.current && typeof playerRef.current.getCurrentTime === "function") {
+          const cur = playerRef.current.getCurrentTime() || 0;
+          const dur = playerRef.current.getDuration() || 0;
+          setCurrentTime(Math.floor(cur));
+          if (dur > 0) setDuration(Math.floor(dur));
+        }
+      }, 500);
+    } else {
+      if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+    }
+
+    return () => {
+      if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+    };
+  }, [isPlaying]);
+
+  const play = useCallback(() => {
+    if (playerRef.current && typeof playerRef.current.playVideo === "function") {
+      try {
+        playerRef.current.playVideo();
+        setIsPlaying(true);
+        sound.haptic(25);
+      } catch {}
+    }
+  }, []);
+
+  const pause = useCallback(() => {
+    if (playerRef.current && typeof playerRef.current.pauseVideo === "function") {
+      try {
+        playerRef.current.pauseVideo();
+        setIsPlaying(false);
+        sound.haptic(20);
+      } catch {}
+    }
+  }, []);
+
+  const togglePlay = useCallback(() => {
+    sound.playClick();
+    if (isPlaying) {
+      pause();
+    } else {
+      play();
+    }
+  }, [isPlaying, play, pause]);
+
+  const loadAndPlayTrack = useCallback((track: Track) => {
+    if (playerRef.current && typeof playerRef.current.loadVideoById === "function") {
+      try {
+        playerRef.current.loadVideoById(track.videoId);
+        setIsPlaying(true);
+        setCurrentTime(0);
+        sound.playBoot();
+        sound.haptic([30, 20]);
+      } catch {
+        play();
+      }
+    }
+  }, [play]);
+
+  const selectTrack = useCallback((index: number) => {
+    if (index < 0 || index >= playlist.length) return;
+    setCurrentTrackIndex(index);
+    loadAndPlayTrack(playlist[index]);
+  }, [playlist, loadAndPlayTrack]);
+
+  const nextTrack = useCallback(() => {
+    sound.playClick();
+    if (isShuffle) {
+      const randomIndex = Math.floor(Math.random() * playlist.length);
+      selectTrack(randomIndex);
+    } else {
+      const nextIndex = (currentTrackIndex + 1) % playlist.length;
+      selectTrack(nextIndex);
+    }
+  }, [isShuffle, playlist.length, currentTrackIndex, selectTrack]);
+
+  const prevTrack = useCallback(() => {
+    sound.playClick();
+    if (currentTime > 5) {
+      seekTo(0);
+      return;
+    }
+    const prevIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+    selectTrack(prevIndex);
+  }, [currentTime, currentTrackIndex, playlist.length, selectTrack]);
+
+  const handleTrackEnded = useCallback(() => {
+    if (isLoop) {
+      seekTo(0);
+      play();
+    } else {
+      nextTrack();
+    }
+  }, [isLoop, play, nextTrack]);
+
+  const seekTo = useCallback((seconds: number) => {
+    if (playerRef.current && typeof playerRef.current.seekTo === "function") {
+      try {
+        playerRef.current.seekTo(seconds, true);
+        setCurrentTime(seconds);
+      } catch {}
+    }
+  }, []);
+
+  const setVolume = useCallback((vol: number) => {
+    const clamped = Math.max(0, Math.min(100, vol));
+    setVolumeState(clamped);
+    try {
+      localStorage.setItem(STORAGE_VOLUME_KEY, String(clamped));
+    } catch {}
+
+    if (playerRef.current && typeof playerRef.current.setVolume === "function") {
+      try {
+        playerRef.current.setVolume(clamped);
+        if (clamped > 0 && isMuted) {
+          playerRef.current.unMute();
+          setIsMuted(false);
+        }
+      } catch {}
+    }
+  }, [isMuted]);
+
+  const toggleMute = useCallback(() => {
+    sound.playClick();
+    if (!playerRef.current) return;
+    try {
+      if (isMuted) {
+        playerRef.current.unMute();
+        setIsMuted(false);
+      } else {
+        playerRef.current.mute();
+        setIsMuted(true);
+      }
+    } catch {}
+  }, [isMuted]);
+
+  const toggleShuffle = useCallback(() => {
+    sound.playClick();
+    sound.haptic(20);
+    setIsShuffle(prev => !prev);
+  }, []);
+
+  const toggleLoop = useCallback(() => {
+    sound.playClick();
+    sound.haptic(20);
+    setIsLoop(prev => !prev);
+  }, []);
+
+  const addCustomTrack = useCallback((url: string, title?: string, artist?: string): boolean => {
+    const videoId = extractYouTubeVideoId(url);
+    if (!videoId) return false;
+
+    const newTrack: Track = {
+      id: `custom-${Date.now()}`,
+      title: title?.trim() || `Custom Stream (${videoId})`,
+      artist: artist?.trim() || "YouTube Live Stream",
+      videoId,
+      duration: "Stream",
+      thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+      genre: "User Injected",
+      isCustom: true
+    };
+
+    setPlaylist(prev => {
+      const next = [...prev, newTrack];
+      try {
+        const customs = next.filter(t => t.isCustom);
+        localStorage.setItem(STORAGE_PLAYLIST_KEY, JSON.stringify(customs));
+      } catch {}
+      return next;
+    });
+
+    // Immediately play the added track
+    setTimeout(() => {
+      setCurrentTrackIndex(playlist.length);
+      loadAndPlayTrack(newTrack);
+    }, 100);
+
+    sound.playSuccess();
+    return true;
+  }, [playlist.length, loadAndPlayTrack]);
+
+  return (
+    <MusicContext.Provider
+      value={{
+        playlist,
+        currentTrackIndex,
+        currentTrack,
+        isPlaying,
+        isBuffering,
+        currentTime,
+        duration,
+        volume,
+        isMuted,
+        isShuffle,
+        isLoop,
+        isFullPlayerOpen,
+        setIsFullPlayerOpen,
+        togglePlay,
+        play,
+        pause,
+        nextTrack,
+        prevTrack,
+        selectTrack,
+        seekTo,
+        setVolume,
+        toggleMute,
+        toggleShuffle,
+        toggleLoop,
+        addCustomTrack
+      }}
+    >
+      {children}
+
+      {/* Hidden off-screen YouTube Player Embed Container */}
+      <div
+        ref={containerRef}
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          bottom: "-9999px",
+          left: "-9999px",
+          width: "1px",
+          height: "1px",
+          overflow: "hidden",
+          opacity: 0,
+          pointerEvents: "none",
+          zIndex: -1
+        }}
+      >
+        <div id="zanophy-yt-player-iframe" />
+      </div>
+    </MusicContext.Provider>
+  );
+};
+
+export const useMusic = (): MusicContextType => {
+  const context = useContext(MusicContext);
+  if (!context) {
+    throw new Error("useMusic must be used within a MusicProvider");
+  }
+  return context;
+};

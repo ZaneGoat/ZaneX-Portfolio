@@ -20,6 +20,9 @@ const CsiRadarModal = lazy(() => import("@/components/CsiRadarModal").then(m => 
 const CtfBountyBoard = lazy(() => import("@/components/CtfBountyBoard").then(m => ({ default: m.CtfBountyBoard })));
 const RobinThreatMap = lazy(() => import("@/components/RobinThreatMap").then(m => ({ default: m.RobinThreatMap })));
 const ZaneMegaCenterModal = lazy(() => import("@/components/ZaneMegaCenterModal").then(m => ({ default: m.ZaneMegaCenterModal })));
+const ZanophyModal = lazy(() => import("@/components/ZanophyModal").then(m => ({ default: m.ZanophyModal })));
+
+import { ZanophyMiniBar } from "@/components/ZanophyMiniBar";
 
 type Overlay = "terminal" | "breach" | "matrix" | "csi" | "ctf" | "threatmap" | "megacenter";
 
@@ -162,7 +165,11 @@ const Index = () => {
             onClose={close}
           />
         )}
+        <ZanophyModal />
       </Suspense>
+
+      {/* Floating Background Music Player (Zanophy) */}
+      <ZanophyMiniBar />
 
       <footer className="py-10 border-t border-primary/20 relative z-10 bg-black/60 font-mono text-xs">
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-muted-foreground">

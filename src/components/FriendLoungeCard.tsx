@@ -8,10 +8,13 @@ import {
   Send,
   Sparkles,
   CheckCircle2,
-  Trash2
+  Trash2,
+  Play,
+  Pause
 } from "lucide-react";
 import { friendLoungeData } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
+import { useMusic } from "@/context/MusicContext";
 
 interface Shoutout {
   id: string;
@@ -30,6 +33,7 @@ const DEFAULT_SHOUTOUTS: Shoutout[] = [
 ];
 
 export const FriendLoungeCard: React.FC = () => {
+  const { currentTrack, isPlaying, togglePlay, setIsFullPlayerOpen } = useMusic();
   const [shoutouts, setShoutouts] = useState<Shoutout[]>(DEFAULT_SHOUTOUTS);
   const [authorInput, setAuthorInput] = useState("");
   const [messageInput, setMessageInput] = useState("");
@@ -147,11 +151,42 @@ export const FriendLoungeCard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-500/20 flex items-start gap-2 sm:col-span-2">
-                <Music className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-emerald-400/60 block text-[10px]">CODING SOUNDTRACK</span>
-                  <span className="font-bold text-foreground">{friendLoungeData.vibeTrack}</span>
+              <div className="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-500/20 flex items-center justify-between gap-2 sm:col-span-2">
+                <div className="flex items-start gap-2 min-w-0">
+                  <div className="p-1.5 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-emerald-400 shrink-0 mt-0.5">
+                    <Music className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-emerald-400/80 block text-[10px] font-bold">
+                      ZANOPHY // CODING SOUNDTRACK {isPlaying ? "· PLAYING" : ""}
+                    </span>
+                    <span className="font-bold text-foreground truncate block">
+                      {currentTrack.title} — {currentTrack.artist}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => {
+                      sound.playClick();
+                      togglePlay();
+                    }}
+                    className="p-1.5 bg-emerald-500 text-background rounded-lg font-bold hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                    title={isPlaying ? "Pause Track" : "Play Track"}
+                  >
+                    {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current ml-0.5" />}
+                  </button>
+                  <button
+                    onClick={() => {
+                      sound.playBoot();
+                      setIsFullPlayerOpen(true);
+                    }}
+                    className="px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 rounded-lg text-[10px] font-bold transition-all cursor-pointer"
+                    title="Open Full Spotify Player"
+                  >
+                    ZANOPHY
+                  </button>
                 </div>
               </div>
             </div>
