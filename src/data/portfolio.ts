@@ -3,6 +3,8 @@ import {
   Database, Cpu, Server, Layers, Wrench, Sparkles, Binary, CheckCircle2, Radio, Gamepad2, Wifi
 } from "lucide-react";
 
+export type Persona = "guest" | "friend" | "operator";
+
 export interface Project {
   id: string;
   title: string;
@@ -14,6 +16,7 @@ export interface Project {
   status: "Production" | "Active" | "Showcase";
   github?: string;
   live?: string;
+  friendNote?: string;
 }
 
 export interface SkillCategory {
@@ -23,17 +26,71 @@ export interface SkillCategory {
   skills: { name: string; level: number; tag: string }[];
 }
 
-export const systemSpecs = {
-  handle: "Zane Goat",
-  realName: "Aziz Maaizate",
-  role: "Full-Stack ERP Architect, AI Specialist & Systems Engineer",
-  location: "Morocco (GMT+1)",
-  status: "Online / Ready for Deployments",
-  os: "Kali Linux / Dual-Boot MSI GF65 Thin",
-  shell: "zsh & bash automated workflows",
-  uptime: "99.98% System Stability",
-  bio: "Engineering enterprise-grade desktop & web ERP systems, developing hardware EC control tools, Wi-Fi CSI sensing radars, and AI-powered OSINT platforms."
+export interface SystemSpecs {
+  handle: string;
+  realName: string;
+  role: string;
+  location: string;
+  status: string;
+  os: string;
+  shell: string;
+  uptime: string;
+  bio: string;
+  stats: { value: string; label: string }[];
+}
+
+export const systemSpecsByPersona: Record<Persona, SystemSpecs> = {
+  guest: {
+    handle: "Zane Goat",
+    realName: "Aziz Maaizate",
+    role: "Full-Stack ERP Architect, AI Specialist & Systems Engineer",
+    location: "Morocco (GMT+1)",
+    status: "Online / Ready for Deployments",
+    os: "Kali Linux / Dual-Boot MSI GF65 Thin",
+    shell: "zsh & bash automated workflows",
+    uptime: "99.98% System Stability",
+    bio: "Engineering enterprise-grade desktop & web ERP systems, developing hardware EC control tools, Wi-Fi CSI sensing radars, and AI-powered OSINT platforms.",
+    stats: [
+      { value: "10+", label: "Shipped repos" },
+      { value: "19", label: "Core skills" },
+      { value: "5", label: "Domains" }
+    ]
+  },
+  friend: {
+    handle: "Zane Goat (Aziz)",
+    realName: "Aziz Maaizate",
+    role: "The Guy Who Breaks Things & Fixes Them at 3 AM",
+    location: "Casablanca, Morocco 🇲🇦",
+    status: "ONLINE // Sipping mint tea & writing code",
+    os: "Beast MSI GF65 (Cooled with custom EC governor)",
+    shell: "zsh (with 50 open terminal tabs)",
+    uptime: "100% Homemade Caffeine & Code",
+    bio: "Welcome to my lab! If you're a friend, you already know I spend way too much time in Linux terminals, hacking laptop fan curves, building ERPs from scratch, and gaming. Grab some tea and check out what I've been building below!",
+    stats: [
+      { value: "∞", label: "Terminal tabs" },
+      { value: "3 AM", label: "Bug hunt hour" },
+      { value: "100%", label: "Real code" }
+    ]
+  },
+  operator: {
+    handle: "ZANE_GOAT",
+    realName: "Aziz Maaizate",
+    role: "Root Clearance Operator // Level 99",
+    location: "Grid Casablanca [33.5731° N, 7.5898° W]",
+    status: "ACTIVE // wlan0mon RF & Tor Proxy Online",
+    os: "Kali Linux x86_64 [Kernel 4.2.0 Hardened]",
+    shell: "zsh /dev/pts/0 (Root Privileges Granted)",
+    uptime: "99.98% Cryptographic Integrity",
+    bio: "Specialized in raw 802.11 Wi-Fi CSI subcarrier phase perturbation, multi-threaded Tor dark-web scraping, and direct MSI Embedded Controller memory I/O.",
+    stats: [
+      { value: "64", label: "OFDM Carriers" },
+      { value: "3-Hop", label: "Tor Relay" },
+      { value: "0x68", label: "EC Register" }
+    ]
+  }
 };
+
+export const systemSpecs = systemSpecsByPersona.guest;
 
 export const skillsData: SkillCategory[] = [
   {
@@ -100,7 +157,8 @@ export const projectsData: Project[] = [
     ],
     tags: ["Python", "Tor Network", "AI / LLM", "OSINT", "Dark Web"],
     status: "Active",
-    github: "https://github.com/ZaneGoat/robin"
+    github: "https://github.com/ZaneGoat/robin",
+    friendNote: "Created because digging through dark-web onion forums by hand at 2 AM is slow, sketchy, and kills your eyes. Now an AI agent does the night shift."
   },
   {
     id: "csi",
@@ -116,7 +174,8 @@ export const projectsData: Project[] = [
     ],
     tags: ["Python", "Wi-Fi CSI", "RF Sensing", "Signal Processing", "Radar"],
     status: "Active",
-    github: "https://github.com/ZaneGoat/csi_project"
+    github: "https://github.com/ZaneGoat/csi_project",
+    friendNote: "Literally sensing people moving through walls by analyzing distorted Wi-Fi radio waves. Pure sci-fi wizardry."
   },
   {
     id: "zanemegacenter",
@@ -132,7 +191,8 @@ export const projectsData: Project[] = [
     ],
     tags: ["Python", "CustomTkinter", "Linux EC", "Hardware Tuning", "ISW"],
     status: "Active",
-    github: "https://github.com/ZaneGoat/ZaneMegaCenter"
+    github: "https://github.com/ZaneGoat/ZaneMegaCenter",
+    friendNote: "My laptop was roasting my thighs on Linux, so I bypassed the kernel governor and took direct control of the EC chips. Runs ice-cold now."
   },
   {
     id: "optigest",
@@ -148,7 +208,8 @@ export const projectsData: Project[] = [
     ],
     tags: ["Python", "CustomTkinter", "SQLite", "ERD Modeling", "Docx Exporter"],
     status: "Production",
-    github: "https://github.com/ZaneGoat/Gestion-optic"
+    github: "https://github.com/ZaneGoat/Gestion-optic",
+    friendNote: "Optical store managers were drowning in paper prescription receipts and broken Excel sheets. Built this so they could finally sleep."
   },
   {
     id: "smart-appointments",
@@ -164,7 +225,8 @@ export const projectsData: Project[] = [
     ],
     tags: ["Python", "Flask", "SQLite", "Calendar Engine", "Notifications"],
     status: "Production",
-    github: "https://github.com/ZaneGoat/smart-appointment-system"
+    github: "https://github.com/ZaneGoat/smart-appointment-system",
+    friendNote: "Built to stop double-booking chaos and send automated alerts so people actually show up on time."
   },
   {
     id: "ayaresto",
@@ -180,7 +242,8 @@ export const projectsData: Project[] = [
     ],
     tags: ["Python", "Flask", "SQLAlchemy", "Jinja2", "Modern CSS"],
     status: "Production",
-    github: "https://github.com/ZaneGoat/Ousdi"
+    github: "https://github.com/ZaneGoat/Ousdi",
+    friendNote: "Watching restaurant staff scramble during dinner rush convinced me they needed a fast, zero-friction POS and table screen."
   },
   {
     id: "highway-sys",
@@ -196,7 +259,8 @@ export const projectsData: Project[] = [
     ],
     tags: ["Python", "SQLite", "State Machine", "Hardware I/O", "Traffic"],
     status: "Production",
-    github: "https://github.com/ZaneGoat/Highway-Sys"
+    github: "https://github.com/ZaneGoat/Highway-Sys",
+    friendNote: "Toll booths with manual paper logs caused massive traffic jams. Automated the barrier state machine and barcode transit tickets."
   },
   {
     id: "controllerspace",
@@ -212,7 +276,8 @@ export const projectsData: Project[] = [
     ],
     tags: ["Python", "PyQt/CustomTkinter", "HID API", "Gamepad Drivers"],
     status: "Active",
-    github: "https://github.com/ZaneGoat/Controler-space"
+    github: "https://github.com/ZaneGoat/Controler-space",
+    friendNote: "Because gamepad configuration software shouldn't be bloated spyware. Sub-millisecond polling and custom curves directly on Linux."
   },
   {
     id: "pharmacie",
@@ -227,7 +292,8 @@ export const projectsData: Project[] = [
     ],
     tags: ["Python", "SQL", "Custom POS UI", "Inventory Logic"],
     status: "Production",
-    github: "https://github.com/ZaneGoat/Pharmacie"
+    github: "https://github.com/ZaneGoat/Pharmacie",
+    friendNote: "Medicine expiry is no joke. Added 30/60/90-day threshold alarms so pharmacies never accidentally hand out expired medicine."
   },
   {
     id: "school-hub",
@@ -243,9 +309,18 @@ export const projectsData: Project[] = [
     ],
     tags: ["TypeScript", "React", "TailwindCSS", "RBAC Security", "Dashboard"],
     status: "Active",
-    github: "https://github.com/ZaneGoat/school-hub-dashboard"
+    github: "https://github.com/ZaneGoat/school-hub-dashboard",
+    friendNote: "Built so teachers and school administrators don't lose their minds calculating complex weighted grade averages by hand."
   }
 ];
+
+export const friendLoungeData = {
+  gamerTag: "ZaneGoat",
+  favoriteGames: ["Cyberpunk 2077", "Counter-Strike 2", "Elden Ring", "Dead Cells"],
+  vibeTrack: "Cyberpunk Synthwave & Moroccan Lo-Fi",
+  teaIntake: "4+ Pots of Mint Tea per day 🍵",
+  homieNote: "Thanks for dropping by! Hit the scratchpad below to leave a shoutout that saves right in your browser."
+};
 
 export const contactLinks = [
   { icon: Mail, label: "Email", href: "mailto:azizmaaizat@outlook.com", display: "azizmaaizat@outlook.com" },

@@ -1,10 +1,13 @@
 import { memo, useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Terminal, Cpu, Database, ExternalLink, Zap, Clock, MapPin, Monitor, Play, Github, Keyboard,
   Radio, Globe, Wind, ShieldAlert
 } from "lucide-react";
-import { systemSpecs, projectsData, skillsData } from "@/data/portfolio";
+import { systemSpecsByPersona, projectsData, skillsData } from "@/data/portfolio";
+import { usePersona } from "@/context/PersonaContext";
+import { PersonaSwitcher } from "@/components/PersonaSwitcher";
+import { FriendLoungeCard } from "@/components/FriendLoungeCard";
 import { sound } from "@/lib/sound";
 
 interface BentoGridProps {
@@ -32,12 +35,6 @@ const LiveClock = memo(() => {
 });
 LiveClock.displayName = "LiveClock";
 
-const stats = [
-  { value: `${projectsData.length}+`, label: "Shipped repos" },
-  { value: `${skillsData.reduce((n, c) => n + c.skills.length, 0)}`, label: "Core skills" },
-  { value: `${new Set(projectsData.map(p => p.category)).size}`, label: "Domains" },
-];
-
 const fadeUp = (delay: number) => ({
   initial: { opacity: 0, y: 16 },
   animate: { opacity: 1, y: 0 },
@@ -52,45 +49,52 @@ export const BentoGrid = ({
   onOpenThreatMap,
   onOpenMegaCenter
 }: BentoGridProps) => {
+  const { persona } = usePersona();
+  const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.guest;
   const [activeTab, setActiveTab] = useState(0);
   const flagships = projectsData.slice(0, 4);
   const active = flagships[activeTab] ?? flagships[0];
 
   return (
-    <section id="overview" className="relative z-10 px-4 md:px-8 pt-10 pb-20 max-w-7xl mx-auto">
+    <section id="overview" className="relative z-10 px-4 md:px-8 pt-6 pb-20 max-w-7xl mx-auto">
+      {/* Persona HUD Switcher Banner */}
+      <motion.div {...fadeUp(0)} className="mb-6 flex justify-center">
+        <PersonaSwitcher variant="hero" />
+      </motion.div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
 
         {/* 1 — Identity (hero) */}
-        <motion.div {...fadeUp(0)} className="hud-card md:col-span-2 lg:row-span-2 p-7 md:p-10 relative overflow-hidden flex flex-col justify-between">
+        <motion.div {...fadeUp(0.04)} className="hud-card md:col-span-2 lg:row-span-2 p-7 md:p-10 relative overflow-hidden flex flex-col justify-between">
           <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
           <div>
-            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 px-3 py-1 rounded-full text-xs font-mono text-primary mb-8">
+            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 px-3 py-1 rounded-full text-xs font-mono text-primary mb-6">
               <span className="relative flex w-2 h-2">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 animate-ping" />
                 <span className="relative inline-flex rounded-full w-2 h-2 bg-primary" />
               </span>
-              {systemSpecs.status}
+              {activeSpecs.status}
             </div>
 
             <p className="font-mono text-sm text-primary/60 mb-2">&gt; whoami</p>
-            <h1 className="text-5xl md:text-7xl font-black text-primary tracking-tight leading-[0.95] uppercase glow-text">
-              {systemSpecs.realName.split(" ")[0]}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-primary tracking-tight leading-[0.95] uppercase glow-text">
+              {activeSpecs.realName.split(" ")[0]}
               <br />
-              <span className="text-foreground/90">{systemSpecs.realName.split(" ").slice(1).join(" ")}</span>
+              <span className="text-foreground/90">{activeSpecs.realName.split(" ").slice(1).join(" ")}</span>
             </h1>
-            <p className="mt-5 font-mono text-sm md:text-base text-primary/80">
-              aka <span className="text-primary font-bold">{systemSpecs.handle}</span> — {systemSpecs.role}
+            <p className="mt-4 font-mono text-sm md:text-base text-primary/80">
+              aka <span className="text-primary font-bold">{activeSpecs.handle}</span> — {activeSpecs.role}
             </p>
             <p className="mt-4 text-muted-foreground text-sm md:text-base leading-relaxed max-w-xl">
-              {systemSpecs.bio}
+              {activeSpecs.bio}
             </p>
           </div>
 
           <div>
-            {/* Stats strip */}
+            {/* Dynamic Stats strip */}
             <div className="grid grid-cols-3 gap-3 my-8 max-w-md">
-              {stats.map(s => (
+              {activeSpecs.stats.map(s => (
                 <div key={s.label} className="border-l-2 border-primary/40 pl-3">
                   <div className="text-2xl md:text-3xl font-black text-primary font-mono">{s.value}</div>
                   <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-mono">{s.label}</div>
@@ -144,7 +148,7 @@ export const BentoGrid = ({
           </div>
           <div>
             <div className="flex items-center gap-1.5 text-[11px] text-primary/60 uppercase mb-1"><MapPin className="w-3.5 h-3.5" />Base</div>
-            <div className="text-sm md:text-base font-bold text-primary">{systemSpecs.location}</div>
+            <div className="text-sm md:text-base font-bold text-primary">{activeSpecs.location}</div>
           </div>
           <div
             onClick={() => {
@@ -163,7 +167,7 @@ export const BentoGrid = ({
                 </span>
               )}
             </div>
-            <div className="text-sm md:text-base font-bold text-primary group-hover:underline">Kali / MSI GF65</div>
+            <div className="text-sm md:text-base font-bold text-primary group-hover:underline">{activeSpecs.os}</div>
           </div>
         </motion.div>
 
@@ -178,9 +182,9 @@ export const BentoGrid = ({
             <span className="flex items-center gap-1"><Keyboard className="w-3.5 h-3.5" />press <kbd className="px-1.5 py-0.5 border border-primary/40 rounded text-primary">`</kbd></span>
           </div>
           <div className="text-xs space-y-1 text-primary/80">
-            <p><span className="text-primary">zane@kali</span>:~$ csi --scan</p>
+            <p><span className="text-primary">{persona === "friend" ? "homie@lounge" : persona === "operator" ? "zane@kali" : "guest@portfolio"}</span>:~$ csi --scan</p>
             <p className="text-muted-foreground">Doppler +3.8Hz · motion detected</p>
-            <p><span className="text-primary">zane@kali</span>:~$ <span className="inline-block w-2 h-3.5 bg-primary align-middle animate-pulse" /></p>
+            <p><span className="text-primary">{persona === "friend" ? "homie@lounge" : persona === "operator" ? "zane@kali" : "guest@portfolio"}</span>:~$ <span className="inline-block w-2 h-3.5 bg-primary align-middle animate-pulse" /></p>
           </div>
           {onOpenCsi && (
             <div
@@ -215,6 +219,11 @@ export const BentoGrid = ({
           </button>
         </motion.div>
 
+        {/* Exclusive Friend Lounge Card (Unlocks when Friend persona is active) */}
+        <AnimatePresence>
+          {persona === "friend" && <FriendLoungeCard />}
+        </AnimatePresence>
+
         {/* 5 — Flagship architectures */}
         <motion.div {...fadeUp(0.26)} className="hud-card md:col-span-2 lg:col-span-3 p-6 md:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/15 pb-4 mb-5">
@@ -246,6 +255,18 @@ export const BentoGrid = ({
               </div>
               <p className="text-primary/70 text-xs font-mono mb-3">{active.subtitle}</p>
               <p className="text-muted-foreground text-sm leading-relaxed">{active.description}</p>
+
+              {/* Friend note callout */}
+              {persona === "friend" && active.friendNote && (
+                <div className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs">
+                  <span className="text-[10px] text-emerald-400 font-bold uppercase block mb-1">
+                    ☕ Zane's Real Take:
+                  </span>
+                  <p className="text-emerald-200/90 leading-relaxed italic">
+                    "{active.friendNote}"
+                  </p>
+                </div>
+              )}
             </div>
             <div className="md:col-span-2 flex flex-col justify-between gap-4">
               <ul className="space-y-1.5 text-xs font-mono text-muted-foreground">

@@ -5,6 +5,7 @@ import { projectsData, Project } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
 import { SectionHeader } from "@/components/SectionHeader";
 import { CheckCircle2, Github, ExternalLink, Radio, Globe, Wind } from "lucide-react";
+import { usePersona } from "@/context/PersonaContext";
 
 interface ProjectsProps {
   onOpenCsi?: () => void;
@@ -13,6 +14,7 @@ interface ProjectsProps {
 }
 
 export const Projects = ({ onOpenCsi, onOpenThreatMap, onOpenMegaCenter }: ProjectsProps = {}) => {
+  const { persona } = usePersona();
   const [filter, setFilter] = useState<string>("ALL");
   const [clickCount, setClickCount] = useState(0);
   const [showJoke, setShowJoke] = useState(false);
@@ -105,7 +107,7 @@ export const Projects = ({ onOpenCsi, onOpenThreatMap, onOpenMegaCenter }: Proje
                     </p>
 
                     {/* Architecture Highlights */}
-                    <div className="space-y-1.5 mb-6 bg-primary/5 p-3 rounded-xl border border-primary/10">
+                    <div className="space-y-1.5 mb-4 bg-primary/5 p-3 rounded-xl border border-primary/10">
                       {project.highlights.slice(0, 2).map((h, j) => (
                         <div key={j} className="flex items-start gap-2 text-[11px] text-muted-foreground font-mono">
                           <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
@@ -113,6 +115,18 @@ export const Projects = ({ onOpenCsi, onOpenThreatMap, onOpenMegaCenter }: Proje
                         </div>
                       ))}
                     </div>
+
+                    {/* Friend Persona: Zane's Real Take */}
+                    {persona === "friend" && project.friendNote && (
+                      <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs font-mono">
+                        <span className="text-[10px] text-emerald-400 font-bold uppercase block mb-1">
+                          ☕ Zane's Real Take:
+                        </span>
+                        <p className="text-emerald-200/90 text-[11px] leading-relaxed italic">
+                          "{project.friendNote}"
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Footer: Tags & Direct GitHub Repo Link */}

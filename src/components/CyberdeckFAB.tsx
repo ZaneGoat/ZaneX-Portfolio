@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Zap, Radio, Palette, Volume2, VolumeX, X, Cpu, Globe, ShieldAlert, Wind } from "lucide-react";
+import { Terminal, Zap, Radio, Palette, Volume2, VolumeX, X, Cpu, Globe, ShieldAlert, Wind, UserCheck } from "lucide-react";
 import { sound } from "@/lib/sound";
+import { usePersona } from "@/context/PersonaContext";
 
 interface CyberdeckFABProps {
   onOpenTerminal: () => void;
@@ -22,6 +23,7 @@ export const CyberdeckFAB = ({
   onOpenThreatMap,
   onOpenMegaCenter
 }: CyberdeckFABProps) => {
+  const { persona, cyclePersona } = usePersona();
   const [isOpen, setIsOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [activeTheme, setActiveTheme] = useState<string>("emerald");
@@ -239,6 +241,23 @@ export const CyberdeckFAB = ({
               >
                 {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
                 <span>{isMuted ? "MUTED" : "SOUND ON"}</span>
+              </button>
+            </div>
+
+            {/* Persona Switcher row */}
+            <div className="pt-1">
+              <button
+                onClick={cyclePersona}
+                className="w-full flex items-center justify-between py-1.5 px-3 rounded-lg border border-primary/30 bg-primary/10 text-primary text-[10px] font-bold active:scale-95 transition-transform"
+                title="Cycle Visitor Persona (Guest / Friend / Operator)"
+              >
+                <div className="flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5 text-primary" />
+                  <span>VISITOR PROFILE:</span>
+                </div>
+                <span className="uppercase text-[9px] text-background bg-primary px-1.5 py-0.5 rounded font-black">
+                  {persona}
+                </span>
               </button>
             </div>
           </motion.div>

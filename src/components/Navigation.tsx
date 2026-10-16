@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert } from "lucide-react";
 import { navLinks } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
+import { PersonaSwitcher } from "@/components/PersonaSwitcher";
 
 interface NavigationProps {
   onOpenTerminal: () => void;
@@ -28,18 +29,23 @@ export const Navigation = ({ onOpenTerminal, onOpenBreach, onOpenCtf }: Navigati
       >
         <div className="container mx-auto px-4 md:px-6 py-3 flex justify-between items-center">
           {/* Logo / Brand */}
-          <a
-            href="#overview"
-            onClick={() => sound.playClick()}
-            className="flex items-center gap-2 group font-mono"
-          >
-            <span className="text-xl md:text-2xl font-black text-primary tracking-tighter group-hover:scale-105 transition-transform">
-              ZANE<span className="text-secondary">X</span>
-            </span>
-            <span className="text-[10px] bg-primary/10 text-primary border border-primary/30 px-2 py-0.5 rounded-full font-bold">
-              v4.2
-            </span>
-          </a>
+          <div className="flex items-center gap-3">
+            <a
+              href="#overview"
+              onClick={() => sound.playClick()}
+              className="flex items-center gap-2 group font-mono"
+            >
+              <span className="text-xl md:text-2xl font-black text-primary tracking-tighter group-hover:scale-105 transition-transform">
+                ZANE<span className="text-secondary">X</span>
+              </span>
+              <span className="text-[10px] bg-primary/10 text-primary border border-primary/30 px-2 py-0.5 rounded-full font-bold">
+                v4.2
+              </span>
+            </a>
+
+            {/* Desktop Compact Persona Switcher */}
+            <PersonaSwitcher variant="compact" className="hidden xl:inline-flex" />
+          </div>
 
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-6 font-mono text-sm">
@@ -131,6 +137,10 @@ export const Navigation = ({ onOpenTerminal, onOpenBreach, onOpenCtf }: Navigati
             className="fixed inset-x-0 top-14 z-40 bg-[#050816]/95 border-b border-primary/20 backdrop-blur-2xl p-6 md:hidden font-mono"
           >
             <div className="flex flex-col gap-4">
+              <div className="pb-2 border-b border-primary/15 flex justify-center">
+                <PersonaSwitcher variant="compact" />
+              </div>
+
               {navLinks.map(link => (
                 <a
                   key={link.name}

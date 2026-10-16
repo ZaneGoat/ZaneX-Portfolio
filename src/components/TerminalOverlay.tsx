@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal as TerminalIcon, X, Maximize2, Minimize2, CornerDownLeft, ExternalLink } from "lucide-react";
-import { systemSpecs, projectsData, skillsData, terminalCommandsHelp } from "@/data/portfolio";
+import { systemSpecsByPersona, projectsData, skillsData, terminalCommandsHelp } from "@/data/portfolio";
+import { usePersona } from "@/context/PersonaContext";
 import { sound } from "@/lib/sound";
 
 interface TerminalOverlayProps {
@@ -39,6 +40,10 @@ export const TerminalOverlay = ({
   onOpenThreatMap,
   onOpenMegaCenter
 }: TerminalOverlayProps) => {
+  const { persona, setPersona } = usePersona();
+  const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.guest;
+  const shellUser = persona === "friend" ? "homie@zane-lounge" : persona === "operator" ? "zane@kali" : "guest@zanex-portfolio";
+
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
@@ -85,10 +90,27 @@ export const TerminalOverlay = ({
 
     const newLogs: LogEntry[] = [
       ...logs,
-      { type: "input", content: `zane@kali-box:~$ ${trimmed}` }
+      { type: "input", content: `${shellUser}:~$ ${trimmed}` }
     ];
 
     switch (cmd) {
+      case "persona":
+      case "profile":
+        if (arg === "guest" || arg === "friend" || arg === "operator") {
+          setPersona(arg);
+          sound.playSuccess();
+          newLogs.push({
+            type: "output",
+            content: `Visitor persona switched to [${arg.toUpperCase()}]. Interface & bio re-calibrated.`
+          });
+        } else {
+          newLogs.push({
+            type: "output",
+            content: `Current persona: [${persona.toUpperCase()}]. Usage: persona [guest | friend | operator]`
+          });
+        }
+        break;
+
       case "help":
         newLogs.push({
           type: "output",
@@ -102,6 +124,10 @@ export const TerminalOverlay = ({
                     <span className="text-muted-foreground text-[11px]">{item.desc}</span>
                   </div>
                 ))}
+                <div className="flex gap-2">
+                  <span className="text-primary font-bold w-24 shrink-0">persona</span>
+                  <span className="text-muted-foreground text-[11px]">Switch persona: guest, friend, or operator</span>
+                </div>
               </div>
             </div>
           )
@@ -113,11 +139,12 @@ export const TerminalOverlay = ({
           type: "output",
           content: (
             <div className="bg-primary/5 border border-primary/20 p-3 rounded-xl my-2 space-y-1 text-xs font-mono">
-              <p><span className="text-primary font-bold">OPERATOR:</span> {systemSpecs.realName} ({systemSpecs.handle})</p>
-              <p><span className="text-primary font-bold">DESIGNATION:</span> {systemSpecs.role}</p>
-              <p><span className="text-primary font-bold">CLEARANCE:</span> LEVEL 99 AUTHORIZED (Root Privilege)</p>
-              <p><span className="text-primary font-bold">BASE LOCATION:</span> {systemSpecs.location}</p>
-              <p><span className="text-primary font-bold">MAINFRAME:</span> {systemSpecs.os}</p>
+              <p><span className="text-primary font-bold">PROFILE:</span> [{persona.toUpperCase()}]</p>
+              <p><span className="text-primary font-bold">OPERATOR:</span> {activeSpecs.realName} ({activeSpecs.handle})</p>
+              <p><span className="text-primary font-bold">DESIGNATION:</span> {activeSpecs.role}</p>
+              <p><span className="text-primary font-bold">STATUS:</span> {activeSpecs.status}</p>
+              <p><span className="text-primary font-bold">BASE LOCATION:</span> {activeSpecs.location}</p>
+              <p><span className="text-primary font-bold">MAINFRAME:</span> {activeSpecs.os}</p>
             </div>
           )
         });
@@ -140,12 +167,12 @@ export const TerminalOverlay = ({
 `}
               </pre>
               <div className="space-y-1 text-xs">
-                <p><span className="text-primary font-bold">User:</span> {systemSpecs.handle} ({systemSpecs.realName})</p>
-                <p><span className="text-primary font-bold">Role:</span> {systemSpecs.role}</p>
-                <p><span className="text-primary font-bold">OS:</span> {systemSpecs.os}</p>
-                <p><span className="text-primary font-bold">Shell:</span> {systemSpecs.shell}</p>
-                <p><span className="text-primary font-bold">Uptime:</span> {systemSpecs.uptime}</p>
-                <p><span className="text-primary font-bold">Location:</span> {systemSpecs.location}</p>
+                <p><span className="text-primary font-bold">User:</span> {activeSpecs.handle} ({activeSpecs.realName})</p>
+                <p><span className="text-primary font-bold">Role:</span> {activeSpecs.role}</p>
+                <p><span className="text-primary font-bold">OS:</span> {activeSpecs.os}</p>
+                <p><span className="text-primary font-bold">Shell:</span> {activeSpecs.shell}</p>
+                <p><span className="text-primary font-bold">Uptime:</span> {activeSpecs.uptime}</p>
+                <p><span className="text-primary font-bold">Location:</span> {activeSpecs.location}</p>
                 <div className="flex gap-1 pt-2">
                   <span className="w-3 h-3 bg-red-500 rounded-sm" />
                   <span className="w-3 h-3 bg-green-500 rounded-sm" />
@@ -756,7 +783,7 @@ Allow: /
 
             {/* Input Bar */}
             <div className="p-3 bg-black/50 border-t border-primary/20 flex items-center gap-2">
-              <span className="text-primary font-bold text-xs shrink-0">zane@kali:~$</span>
+              <span className="text-primary font-bold text-xs shrink-0">{shellUser}:~$</span>
               <input
                 ref={inputRef}
                 type="text"
