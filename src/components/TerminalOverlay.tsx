@@ -40,7 +40,7 @@ export const TerminalOverlay = ({
   onOpenThreatMap,
   onOpenMegaCenter
 }: TerminalOverlayProps) => {
-  const { persona, setPersona } = usePersona();
+  const { persona, setPersona, telemetry, deviceChoice, setDeviceChoice, spoofActive } = usePersona();
   const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.guest;
   const shellUser = persona === "friend" ? "homie@zane-lounge" : persona === "operator" ? "zane@kali" : "guest@zanex-portfolio";
 
@@ -111,6 +111,40 @@ export const TerminalOverlay = ({
         }
         break;
 
+      case "device":
+      case "telemetry":
+        if (arg === "phone" || arg === "desktop" || arg === "auto") {
+          setDeviceChoice(arg);
+          newLogs.push({
+            type: "output",
+            content: `Device emulation set to [${arg.toUpperCase()}]. (Raw physical hardware: ${telemetry.os} ${telemetry.deviceCategory}).`
+          });
+        } else {
+          newLogs.push({
+            type: "output",
+            content: (
+              <div className="space-y-1 font-mono text-xs my-2">
+                <p className="text-primary font-bold">=== CLIENT HARDWARE TELEMETRY ===</p>
+                <p className="text-muted-foreground italic">
+                  &quot;Wait... why are you asking if phone or desktop? Zane already knows.&quot;
+                </p>
+                <div className="border border-primary/20 rounded p-2.5 bg-primary/5 space-y-1 mt-1 text-xs">
+                  <p><span className="text-primary font-bold">Physical OS:</span> {telemetry.os}</p>
+                  <p><span className="text-primary font-bold">Device Category:</span> {telemetry.deviceCategory.toUpperCase()}</p>
+                  <p><span className="text-primary font-bold">Viewport Matrix:</span> {telemetry.screenWidth}×{telemetry.screenHeight} px @ {telemetry.dpr}x ({telemetry.orientation})</p>
+                  <p><span className="text-primary font-bold">Input Modality:</span> {telemetry.pointerType} {telemetry.touchCapable ? "(Touchscreen active)" : "(Pointer only)"}</p>
+                  <p><span className="text-primary font-bold">Declared Choice:</span> {deviceChoice.toUpperCase()}</p>
+                  <p><span className="text-primary font-bold">Honesty Audit:</span> <span className={spoofActive ? "text-red-400 font-bold" : "text-green-400 font-bold"}>{spoofActive ? "SPOOFED (Emulation Active)" : "HONEST (100% Match)"}</span></p>
+                </div>
+                <p className="text-[11px] text-primary/60 mt-1">
+                  Usage: <span className="text-primary font-bold">device [phone | desktop | auto]</span> to override emulation.
+                </p>
+              </div>
+            )
+          });
+        }
+        break;
+
       case "help":
         newLogs.push({
           type: "output",
@@ -127,6 +161,10 @@ export const TerminalOverlay = ({
                 <div className="flex gap-2">
                   <span className="text-primary font-bold w-24 shrink-0">persona</span>
                   <span className="text-muted-foreground text-[11px]">Switch persona: guest, friend, or operator</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-primary font-bold w-24 shrink-0">device</span>
+                  <span className="text-muted-foreground text-[11px]">Query hardware telemetry (phone/desktop check)</span>
                 </div>
               </div>
             </div>
@@ -705,7 +743,7 @@ Allow: /
   };
 
   const quickChips = [
-    "help", "ctf", "csi", "robin", "hardware", "whoami", "neofetch", 
+    "help", "ctf", "csi", "robin", "hardware", "device", "whoami", "neofetch", 
     "projects", "breach", "matrix", "clear"
   ];
 

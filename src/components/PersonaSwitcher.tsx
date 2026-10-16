@@ -71,7 +71,7 @@ export const PersonaSwitcher: React.FC<PersonaSwitcherProps> = ({ variant = "her
       <div className="flex items-center justify-between px-2 pb-1.5 text-[10px] uppercase tracking-wider text-primary/70 border-b border-primary/15 mb-1.5">
         <span className="flex items-center gap-1.5 font-bold">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          SELECT VISITOR PROFILE:
+          STEP 1 // VISITOR PROFILE:
         </span>
         <span className="text-primary/50 hidden sm:inline">
           {PERSONAS.find(p => p.id === persona)?.desc}

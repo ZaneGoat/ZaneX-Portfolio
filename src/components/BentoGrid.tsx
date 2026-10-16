@@ -7,6 +7,7 @@ import {
 import { systemSpecsByPersona, projectsData, skillsData } from "@/data/portfolio";
 import { usePersona } from "@/context/PersonaContext";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
+import { DeviceQuestion } from "@/components/DeviceQuestion";
 import { FriendLoungeCard } from "@/components/FriendLoungeCard";
 import { sound } from "@/lib/sound";
 
@@ -57,9 +58,10 @@ export const BentoGrid = ({
 
   return (
     <section id="overview" className="relative z-10 px-4 md:px-8 pt-6 pb-20 max-w-7xl mx-auto">
-      {/* Persona HUD Switcher Banner */}
-      <motion.div {...fadeUp(0)} className="mb-6 flex justify-center">
+      {/* Visitor Onboarding HUD: Persona & Hardware Telemetry Check */}
+      <motion.div {...fadeUp(0)} className="mb-6 flex flex-col items-center gap-3">
         <PersonaSwitcher variant="hero" />
+        <DeviceQuestion />
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">

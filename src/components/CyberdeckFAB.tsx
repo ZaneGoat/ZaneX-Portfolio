@@ -23,10 +23,12 @@ export const CyberdeckFAB = ({
   onOpenThreatMap,
   onOpenMegaCenter
 }: CyberdeckFABProps) => {
-  const { persona, cyclePersona } = usePersona();
+  const { persona, cyclePersona, deviceChoice, spoofActive } = usePersona();
   const [isOpen, setIsOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [activeTheme, setActiveTheme] = useState<string>("emerald");
+
+  const forceShowOnDesktop = deviceChoice === "phone" && spoofActive;
 
   useEffect(() => {
     const saved = localStorage.getItem("zanex_theme") || "emerald";
@@ -57,7 +59,7 @@ export const CyberdeckFAB = ({
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-40 md:hidden font-mono select-none">
+    <div className={`fixed bottom-5 right-5 z-40 font-mono select-none ${forceShowOnDesktop ? "" : "md:hidden"}`}>
       {/* Backdrop for easy dismiss */}
       <AnimatePresence>
         {isOpen && (

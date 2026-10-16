@@ -1,26 +1,42 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { sound } from "@/lib/sound";
+import { useDeviceTelemetry, DeviceTelemetry } from "@/hooks/useDeviceTelemetry";
 
 export type Persona = "guest" | "friend" | "operator";
+export type DeviceChoice = "auto" | "phone" | "desktop";
 
 interface PersonaContextType {
   persona: Persona;
   setPersona: (p: Persona) => void;
   cyclePersona: () => void;
+  // Device check & telemetry
+  telemetry: DeviceTelemetry;
+  deviceChoice: DeviceChoice;
+  setDeviceChoice: (choice: DeviceChoice) => void;
+  spoofActive: boolean;
+  isHonest: boolean;
 }
 
 const PersonaContext = createContext<PersonaContextType | undefined>(undefined);
 
 const PERSONA_STORAGE_KEY = "zanex_visitor_persona";
+const DEVICE_STORAGE_KEY = "zanex_device_choice";
 
 export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [persona, setPersonaState] = useState<Persona>("guest");
+  const [deviceChoice, setDeviceChoiceState] = useState<DeviceChoice>("auto");
+  const telemetry = useDeviceTelemetry();
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(PERSONA_STORAGE_KEY) as Persona | null;
-      if (saved && (saved === "guest" || saved === "friend" || saved === "operator")) {
-        setPersonaState(saved);
+      const savedPersona = localStorage.getItem(PERSONA_STORAGE_KEY) as Persona | null;
+      if (savedPersona && (savedPersona === "guest" || savedPersona === "friend" || savedPersona === "operator")) {
+        setPersonaState(savedPersona);
+      }
+
+      const savedDevice = localStorage.getItem(DEVICE_STORAGE_KEY) as DeviceChoice | null;
+      if (savedDevice && (savedDevice === "auto" || savedDevice === "phone" || savedDevice === "desktop")) {
+        setDeviceChoiceState(savedDevice);
       }
     } catch {}
   }, []);
@@ -41,8 +57,51 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setPersona(next);
   };
 
+  const setDeviceChoice = (choice: DeviceChoice) => {
+    setDeviceChoiceState(choice);
+    try {
+      localStorage.setItem(DEVICE_STORAGE_KEY, choice);
+    } catch {}
+
+    const isMatch =
+      choice === "auto" ||
+      (choice === "phone" && telemetry.isMobile) ||
+      (choice === "desktop" && !telemetry.isMobile);
+
+    if (isMatch) {
+      sound.playSuccess();
+      sound.haptic([25, 40]);
+    } else {
+      sound.playError();
+      sound.haptic([60, 40, 80]);
+    }
+  };
+
+  const spoofActive = useMemo(() => {
+    if (deviceChoice === "auto") return false;
+    if (deviceChoice === "phone" && !telemetry.isMobile) return true;
+    if (deviceChoice === "desktop" && telemetry.isMobile) return true;
+    return false;
+  }, [deviceChoice, telemetry.isMobile]);
+
+  const isHonest = useMemo(() => {
+    if (deviceChoice === "auto") return true;
+    return !spoofActive;
+  }, [deviceChoice, spoofActive]);
+
   return (
-    <PersonaContext.Provider value={{ persona, setPersona, cyclePersona }}>
+    <PersonaContext.Provider
+      value={{
+        persona,
+        setPersona,
+        cyclePersona,
+        telemetry,
+        deviceChoice,
+        setDeviceChoice,
+        spoofActive,
+        isHonest
+      }}
+    >
       {children}
     </PersonaContext.Provider>
   );
