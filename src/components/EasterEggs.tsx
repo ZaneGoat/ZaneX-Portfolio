@@ -156,6 +156,7 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
     window.addEventListener("touchstart", handleHoldStart, { passive: true });
     window.addEventListener("touchend", handleHoldEnd, { passive: true });
     window.addEventListener("touchcancel", handleHoldEnd, { passive: true });
+    window.addEventListener("zanex:request-motion-sensors", requestMotionPermission);
 
     return () => {
       window.removeEventListener("devicemotion", handleMotion);
@@ -165,8 +166,9 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
       window.removeEventListener("touchstart", handleHoldStart);
       window.removeEventListener("touchend", handleHoldEnd);
       window.removeEventListener("touchcancel", handleHoldEnd);
+      window.removeEventListener("zanex:request-motion-sensors", requestMotionPermission);
     };
-  }, [handleMotion, onOpenMatrixTakeover]);
+  }, [handleMotion, onOpenMatrixTakeover, requestMotionPermission]);
 
   // Click & Tap Counter with Binary Ripple Visuals & 10-14 Crimson Micro-Glitch
   useEffect(() => {
@@ -283,42 +285,6 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
           </motion.div>
         ))}
       </div>
-
-      {/* iOS Floating Permission Chip (if on iPhone/iPad and permission not yet granted) */}
-      <AnimatePresence>
-        {isIosDevice && permissionStatus !== "granted" && (
-          <motion.button
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 20, opacity: 0 }}
-            onClick={requestMotionPermission}
-            className="fixed bottom-4 left-4 z-[9995] bg-black/90 border border-primary text-primary px-3 py-1.5 rounded-full font-mono text-[11px] font-bold flex items-center gap-1.5 shadow-[0_0_20px_hsl(var(--primary)/0.5)] cursor-pointer"
-          >
-            <Smartphone className="w-3.5 h-3.5 text-primary animate-pulse" />
-            <span>ALLOW MOTION SENSORS</span>
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      {/* Subtle Shinigami Mode Active Badge once unlocked */}
-      <AnimatePresence>
-        {shinigamiDealUnlocked && !ryukActive && (
-          <motion.button
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 15 }}
-            onClick={() => {
-              pausedRef.current = true;
-              setRyukActive(true);
-            }}
-            title="Replay MSI GF63 // Ryuk Shinigami Eye Deal"
-            className="fixed bottom-4 left-4 z-[9990] hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#050508]/90 border border-[#ff112b]/60 text-[#f0f0f5] font-mono text-[10px] tracking-widest uppercase shadow-[0_0_20px_rgba(255,17,43,0.35)] hover:border-[#ff112b] hover:bg-[#ff112b]/15 transition-all cursor-pointer"
-          >
-            <span className="w-2 h-2 rounded-full bg-[#ff112b] shadow-[0_0_8px_#ff112b] animate-pulse" />
-            <span>SHINIGAMI EYES // MSI GF63</span>
-          </motion.button>
-        )}
-      </AnimatePresence>
 
       {/* 15 Clicks: Death Note // Shinigami Realm Confirmation Modal */}
       <AnimatePresence>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Sparkles, Compass, Eye } from "lucide-react";
+import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Sparkles, Compass, Eye, Smartphone } from "lucide-react";
 import { navLinks } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
@@ -277,6 +277,19 @@ export const Navigation = ({
                   </button>
                 )}
               </div>
+
+              {/* Allow Motion Sensors inside Mobile Menu Drawer */}
+              <button
+                onClick={() => {
+                  sound.playClick();
+                  window.dispatchEvent(new CustomEvent("zanex:request-motion-sensors"));
+                  setIsMenuOpen(false);
+                }}
+                className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border border-primary/30 bg-primary/10 text-primary font-bold text-xs"
+              >
+                <Smartphone className="w-4 h-4 text-primary" />
+                <span>ALLOW MOTION SENSORS</span>
+              </button>
             </div>
           </motion.div>
         )}

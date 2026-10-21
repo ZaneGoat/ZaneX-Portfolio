@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Zap, Radio, Palette, Volume2, VolumeX, X, Cpu, Globe, ShieldAlert, Wind, UserCheck, Sparkles } from "lucide-react";
+import { Terminal, Zap, Radio, Palette, Volume2, VolumeX, X, Cpu, Globe, ShieldAlert, Wind, UserCheck, Sparkles, Smartphone } from "lucide-react";
 import { sound } from "@/lib/sound";
 import { usePersona } from "@/context/PersonaContext";
 
@@ -29,6 +29,7 @@ export const CyberdeckFAB = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [activeTheme, setActiveTheme] = useState<string>("emerald");
+  const [sensorsEnabled, setSensorsEnabled] = useState(false);
 
   const forceShowOnDesktop = deviceChoice === "phone" && spoofActive;
 
@@ -36,6 +37,13 @@ export const CyberdeckFAB = ({
     const saved = localStorage.getItem("zanex_theme") || "emerald";
     setActiveTheme(saved);
   }, []);
+
+  const handleEnableMotionSensors = () => {
+    sound.playClick();
+    sound.haptic(35);
+    window.dispatchEvent(new CustomEvent("zanex:request-motion-sensors"));
+    setSensorsEnabled(true);
+  };
 
   const toggleOpen = () => {
     sound.playClick();
@@ -267,8 +275,8 @@ export const CyberdeckFAB = ({
               </button>
             </div>
 
-            {/* Persona Switcher row */}
-            <div className="pt-1">
+            {/* Persona Switcher & Motion Sensors inside FAB */}
+            <div className="pt-1 space-y-1.5">
               <button
                 onClick={cyclePersona}
                 className="w-full flex items-center justify-between py-1.5 px-3 rounded-lg border border-primary/30 bg-primary/10 text-primary text-[10px] font-bold active:scale-95 transition-transform"
@@ -280,6 +288,24 @@ export const CyberdeckFAB = ({
                 </div>
                 <span className="uppercase text-[9px] text-background bg-primary px-1.5 py-0.5 rounded font-black">
                   {persona}
+                </span>
+              </button>
+
+              <button
+                onClick={handleEnableMotionSensors}
+                className={`w-full flex items-center justify-between py-1.5 px-3 rounded-lg border text-[10px] font-bold active:scale-95 transition-transform ${
+                  sensorsEnabled
+                    ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-400"
+                    : "border-primary/30 bg-primary/5 text-primary/80 hover:text-primary"
+                }`}
+                title="Allow Device Motion Sensors (Shake Gesture)"
+              >
+                <div className="flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <span>MOTION SENSORS:</span>
+                </div>
+                <span className="uppercase text-[9px] px-1.5 py-0.5 rounded font-black border border-current/30">
+                  {sensorsEnabled ? "ACTIVE" : "ALLOW"}
                 </span>
               </button>
             </div>
