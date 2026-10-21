@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldAlert, Zap, CheckCircle2, Smartphone, Sparkles } from "lucide-react";
+import { ShieldAlert, Zap, CheckCircle2, Smartphone, Sparkles, Eye } from "lucide-react";
 import { sound } from "@/lib/sound";
+import { RyukAsciiOverlay } from "@/components/RyukAsciiOverlay";
 
 interface EasterEggsProps {
   onOpenTerminal: () => void;
@@ -23,6 +24,10 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
   const [hintPlatform, setHintPlatform] = useState<"none" | "pc" | "phone">("none");
   const [hasClaimed, setHasClaimed] = useState(false);
   const [particles, setParticles] = useState<ClickParticle[]>([]);
+  const [crimsonGlitch, setCrimsonGlitch] = useState(false);
+  const [ryukActive, setRyukActive] = useState(false);
+  const [shinigamiDealUnlocked, setShinigamiDealUnlocked] = useState(false);
+  const pausedRef = useRef(false);
 
   // Mobile Sensor State
   const [permissionStatus, setPermissionStatus] = useState<"idle" | "granted" | "denied">("idle");
@@ -163,9 +168,11 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
     };
   }, [handleMotion, onOpenMatrixTakeover]);
 
-  // Click & Tap Counter with Binary Ripple Visuals
+  // Click & Tap Counter with Binary Ripple Visuals & 10-14 Crimson Micro-Glitch
   useEffect(() => {
     const handlePointerClick = (e: MouseEvent | TouchEvent) => {
+      if (pausedRef.current) return;
+
       let clientX = 0;
       let clientY = 0;
       if ("clientX" in e) {
@@ -189,12 +196,19 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
 
       setClickCount(prev => {
         const next = prev + 1;
-        // Secret hint button unlocks after just 8 clicks (or 15 for cookie)
+        // Secret hint button unlocks after 8 clicks
         if (next === 8) {
           sound.playSuccess();
           setShowSecretButton(true);
         }
+        // Clicks 10 to 14: 80ms crimson micro-glitch
+        if (next >= 10 && next <= 14) {
+          setCrimsonGlitch(true);
+          window.setTimeout(() => setCrimsonGlitch(false), 80);
+        }
+        // Click 15: Pause counter and summon the Shinigami Realm Confirmation Modal
         if (next === 15) {
+          pausedRef.current = true;
           sound.playSuccess();
           setShowClickExploit(true);
         }
@@ -206,18 +220,50 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
     return () => window.removeEventListener("click", handlePointerClick);
   }, []);
 
-  const claimExploit = () => {
-    sound.playSuccess();
+  const makeShinigamiDeal = () => {
+    sound.playBoot();
     document.cookie = "ZaneClickExploit=15_CLICKS_MASTER; max-age=86400; path=/";
     setHasClaimed(true);
-    setTimeout(() => {
-      setShowClickExploit(false);
-      setHasClaimed(false);
-    }, 3000);
+    setShinigamiDealUnlocked(true);
+    setShowClickExploit(false);
+    setRyukActive(true);
   };
+
+  const stepBackCancel = () => {
+    sound.playClick();
+    setShowClickExploit(false);
+    setHasClaimed(false);
+    setClickCount(0);
+    window.setTimeout(() => {
+      pausedRef.current = false;
+    }, 150);
+  };
+
+  const handleRyukComplete = useCallback(() => {
+    setRyukActive(false);
+    setHasClaimed(false);
+    setClickCount(0);
+    pausedRef.current = false;
+  }, []);
 
   return (
     <>
+      {/* Full-Screen Procedural Ryuk + MSI GF63 ASCII Animation Overlay */}
+      <RyukAsciiOverlay isOpen={ryukActive} onComplete={handleRyukComplete} />
+
+      {/* 80ms Crimson Micro-Glitch Overlay (Clicks 10 to 14) */}
+      {crimsonGlitch && (
+        <div
+          className="fixed inset-0 pointer-events-none z-[99990]"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(255,17,43,0.18) 0%, rgba(5,5,8,0.05) 50%, rgba(255,17,43,0.22) 100%)",
+            mixBlendMode: "screen",
+            transform: "translateX(2px)"
+          }}
+        />
+      )}
+
       {/* Visual Click Binary Particles */}
       <div className="fixed inset-0 pointer-events-none z-[9998] overflow-hidden">
         {particles.map(p => (
@@ -227,7 +273,11 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
             animate={{ opacity: 0, scale: 0.5, y: -30 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
             style={{ left: p.x - 8, top: p.y - 12 }}
-            className="absolute text-xs font-mono font-bold text-primary select-none drop-shadow-[0_0_8px_hsl(var(--primary))]"
+            className={`absolute text-xs font-mono font-bold select-none ${
+              clickCount >= 10
+                ? "text-[#ff112b] drop-shadow-[0_0_8px_#ff112b]"
+                : "text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]"
+            }`}
           >
             {p.char}
           </motion.div>
@@ -250,44 +300,93 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
         )}
       </AnimatePresence>
 
-      {/* 15 Clicks: Speed Clicker Exploit Modal */}
+      {/* Subtle Shinigami Mode Active Badge once unlocked */}
+      <AnimatePresence>
+        {shinigamiDealUnlocked && !ryukActive && (
+          <motion.button
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 15 }}
+            onClick={() => {
+              pausedRef.current = true;
+              setRyukActive(true);
+            }}
+            title="Replay MSI GF63 // Ryuk Shinigami Eye Deal"
+            className="fixed bottom-4 left-4 z-[9990] hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#050508]/90 border border-[#ff112b]/60 text-[#f0f0f5] font-mono text-[10px] tracking-widest uppercase shadow-[0_0_20px_rgba(255,17,43,0.35)] hover:border-[#ff112b] hover:bg-[#ff112b]/15 transition-all cursor-pointer"
+          >
+            <span className="w-2 h-2 rounded-full bg-[#ff112b] shadow-[0_0_8px_#ff112b] animate-pulse" />
+            <span>SHINIGAMI EYES // MSI GF63</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* 15 Clicks: Death Note // Shinigami Realm Confirmation Modal */}
       <AnimatePresence>
         {showClickExploit && (
           <motion.div
-            initial={{ scale: 0.6, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.6, opacity: 0 }}
-            className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md font-mono"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={e => e.stopPropagation()}
+            style={{
+              backgroundColor: "rgba(5, 5, 8, 0.88)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)"
+            }}
+            className="fixed inset-0 z-[10001] flex items-center justify-center p-4"
           >
-            <div className="bg-[#050816] border-2 border-primary p-6 sm:p-8 rounded-3xl shadow-[0_0_80px_hsl(var(--primary)/0.5)] text-center max-w-sm w-full relative">
-              <div className="w-14 h-14 rounded-2xl bg-primary/15 border border-primary/40 text-primary mx-auto mb-4 flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
-                <Zap className="w-7 h-7 text-primary animate-pulse" />
+            <motion.div
+              initial={{ scale: 0.88, y: 16, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.88, y: 16, opacity: 0 }}
+              style={{
+                backgroundColor: "#050507",
+                border: "1px solid #ff112b",
+                boxShadow: "0 0 65px rgba(255, 17, 43, 0.35), inset 0 0 28px rgba(255, 17, 43, 0.08)"
+              }}
+              className="p-6 sm:p-8 rounded-2xl text-center max-w-md w-full relative overflow-hidden"
+            >
+              {/* Crimson Corner Accents */}
+              <div className="w-14 h-14 rounded-full bg-[#ff112b]/15 border border-[#ff112b]/60 text-[#ff112b] mx-auto mb-4 flex items-center justify-center shadow-[0_0_25px_rgba(255,17,43,0.45)]">
+                <Eye className="w-7 h-7 text-[#ff112b] animate-pulse" />
               </div>
-              <h3 className="text-xl font-black text-primary uppercase mb-2">
-                {hasClaimed ? "CLEARANCE LOGGED" : "CLICK EXPLOIT UNLOCKED"}
+
+              <div className="font-mono text-[10px] tracking-[0.28em] uppercase text-[#ff112b] mb-1.5">
+                MSI GF63 // 15-CLICK OVERCLOCK
+              </div>
+
+              <h3
+                style={{ fontFamily: "'Cinzel', 'Georgia', 'Times New Roman', serif" }}
+                className="text-xl sm:text-2xl font-black tracking-[0.14em] text-[#f0f0f5] uppercase mb-3 drop-shadow-[0_0_12px_rgba(255,17,43,0.5)]"
+              >
+                SHINIGAMI REALM DETECTED
               </h3>
-              <p className="text-foreground text-sm font-bold leading-relaxed mb-3">
-                &quot;Wow u good at clicking like me u clicked 15 times&quot;
+
+              <p className="text-[#f0f0f5]/90 text-sm leading-relaxed mb-2 font-serif italic">
+                &ldquo;You have knocked 15 times. Do you wish to make the Shinigami Eye Deal?&rdquo;
               </p>
-              <p className="text-muted-foreground text-xs mb-6">
-                {hasClaimed
-                  ? "[+] 15-CLICK FLEX RECORDED IN SYSTEM MEMORY"
-                  : "[+] Pointer Overclocking Detected · Zane Respect Level +100"}
+
+              <p className="text-[#686875] font-mono text-[11px] mb-6">
+                [+] &quot;Wow u good at clicking like me u clicked 15 times&quot; · Cookie &amp; Ryuk Sticker Construct Ready
               </p>
-              {!hasClaimed ? (
+
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
-                  onClick={claimExploit}
-                  className="w-full bg-primary text-background font-bold py-3 rounded-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_25px_hsl(var(--primary)/0.5)] cursor-pointer text-xs uppercase tracking-wider"
+                  type="button"
+                  onClick={makeShinigamiDeal}
+                  className="flex-1 py-3 px-4 rounded-xl bg-[#ff112b] hover:bg-[#ff2940] text-[#f0f0f5] font-mono font-bold text-xs uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_28px_rgba(255,17,43,0.55)] cursor-pointer"
                 >
-                  CLAIM_FLEX.exe
+                  [ Make the Deal (Confirm) ]
                 </button>
-              ) : (
-                <div className="text-primary font-bold text-xs flex items-center justify-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>FLEX CONFIRMED · BUFFER SECURED</span>
-                </div>
-              )}
-            </div>
+                <button
+                  type="button"
+                  onClick={stepBackCancel}
+                  className="py-3 px-4 rounded-xl bg-transparent hover:bg-white/5 border border-[#686875]/50 hover:border-[#f0f0f5]/60 text-[#686875] hover:text-[#f0f0f5] font-mono font-bold text-xs uppercase tracking-widest transition-all cursor-pointer"
+                >
+                  [ Step Back (Cancel) ]
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
