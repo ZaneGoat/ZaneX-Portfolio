@@ -171,8 +171,9 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
   }, [handleMotion, onOpenMatrixTakeover, requestMotionPermission]);
 
   // Click & Tap Counter with Binary Ripple Visuals & 10-14 Crimson Micro-Glitch
+  // Uses pointerdown so mobile phone taps register 1:1 without double-tap zoom coalescing
   useEffect(() => {
-    const handlePointerClick = (e: MouseEvent | TouchEvent) => {
+    const handlePointerClick = (e: PointerEvent | MouseEvent | TouchEvent) => {
       if (pausedRef.current) return;
 
       let clientX = 0;
@@ -218,8 +219,18 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
       });
     };
 
-    window.addEventListener("click", handlePointerClick);
-    return () => window.removeEventListener("click", handlePointerClick);
+    const handleOpenRyukModal = () => {
+      pausedRef.current = true;
+      sound.playSuccess();
+      setShowClickExploit(true);
+    };
+
+    window.addEventListener("pointerdown", handlePointerClick, { passive: true });
+    window.addEventListener("zanex:open-ryuk-deal", handleOpenRyukModal);
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerClick);
+      window.removeEventListener("zanex:open-ryuk-deal", handleOpenRyukModal);
+    };
   }, []);
 
   const makeShinigamiDeal = () => {
@@ -294,6 +305,7 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={e => e.stopPropagation()}
+            onPointerDown={e => e.stopPropagation()}
             style={{
               backgroundColor: "rgba(5, 5, 8, 0.88)",
               backdropFilter: "blur(8px)",
@@ -357,7 +369,7 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
         )}
       </AnimatePresence>
 
-      {/* Secret Hint Button (Floats at bottom right) */}
+      {/* Secret Hint Button (Desktop only so it never overlaps mobile Cyberdeck FAB) */}
       <AnimatePresence>
         {showSecretButton && (
           <motion.button
@@ -370,7 +382,7 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
               setShowSecretButton(false);
               setShowHint(true);
             }}
-            className="fixed bottom-6 right-6 bg-black/90 border-2 border-primary text-primary px-5 py-3 rounded-xl font-mono text-xs font-bold z-[9999] flex items-center gap-2 shadow-[0_0_30px_hsl(var(--primary)/0.6)] cursor-pointer"
+            className="hidden md:flex fixed bottom-6 right-6 bg-black/90 border-2 border-primary text-primary px-5 py-3 rounded-xl font-mono text-xs font-bold z-[9999] items-center gap-2 shadow-[0_0_30px_hsl(var(--primary)/0.6)] cursor-pointer"
           >
             <ShieldAlert className="w-4 h-4 text-primary animate-pulse" />
             <span>GET_HINT.txt</span>

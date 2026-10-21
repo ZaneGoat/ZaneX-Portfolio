@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Zap, Radio, Palette, Volume2, VolumeX, X, Cpu, Globe, ShieldAlert, Wind, UserCheck, Sparkles, Smartphone } from "lucide-react";
+import { Terminal, Zap, Radio, Palette, Volume2, VolumeX, X, Cpu, Globe, ShieldAlert, Wind, UserCheck, Sparkles, Smartphone, Eye } from "lucide-react";
 import { sound } from "@/lib/sound";
 import { usePersona } from "@/context/PersonaContext";
 
@@ -69,7 +69,10 @@ export const CyberdeckFAB = ({
   };
 
   return (
-    <div className={`fixed bottom-5 right-5 z-40 font-mono select-none ${forceShowOnDesktop ? "" : "md:hidden"}`}>
+    <div
+      onPointerDown={e => e.stopPropagation()}
+      className={`fixed bottom-5 right-5 z-40 font-mono select-none ${forceShowOnDesktop ? "" : "md:hidden"}`}
+    >
       {/* Backdrop for easy dismiss */}
       <AnimatePresence>
         {isOpen && (
@@ -247,6 +250,23 @@ export const CyberdeckFAB = ({
                   <span className="font-bold">Matrix Construct</span>
                 </div>
                 <span className="text-[10px] text-primary/60 font-mono">FX</span>
+              </button>
+
+              {/* Shinigami Eye Deal (Ryuk ASCII) */}
+              <button
+                onClick={() => {
+                  sound.playBoot();
+                  sound.haptic([60, 40, 80]);
+                  setIsOpen(false);
+                  window.dispatchEvent(new CustomEvent("zanex:open-ryuk-deal"));
+                }}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-[#ff112b]/15 border border-[#ff112b]/50 hover:bg-[#ff112b]/25 text-[#ff4d6d] active:scale-95 transition-all text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-[#ff112b] animate-pulse" />
+                  <span className="font-bold">Shinigami Eye Deal</span>
+                </div>
+                <span className="text-[10px] text-[#ff112b] font-mono">RYUK</span>
               </button>
             </div>
 

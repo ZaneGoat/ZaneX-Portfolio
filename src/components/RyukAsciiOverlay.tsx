@@ -7,8 +7,6 @@ interface RyukAsciiOverlayProps {
 
 const RAMP = " .'`^\",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
 const RAMP_LEN = RAMP.length;
-const CELL_W = 9;
-const CELL_H = 15;
 
 interface Star {
   x: number;
@@ -38,15 +36,505 @@ const easeInOutExpo = (x: number) => {
     : (2.0 - Math.pow(2.0, -20.0 * x + 10.0)) / 2.0;
 };
 
-// Point-to-segment distance in 2D
-const sdSegment = (px: number, py: number, ax: number, ay: number, bx: number, by: number) => {
-  const pax = px - ax;
-  const pay = py - ay;
-  const bax = bx - ax;
-  const bay = by - ay;
-  const h = clamp((pax * bax + pay * bay) / (bax * bax + bay * bay + 1e-6), 0.0, 1.0);
-  return Math.hypot(pax - bax * h, pay - bay * h);
-};
+/**
+ * Draws a high-contrast, anatomically detailed vector illustration of Ryuk's iconic Death Note
+ * sticker onto a 2D canvas in normalized [-1, 1] coordinates (where 0,0 is center).
+ */
+function drawDetailedRyukPortrait(
+  bctx: CanvasRenderingContext2D,
+  bw: number,
+  bh: number,
+  t: number,
+  blinkOpen: number,
+  shinigamiMix: number,
+  laughOpen: number,
+  zoom: number,
+  camCenterX: number,
+  camCenterY: number
+) {
+  bctx.save();
+  bctx.fillStyle = "#050507";
+  bctx.fillRect(0, 0, bw, bh);
+
+  const aspect = bw / Math.max(1, bh);
+  const normScale = aspect >= 1.0 ? 1.0 : 1.0 / Math.max(0.58, aspect);
+
+  // Map normalized world space (u, v) to buffer pixels (px, py)
+  // u = camCenterX + (nx * aspect * normScale) / zoom
+  // v = camCenterY + (ny * normScale) / zoom
+  bctx.translate(bw * 0.5, bh * 0.5);
+  const baseScaleX = (bw * 0.5) / (aspect * normScale);
+  const baseScaleY = (bh * 0.5) / normScale;
+  bctx.scale(baseScaleX * zoom, baseScaleY * zoom);
+  bctx.translate(-camCenterX, -camCenterY);
+
+  // Subtle breathing/chuckling head bob
+  const headBobY = -0.02 + Math.sin(t * 16.0) * 0.008 * (laughOpen / 0.06);
+  bctx.translate(0, headBobY);
+
+  // =========================================================================
+  // 0. RISING SHINIGAMI CRIMSON EMBERS IN BACKGROUND (Phase 2+)
+  // =========================================================================
+  if (shinigamiMix > 0.02) {
+    for (let i = 0; i < 28; i++) {
+      const seedA = Math.sin(i * 73.1 + 1.9) * 43758.5453;
+      const rx = ((seedA - Math.floor(seedA)) * 2.0 - 1.0) * 0.95;
+      const seedB = Math.cos(i * 41.7 + 3.3) * 23421.631;
+      const ryBase = (seedB - Math.floor(seedB)) * 2.0 - 1.0;
+      const ry = ((ryBase - t * (0.35 + (i % 5) * 0.08) + 3.0) % 2.0) - 1.0;
+      const rad = 0.014 + (i % 3) * 0.008;
+      bctx.fillStyle = i % 3 === 0 ? `rgba(255, 170, 0, ${0.75 * shinigamiMix})` : `rgba(255, 17, 43, ${0.85 * shinigamiMix})`;
+      bctx.beginPath();
+      bctx.arc(rx, ry, rad, 0, Math.PI * 2);
+      bctx.fill();
+    }
+  }
+
+  // Hair spike coordinates [tipX, tipY, baseLeftX, baseLeftY, baseRightX, baseRightY]
+  const hairSpikes: [number, number, number, number, number, number][] = [
+    // Left lower wild spikes
+    [-0.78, -0.02, -0.40, 0.06, -0.42, -0.10],
+    [-0.86, -0.18, -0.41, -0.04, -0.42, -0.22],
+    [-0.92, -0.36, -0.42, -0.16, -0.40, -0.34],
+    [-0.88, -0.56, -0.40, -0.28, -0.34, -0.44],
+    [-0.76, -0.74, -0.36, -0.38, -0.26, -0.50],
+    [-0.58, -0.89, -0.28, -0.44, -0.15, -0.54],
+    [-0.36, -0.98, -0.18, -0.48, -0.05, -0.55],
+    [-0.14, -1.03, -0.08, -0.50, 0.04, -0.55],
+    // Center crown tall spikes
+    [0.02, -1.05, -0.04, -0.52, 0.08, -0.52],
+    [0.18, -1.01, 0.04, -0.55, 0.16, -0.48],
+    [0.39, -0.96, 0.12, -0.52, 0.25, -0.45],
+    [0.60, -0.87, 0.22, -0.48, 0.34, -0.40],
+    [0.78, -0.72, 0.28, -0.44, 0.38, -0.32],
+    [0.90, -0.54, 0.34, -0.38, 0.41, -0.22],
+    [0.93, -0.34, 0.38, -0.28, 0.42, -0.12],
+    [0.85, -0.16, 0.40, -0.18, 0.41, -0.02],
+    [0.76, 0.00, 0.41, -0.08, 0.39, 0.08],
+  ];
+
+  // Feathered shoulder collar spikes framing the jaw
+  const collarSpikes: [number, number, number, number, number, number][] = [
+    [-0.72, 0.32, -0.34, 0.18, -0.30, 0.38],
+    [-0.78, 0.50, -0.32, 0.30, -0.26, 0.52],
+    [-0.68, 0.68, -0.28, 0.44, -0.20, 0.66],
+    [-0.52, 0.84, -0.24, 0.56, -0.12, 0.78],
+    [0.72, 0.32, 0.34, 0.18, 0.30, 0.38],
+    [0.78, 0.50, 0.32, 0.30, 0.26, 0.52],
+    [0.68, 0.68, 0.28, 0.44, 0.20, 0.66],
+    [0.52, 0.84, 0.24, 0.56, 0.12, 0.78],
+  ];
+
+  const traceFullSilhouette = () => {
+    bctx.beginPath();
+    for (const [tx, ty, lx, ly, rx, ry] of hairSpikes) {
+      bctx.moveTo(lx, ly);
+      bctx.lineTo(tx, ty);
+      bctx.lineTo(rx, ry);
+      bctx.closePath();
+    }
+    for (const [tx, ty, lx, ly, rx, ry] of collarSpikes) {
+      bctx.moveTo(lx, ly);
+      bctx.lineTo(tx, ty);
+      bctx.lineTo(rx, ry);
+      bctx.closePath();
+    }
+    // Central hair dome
+    bctx.moveTo(-0.44, -0.05);
+    bctx.bezierCurveTo(-0.48, -0.45, -0.25, -0.64, 0.0, -0.64);
+    bctx.bezierCurveTo(0.25, -0.64, 0.48, -0.45, 0.44, -0.05);
+    bctx.closePath();
+
+    // Neck & lower jaw base
+    bctx.moveTo(-0.30, 0.32);
+    bctx.lineTo(-0.22, 0.82);
+    bctx.lineTo(0.0, 0.90);
+    bctx.lineTo(0.22, 0.82);
+    bctx.lineTo(0.30, 0.32);
+    bctx.closePath();
+  };
+
+  // =========================================================================
+  // 1. THICK CHALK-WHITE DIE-CUT STICKER BORDER AROUND SILHOUETTE
+  // =========================================================================
+  bctx.lineJoin = "round";
+  bctx.lineCap = "round";
+  traceFullSilhouette();
+  bctx.strokeStyle = "#f2f2f8";
+  bctx.lineWidth = 0.075;
+  bctx.stroke();
+
+  // Inner black border inside the white sticker cutline
+  bctx.strokeStyle = "#08080c";
+  bctx.lineWidth = 0.025;
+  bctx.stroke();
+
+  // =========================================================================
+  // 2. SPIKY BLACK PINEAPPLE HAIR & FEATHER COLLAR WITH MANGA SHADING
+  // =========================================================================
+  // Draw collar feathers
+  for (const [tx, ty, lx, ly, rx, ry] of collarSpikes) {
+    bctx.beginPath();
+    bctx.moveTo(lx, ly);
+    bctx.lineTo(tx, ty);
+    bctx.lineTo(rx, ry);
+    bctx.closePath();
+    bctx.fillStyle = "#181822";
+    bctx.fill();
+    // Ash-gray ridge highlight along each feather spike so ASCII characters render its shape
+    bctx.beginPath();
+    bctx.moveTo((lx + rx) * 0.5, (ly + ry) * 0.5);
+    bctx.lineTo(tx, ty);
+    bctx.strokeStyle = "#525264";
+    bctx.lineWidth = 0.018;
+    bctx.stroke();
+  }
+
+  // Draw hair spikes with individual 3D ridge highlights
+  for (const [tx, ty, lx, ly, rx, ry] of hairSpikes) {
+    bctx.beginPath();
+    bctx.moveTo(lx, ly);
+    bctx.lineTo(tx, ty);
+    bctx.lineTo(rx, ry);
+    bctx.closePath();
+    bctx.fillStyle = "#14141c";
+    bctx.fill();
+
+    // Inner ash-gray manga sheen along spike center line
+    bctx.beginPath();
+    bctx.moveTo(lx * 0.65 + rx * 0.35, ly * 0.65 + ry * 0.35);
+    bctx.lineTo(tx, ty);
+    bctx.strokeStyle = "#626276";
+    bctx.lineWidth = 0.022;
+    bctx.stroke();
+
+    // Crisp dark separator between spikes
+    bctx.beginPath();
+    bctx.moveTo(lx, ly);
+    bctx.lineTo(tx, ty);
+    bctx.lineTo(rx, ry);
+    bctx.strokeStyle = "#060609";
+    bctx.lineWidth = 0.012;
+    bctx.stroke();
+  }
+
+  // Central Hair Mass
+  bctx.beginPath();
+  bctx.moveTo(-0.44, -0.02);
+  bctx.bezierCurveTo(-0.48, -0.45, -0.25, -0.62, 0.0, -0.62);
+  bctx.bezierCurveTo(0.25, -0.62, 0.48, -0.45, 0.44, -0.02);
+  bctx.closePath();
+  bctx.fillStyle = "#12121a";
+  bctx.fill();
+
+  // =========================================================================
+  // 3. ICONIC JAGGED WHITE ZIG-ZAG HIGHLIGHT BAND ACROSS UPPER HAIR
+  // =========================================================================
+  bctx.beginPath();
+  const zigPoints: [number, number][] = [
+    [-0.64, -0.44],
+    [-0.50, -0.62],
+    [-0.38, -0.48],
+    [-0.26, -0.68],
+    [-0.13, -0.52],
+    [0.0, -0.72],
+    [0.13, -0.52],
+    [0.26, -0.68],
+    [0.38, -0.48],
+    [0.50, -0.62],
+    [0.64, -0.44],
+    // Lower edge of zig-zag band
+    [0.52, -0.36],
+    [0.39, -0.51],
+    [0.26, -0.39],
+    [0.13, -0.56],
+    [0.0, -0.43],
+    [-0.13, -0.56],
+    [-0.26, -0.39],
+    [-0.39, -0.51],
+    [-0.52, -0.36],
+  ];
+  bctx.moveTo(zigPoints[0][0], zigPoints[0][1]);
+  for (let i = 1; i < zigPoints.length; i++) {
+    bctx.lineTo(zigPoints[i][0], zigPoints[i][1]);
+  }
+  bctx.closePath();
+  bctx.fillStyle = "#f4f4fa";
+  bctx.fill();
+
+  // =========================================================================
+  // 4. GAUNT SKULL, WIDOW'S PEAK, CHEEKBONES & ELONGATED POINTED CHIN
+  // =========================================================================
+  const chinDrop = laughOpen;
+  const traceFacePath = () => {
+    bctx.beginPath();
+    // Start at Widow's Peak center V-dip on forehead
+    bctx.moveTo(0.0, -0.29);
+    // Right forehead arch up into temple
+    bctx.bezierCurveTo(0.10, -0.43, 0.29, -0.42, 0.37, -0.26);
+    // Right brow & flaring zygomatic cheekbone
+    bctx.bezierCurveTo(0.41, -0.14, 0.44, -0.02, 0.41, 0.09);
+    // Gaunt hollow indentation below cheekbone
+    bctx.bezierCurveTo(0.37, 0.19, 0.30, 0.28, 0.26, 0.40 + chinDrop * 0.6);
+    // Narrow elongated jaw tapering to pointed chin
+    bctx.bezierCurveTo(0.21, 0.56 + chinDrop, 0.10, 0.72 + chinDrop, 0.0, 0.77 + chinDrop);
+    // Left jaw tapering up
+    bctx.bezierCurveTo(-0.10, 0.72 + chinDrop, -0.21, 0.56 + chinDrop, -0.26, 0.40 + chinDrop * 0.6);
+    // Left hollow cheek indentation
+    bctx.bezierCurveTo(-0.30, 0.28, -0.37, 0.19, -0.41, 0.09);
+    // Left flaring cheekbone & temple
+    bctx.bezierCurveTo(-0.44, -0.02, -0.41, -0.14, -0.37, -0.26);
+    // Left forehead arch back to Widow's Peak
+    bctx.bezierCurveTo(-0.29, -0.42, -0.10, -0.43, 0.0, -0.29);
+    bctx.closePath();
+  };
+
+  // Fill face with bright chalk-white manga tone
+  traceFacePath();
+  bctx.fillStyle = "#ededf5";
+  bctx.fill();
+  bctx.lineWidth = 0.026;
+  bctx.strokeStyle = "#08080c";
+  bctx.stroke();
+
+  // Ash-gray gaunt cheekbone & temple shadows (left & right)
+  bctx.fillStyle = "#8a8a9c";
+  // Left cheek hollow
+  bctx.beginPath();
+  bctx.moveTo(-0.39, 0.05);
+  bctx.bezierCurveTo(-0.31, 0.10, -0.27, 0.22, -0.24, 0.38 + chinDrop * 0.5);
+  bctx.bezierCurveTo(-0.29, 0.30, -0.35, 0.20, -0.39, 0.05);
+  bctx.fill();
+  // Right cheek hollow
+  bctx.beginPath();
+  bctx.moveTo(0.39, 0.05);
+  bctx.bezierCurveTo(0.31, 0.10, 0.27, 0.22, 0.24, 0.38 + chinDrop * 0.5);
+  bctx.bezierCurveTo(0.29, 0.30, 0.35, 0.20, 0.39, 0.05);
+  bctx.fill();
+
+  // Temple & lower jaw ash-gray shading bands for 3D skull volume
+  bctx.strokeStyle = "#78788a";
+  bctx.lineWidth = 0.022;
+  bctx.beginPath();
+  bctx.moveTo(-0.34, -0.24);
+  bctx.quadraticCurveTo(-0.38, -0.10, -0.35, 0.02);
+  bctx.moveTo(0.34, -0.24);
+  bctx.quadraticCurveTo(0.38, -0.10, 0.35, 0.02);
+  bctx.stroke();
+
+  // =========================================================================
+  // 5. HEAVY FURROWED V-BROWS & FOREHEAD WRINKLES
+  // =========================================================================
+  bctx.strokeStyle = "#09090e";
+  bctx.lineWidth = 0.032;
+  bctx.beginPath();
+  // Left heavy angled brow ridge
+  bctx.moveTo(-0.04, -0.13);
+  bctx.quadraticCurveTo(-0.18, -0.25, -0.35, -0.19);
+  // Right heavy angled brow ridge
+  bctx.moveTo(0.04, -0.13);
+  bctx.quadraticCurveTo(0.18, -0.25, 0.35, -0.19);
+  bctx.stroke();
+
+  // Furrowed forehead V-wrinkles between brows
+  bctx.lineWidth = 0.016;
+  bctx.beginPath();
+  bctx.moveTo(-0.12, -0.26);
+  bctx.quadraticCurveTo(0.0, -0.21, 0.12, -0.26);
+  bctx.moveTo(-0.09, -0.31);
+  bctx.quadraticCurveTo(0.0, -0.27, 0.09, -0.31);
+  bctx.stroke();
+
+  // =========================================================================
+  // 6. SKELETAL NOSE BRIDGE & TWIN UPTURNED SKULL NOSTRILS
+  // =========================================================================
+  bctx.strokeStyle = "#14141d";
+  bctx.lineWidth = 0.016;
+  bctx.beginPath();
+  bctx.moveTo(-0.025, -0.11);
+  bctx.lineTo(-0.038, 0.06);
+  bctx.moveTo(0.025, -0.11);
+  bctx.lineTo(0.038, 0.06);
+  bctx.stroke();
+
+  // Twin dark skull nostril slits
+  bctx.fillStyle = "#08080c";
+  bctx.beginPath();
+  bctx.ellipse(-0.032, 0.085, 0.018, 0.032, -0.25, 0, Math.PI * 2);
+  bctx.ellipse(0.032, 0.085, 0.018, 0.032, 0.25, 0, Math.PI * 2);
+  bctx.fill();
+
+  // =========================================================================
+  // 7. BULGING SHINIGAMI EYES (WITH DOUBLE BLINK & CRIMSON/GOLD IGNITION)
+  // =========================================================================
+  const eyeCenters: [number, number][] = [
+    [-0.185, -0.055],
+    [0.185, -0.055],
+  ];
+
+  for (const [ex, ey] of eyeCenters) {
+    // Dark sunken gothic eye socket ring
+    bctx.beginPath();
+    bctx.ellipse(ex, ey, 0.132, 0.112, 0, 0, Math.PI * 2);
+    bctx.fillStyle = "#08080d";
+    bctx.fill();
+
+    // Under-eye skeletal bag line
+    bctx.beginPath();
+    bctx.arc(ex, ey + 0.01, 0.145, 0.25, Math.PI - 0.25);
+    bctx.strokeStyle = "#3a3a48";
+    bctx.lineWidth = 0.014;
+    bctx.stroke();
+
+    // Eyeball aperture (vertical radius scales with blinkOpen)
+    const openH = Math.max(0.006, 0.088 * blinkOpen);
+    bctx.save();
+    bctx.beginPath();
+    bctx.ellipse(ex, ey, 0.106, openH, 0, 0, Math.PI * 2);
+    bctx.clip();
+
+    if (blinkOpen > 0.08) {
+      // Sclera fill (chalk-white in Phase 1, deep blood-crimson tint in Phase 2+)
+      const scR = Math.round(mix(242, 185, shinigamiMix * 0.45));
+      const scG = Math.round(mix(242, 28, shinigamiMix * 0.75));
+      const scB = Math.round(mix(248, 45, shinigamiMix * 0.75));
+      bctx.fillStyle = `rgb(${scR},${scG},${scB})`;
+      bctx.fillRect(ex - 0.12, ey - 0.12, 0.24, 0.24);
+
+      if (shinigamiMix < 0.05) {
+        // Phase 1: Eerie Death Note sticker blank eyes with small dark iris ring & pinpoint pupil
+        bctx.beginPath();
+        bctx.arc(ex, ey, 0.042, 0, Math.PI * 2);
+        bctx.strokeStyle = "#22222c";
+        bctx.lineWidth = 0.015;
+        bctx.stroke();
+
+        bctx.beginPath();
+        bctx.arc(ex, ey, 0.018, 0, Math.PI * 2);
+        bctx.fillStyle = "#050507";
+        bctx.fill();
+      } else {
+        // Phase 2+: Blazing Shinigami Eyes (Crimson #ff112b outer iris + Gold #ffaa00 inner ring + Black pupil)
+        // Outer Crimson Iris
+        bctx.beginPath();
+        bctx.arc(ex, ey, 0.078, 0, Math.PI * 2);
+        bctx.fillStyle = "#ff112b";
+        bctx.fill();
+
+        // Glowing Amber-Gold Inner Ring
+        bctx.beginPath();
+        bctx.arc(ex, ey, 0.052, 0, Math.PI * 2);
+        bctx.fillStyle = "#ffaa00";
+        bctx.fill();
+
+        // Radial iris spokes
+        bctx.strokeStyle = "#ff112b";
+        bctx.lineWidth = 0.008;
+        for (let s = 0; s < 12; s++) {
+          const ang = (s / 12) * Math.PI * 2 + t * 1.5;
+          bctx.beginPath();
+          bctx.moveTo(ex + Math.cos(ang) * 0.024, ey + Math.sin(ang) * 0.024);
+          bctx.lineTo(ex + Math.cos(ang) * 0.076, ey + Math.sin(ang) * 0.076);
+          bctx.stroke();
+        }
+
+        // Pitch-black pupil singularity
+        bctx.beginPath();
+        bctx.arc(ex, ey, 0.026, 0, Math.PI * 2);
+        bctx.fillStyle = "#050507";
+        bctx.fill();
+
+        // Bright white specular catchlight
+        bctx.beginPath();
+        bctx.arc(ex - 0.022, ey - 0.022, 0.012, 0, Math.PI * 2);
+        bctx.fillStyle = "#ffffff";
+        bctx.fill();
+      }
+    } else {
+      // Closed eyelid crease line
+      bctx.fillStyle = "#181822";
+      bctx.fillRect(ex - 0.12, ey - 0.12, 0.24, 0.24);
+    }
+    bctx.restore();
+  }
+
+  // =========================================================================
+  // 8. MACABRE EAR-TO-EAR GRIN WITH INDIVIDUAL POINTED TEETH
+  // =========================================================================
+  const mouthTopY = 0.24;
+  const mouthBotY = 0.42 + chinDrop * 1.15;
+
+  // Outer black mouth cavity stretching ear-to-ear up toward the cheekbones
+  bctx.beginPath();
+  bctx.moveTo(-0.34, 0.15);
+  bctx.quadraticCurveTo(0.0, mouthTopY + 0.08, 0.34, 0.15);
+  bctx.quadraticCurveTo(0.0, mouthBotY + 0.12, -0.34, 0.15);
+  bctx.closePath();
+  bctx.fillStyle = "#07070b";
+  bctx.fill();
+  bctx.lineWidth = 0.022;
+  bctx.strokeStyle = "#050507";
+  bctx.stroke();
+
+  // Stitched corner smile scars at left & right cheek corners
+  bctx.lineWidth = 0.015;
+  bctx.strokeStyle = "#101018";
+  bctx.beginPath();
+  bctx.moveTo(-0.34, 0.15);
+  bctx.lineTo(-0.38, 0.10);
+  bctx.moveTo(-0.35, 0.18);
+  bctx.lineTo(-0.31, 0.11);
+  bctx.moveTo(0.34, 0.15);
+  bctx.lineTo(0.38, 0.10);
+  bctx.moveTo(0.35, 0.18);
+  bctx.lineTo(0.31, 0.11);
+  bctx.stroke();
+
+  // Draw individual high-contrast upper & lower teeth inside the grin!
+  const numTeeth = 11;
+  for (let i = 0; i < numTeeth; i++) {
+    const frac = (i / (numTeeth - 1)) * 2.0 - 1.0; // -1 to +1
+    const tx = frac * 0.27;
+    const archFactor = 1.0 - frac * frac;
+    const toothHalfW = 0.019 * (0.65 + 0.35 * archFactor);
+
+    const upperY = 0.15 + (mouthTopY - 0.10) * archFactor;
+    const lowerY = 0.15 + (mouthBotY - 0.06) * archFactor;
+    const midY = (upperY + lowerY) * 0.5;
+    const jawGap = (0.008 + chinDrop * 0.45) * archFactor;
+
+    // Upper tooth (chalk white)
+    bctx.fillStyle = "#f4f4fa";
+    bctx.beginPath();
+    bctx.moveTo(tx - toothHalfW, upperY);
+    bctx.lineTo(tx + toothHalfW, upperY);
+    bctx.lineTo(tx + toothHalfW * 0.75, midY - jawGap);
+    bctx.lineTo(tx - toothHalfW * 0.75, midY - jawGap);
+    bctx.closePath();
+    bctx.fill();
+
+    // Lower tooth (chalk white)
+    bctx.beginPath();
+    bctx.moveTo(tx - toothHalfW, lowerY);
+    bctx.lineTo(tx + toothHalfW, lowerY);
+    bctx.lineTo(tx + toothHalfW * 0.75, midY + jawGap);
+    bctx.lineTo(tx - toothHalfW * 0.75, midY + jawGap);
+    bctx.closePath();
+    bctx.fill();
+  }
+
+  // Pointed chin cleft lines
+  bctx.strokeStyle = "#525264";
+  bctx.lineWidth = 0.015;
+  bctx.beginPath();
+  bctx.moveTo(-0.05, 0.54 + chinDrop);
+  bctx.quadraticCurveTo(0.0, 0.50 + chinDrop, 0.05, 0.54 + chinDrop);
+  bctx.moveTo(0.0, 0.58 + chinDrop);
+  bctx.lineTo(0.0, 0.70 + chinDrop);
+  bctx.stroke();
+
+  bctx.restore();
+}
 
 export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
   isOpen,
@@ -89,6 +577,10 @@ export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
       return;
     }
 
+    // Offscreen sampling canvas (1 pixel per ASCII cell) for razor-sharp Ryuk portrait details
+    const offCanvas = document.createElement("canvas");
+    const offCtx = offCanvas.getContext("2d", { willReadFrequently: true });
+
     // Deterministic stars for Phase 3 Shinigami Space
     const stars: Star[] = [];
     let seed = 77713;
@@ -111,6 +603,8 @@ export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
 
     let width = 0;
     let height = 0;
+    let cellW = 7;
+    let cellH = 12;
     let cols = 0;
     let rows = 0;
     let aspect = 1;
@@ -122,23 +616,38 @@ export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
       height = window.innerHeight;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
+      // High-density cell size on mobile phones so Ryuk's facial details are crystal clear!
+      if (width < 640) {
+        cellW = 5;
+        cellH = 8;
+      } else if (width < 1024) {
+        cellW = 6;
+        cellH = 10;
+      } else {
+        cellW = 7;
+        cellH = 12;
+      }
+
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.font = `bold ${CELL_H - 2}px 'Consolas', 'Courier New', monospace`;
+      ctx.font = `bold ${cellH - 1}px 'Consolas', 'Courier New', monospace`;
       ctx.textBaseline = "top";
 
-      cols = Math.max(20, Math.ceil(width / CELL_W));
-      rows = Math.max(15, Math.ceil(height / CELL_H));
+      cols = Math.max(30, Math.ceil(width / cellW));
+      rows = Math.max(25, Math.ceil(height / cellH));
       aspect = width / Math.max(1, height);
+
+      offCanvas.width = cols;
+      offCanvas.height = rows;
 
       uCoords = new Float32Array(cols);
       vCoords = new Float32Array(rows);
 
-      const normScale = aspect >= 1.0 ? 1.0 : 1.0 / Math.max(0.55, aspect);
+      const normScale = aspect >= 1.0 ? 1.0 : 1.0 / Math.max(0.58, aspect);
       for (let c = 0; c < cols; c++) {
         const nx = ((c + 0.5) / cols) * 2.0 - 1.0;
         uCoords[c] = nx * aspect * normScale;
@@ -160,456 +669,11 @@ export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
     };
     window.addEventListener("keydown", onKeyDown);
 
-    const laptopOut = { r: 0, g: 0, b: 0, lum: 0 };
-    const ryukOut = { r: 0, g: 0, b: 0, lum: 0 };
     const spaceOut = { r: 0, g: 0, b: 0, lum: 0 };
 
     /**
-     * Phase 0: MSI GF63 Thin Laptop Opening in 3D Perspective (0.0s -> 1.4s)
-     * Renders a red-backlit gaming keyboard deck + opening screen lid with a glowing Ryuk sticker
-     * that zooms toward the camera.
-     */
-    const evaluateMsiLaptop = (u: number, v: number, t: number) => {
-      const openProg = clamp(t / 1.15, 0.0, 1.0);
-      const lidEase = easeInOutCubic(openProg);
-      // Camera zooms into the laptop screen as it opens
-      const camZoom = 1.0 + smoothstep(0.45, 1.35, t) * 2.4;
-      const lu = u / camZoom;
-      const lv = (v - 0.08) / camZoom;
-
-      let rr = 5;
-      let gg = 5;
-      let bb = 8;
-      let lum = 0.0;
-
-      // Hinge line at lv = 0.18
-      const hingeY = 0.18;
-
-      // 1. Lower Keyboard Deck (3D trapezoid projecting forward: lv from 0.18 to 0.56)
-      if (lv >= hingeY && lv <= 0.56) {
-        const deckDepth = (lv - hingeY) / (0.56 - hingeY); // 0 at hinge, 1 at front lip
-        const halfWidth = mix(0.52, 0.78, deckDepth);
-        if (Math.abs(lu) <= halfWidth) {
-          const edgeDist = Math.min(halfWidth - Math.abs(lu), Math.min(lv - hingeY, 0.56 - lv));
-          const chassisBorder = smoothstep(0.025, 0.0, edgeDist);
-
-          // Red backlit MSI keyboard matrix (deckDepth 0.12 to 0.68)
-          if (deckDepth > 0.12 && deckDepth < 0.68 && Math.abs(lu) < halfWidth * 0.84) {
-            const keyCol = Math.sin((lu / halfWidth) * 44.0);
-            const keyRow = Math.sin(deckDepth * 26.0);
-            const isKeyGap = keyCol > 0.55 || keyRow > 0.55;
-            const redGlow = 0.55 + 0.45 * Math.sin(t * 10.0 + lu * 6.0);
-            if (isKeyGap) {
-              rr = 255;
-              gg = 22;
-              bb = 48;
-              lum = 0.68 * redGlow;
-            } else {
-              rr = 35;
-              gg = 14;
-              bb = 20;
-              lum = 0.22;
-            }
-          } else {
-            // Brushed black aluminum palmrest & touchpad
-            const isTouchpad = deckDepth > 0.72 && deckDepth < 0.94 && Math.abs(lu) < 0.14;
-            rr = isTouchpad ? 45 : 24;
-            gg = isTouchpad ? 20 : 24;
-            bb = isTouchpad ? 28 : 32;
-            lum = isTouchpad ? 0.25 : 0.14;
-          }
-
-          if (chassisBorder > 0.1) {
-            rr = mix(rr, 255, chassisBorder);
-            gg = mix(gg, 25, chassisBorder);
-            bb = mix(bb, 50, chassisBorder);
-            lum = Math.max(lum, chassisBorder * 0.85);
-          }
-        }
-      }
-
-      // 2. Opening Laptop Lid (projects upward from hingeY based on lidEase)
-      const lidHeight = mix(0.05, 0.66, lidEase);
-      const lidTopY = hingeY - lidHeight;
-      if (lv <= hingeY && lv >= lidTopY) {
-        const lidV = (hingeY - lv) / Math.max(0.04, lidHeight); // 0 at hinge, 1 at top bezel
-        // Slight perspective foreshortening as lid swings open
-        const halfWidth = mix(0.52, mix(0.38, 0.54, lidEase), lidV);
-        if (Math.abs(lu) <= halfWidth) {
-          const bezelX = halfWidth - Math.abs(lu);
-          const bezelY = Math.min(lv - lidTopY, hingeY - lv);
-          const bezel = smoothstep(0.025, 0.0, Math.min(bezelX, bezelY));
-
-          // Center of screen has the glowing Ryuk / MSI emblem waking up
-          const sx = lu / (halfWidth * 0.85);
-          const sy = (lidV - 0.52) * 1.9;
-          const emblemR = Math.hypot(sx, sy);
-
-          if (emblemR < 0.55) {
-            // Mini Ryuk sticker silhouette glowing on the MSI screen/lid
-            const eyeL = Math.hypot(sx + 0.16, sy + 0.04);
-            const eyeR = Math.hypot(sx - 0.16, sy + 0.04);
-            const eyesGlow = Math.exp(-eyeL * eyeL * 180.0) + Math.exp(-eyeR * eyeR * 180.0);
-            const skull = smoothstep(0.48, 0.18, emblemR);
-            rr = mix(30, 255, clamp(eyesGlow + skull * 0.35, 0.0, 1.0));
-            gg = mix(10, 40, clamp(eyesGlow * 0.5, 0.0, 1.0));
-            bb = mix(18, 60, clamp(eyesGlow * 0.5, 0.0, 1.0));
-            lum = clamp(0.25 + skull * 0.45 + eyesGlow * 0.65, 0.1, 1.0);
-          } else {
-            // Screen scanlines
-            const scan = 0.5 + 0.5 * Math.sin(lidV * 50.0 - t * 25.0);
-            rr = 18 + 30 * scan;
-            gg = 12 + 10 * scan;
-            bb = 22 + 16 * scan;
-            lum = 0.12 + 0.12 * scan;
-          }
-
-          if (bezel > 0.05) {
-            rr = mix(rr, 240, bezel);
-            gg = mix(gg, 240, bezel);
-            bb = mix(bb, 250, bezel);
-            lum = Math.max(lum, bezel * 0.9);
-          }
-        }
-      }
-
-      laptopOut.r = rr;
-      laptopOut.g = gg;
-      laptopOut.b = bb;
-      laptopOut.lum = lum;
-    };
-
-    /**
-     * Procedural Subject: Ryuk High-Contrast Manga Sticker Portrait
-     * Evaluates Ryuk at normalized coordinates (u, v)
-     */
-    const evaluateRyukSticker = (
-      u: number,
-      v: number,
-      t: number,
-      blinkOpen: number,
-      shinigamiMix: number,
-      laughOffset: number
-    ) => {
-      // Shift v slightly so hair crown and pointed chin fit nicely in [-1, 1]
-      const x = u * 1.05;
-      const y = v * 1.05 - 0.04;
-
-      const ax = Math.abs(x);
-
-      // 1. Spiky Hair Crown (radial pineapple-like spikes in upper hemisphere)
-      let hairDist = 999.0;
-      if (y < 0.22) {
-        const hx = x;
-        const hy = y + 0.18;
-        const hr = Math.hypot(hx * 0.88, hy);
-        const hang = Math.atan2(hy, hx); // -PI to 0 is upper half
-        if (hang < 0.25 && hang > -Math.PI - 0.25) {
-          const spike1 = Math.pow(Math.abs(Math.sin(hang * 6.5)), 0.55) * 0.34;
-          const spike2 = Math.pow(Math.abs(Math.cos(hang * 11.0 + 0.4)), 0.7) * 0.16;
-          const crownSideBoost = smoothstep(0.0, -1.35, hang) * smoothstep(-3.14, -1.75, hang);
-          const maxR = 0.44 + spike1 + spike2 + 0.08 * crownSideBoost;
-          hairDist = hr - maxR;
-        }
-      }
-
-      // 2. Gaunt Skull, Cheekbones & Elongated Pointed Chin
-      const jawShiftY = y > 0.12 ? y - laughOffset : y;
-      let headHalfW = 0.0;
-      if (jawShiftY < -0.15) {
-        // Forehead / cranium
-        headHalfW = 0.40 * Math.sqrt(Math.max(0.0, 1.0 - Math.pow((jawShiftY + 0.15) / 0.42, 2.0)));
-      } else if (jawShiftY < 0.08) {
-        // Bulging temple / cheekbone flare
-        const ct = (jawShiftY + 0.15) / 0.23;
-        headHalfW = 0.40 + 0.045 * Math.sin(ct * Math.PI);
-      } else if (jawShiftY < 0.34) {
-        // Hollow gaunt cheeks indenting inward
-        const ct = (jawShiftY - 0.08) / 0.26;
-        headHalfW = mix(0.40, 0.25, ct) - 0.038 * Math.sin(ct * Math.PI);
-      } else if (jawShiftY <= 0.74) {
-        // Narrow elongated pointed chin
-        const ct = (jawShiftY - 0.34) / 0.40;
-        headHalfW = 0.25 * (1.0 - Math.pow(ct, 0.88));
-      }
-
-      const inHeadY = jawShiftY >= -0.52 && jawShiftY <= 0.74;
-      const faceDist = inHeadY ? ax - headHalfW : Math.hypot(ax, jawShiftY < -0.52 ? jawShiftY + 0.52 : jawShiftY - 0.74);
-
-      // Feather/collar spikes flanking the lower neck
-      let collarDist = 999.0;
-      if (y > 0.18 && y < 0.72 && ax > 0.20) {
-        const cy = y - 0.44;
-        const cang = Math.atan2(cy, ax - 0.18);
-        const cRad = Math.hypot((ax - 0.18) * 0.85, cy);
-        const featherSpike = 0.36 + 0.18 * Math.abs(Math.sin(cang * 8.0));
-        collarDist = cRad - featherSpike;
-      }
-
-      const silhouetteDist = Math.min(hairDist, Math.min(faceDist, collarDist));
-
-      // White Sticker Outer Contour around entire silhouette
-      if (silhouetteDist > 0.0) {
-        if (silhouetteDist < 0.055) {
-          // Crisp chalk-white die-cut sticker border
-          const edge = smoothstep(0.055, 0.035, silhouetteDist);
-          ryukOut.r = 240 * edge;
-          ryukOut.g = 240 * edge;
-          ryukOut.b = 245 * edge;
-          ryukOut.lum = 0.94 * edge;
-          return;
-        }
-        // Outside sticker: dark void with rising crimson Shinigami embers in Phase 2+
-        let emberLum = 0.0;
-        if (shinigamiMix > 0.01) {
-          const ex = Math.sin(u * 14.0 + Math.sin(v * 8.0 + t * 2.5));
-          const ey = Math.cos(v * 12.0 + t * 4.2 + u * 5.0);
-          const ember = Math.max(0.0, ex * ey - 0.72) * 3.5 * shinigamiMix;
-          emberLum = clamp(ember, 0.0, 0.85);
-        }
-        ryukOut.r = mix(5, 255, emberLum);
-        ryukOut.g = mix(5, 17, emberLum);
-        ryukOut.b = mix(7, 43, emberLum);
-        ryukOut.lum = emberLum * 0.75;
-        return;
-      }
-
-      // Inside Silhouette! Determine whether we are in Face or Hair/Collar
-      // Widow's peak V-shaped hairline at top of forehead
-      const hairlineY = -0.34 + 0.15 * (1.0 - clamp(ax / 0.24, 0.0, 1.0)) + 0.08 * Math.pow(ax / 0.4, 2.0);
-      const isFace = faceDist <= 0.0 && jawShiftY > hairlineY;
-
-      if (!isFace) {
-        // Inside spiky black hair or feathered collar
-        // White Zig-Zag Highlight Band cutting across the upper hair spikes
-        const zigY = -0.50 + 0.085 * Math.abs(((x * 7.5 + 10.0) % 2.0) - 1.0) + 0.12 * x * x;
-        const dZig = Math.abs(y - zigY);
-        const inZigDomain = ax < 0.58 && y < -0.30 && y > -0.72;
-
-        if (inZigDomain && dZig < 0.038) {
-          // Stark chalk-white zig-zag highlight band
-          ryukOut.r = 242;
-          ryukOut.g = 242;
-          ryukOut.b = 248;
-          ryukOut.lum = 0.95;
-          return;
-        }
-
-        // Subtle inner hair strand striations so ASCII characters give texture to the black spikes
-        const strand = Math.sin(Math.atan2(y + 0.15, x) * 28.0);
-        const strandLum = 0.07 + 0.06 * Math.max(0.0, strand);
-        ryukOut.r = 45;
-        ryukOut.g = 45;
-        ryukOut.b = 56;
-        ryukOut.lum = strandLum;
-        return;
-      }
-
-      // === INSIDE GAUNT SKULL FACE ===
-      // Default chalk-white / ash-gray sticker face shading
-      let rr = 238;
-      let gg = 238;
-      let bb = 245;
-      let lum = 0.88;
-
-      // Cheekbone hollow shadows & stippled jawline dots
-      const cheekHollow =
-        Math.exp(-Math.pow((ax - 0.27) / 0.07, 2.0) - Math.pow((jawShiftY - 0.18) / 0.14, 2.0));
-      const jawEdgeDist = Math.abs(faceDist);
-
-      // Stippled halftone dots along the jawline & temples
-      const stippleGrid =
-        Math.sin(x * 85.0) * Math.sin(jawShiftY * 85.0);
-      const isStippleZone = jawEdgeDist < 0.075 || cheekHollow > 0.35;
-
-      if (isStippleZone && stippleGrid > 0.15) {
-        rr = 104;
-        gg = 104;
-        bb = 117;
-        lum = 0.36;
-      }
-
-      // Dark outer skull ink contour
-      if (jawEdgeDist < 0.022) {
-        rr = 18;
-        gg = 18;
-        bb = 24;
-        lum = 0.08;
-      }
-
-      // Forehead wrinkle creases & brow furrow
-      const foreheadCrease1 = Math.abs(jawShiftY + 0.24 - 0.03 * Math.cos(x * 10.0));
-      if (ax < 0.22 && foreheadCrease1 < 0.009) {
-        rr = 40;
-        gg = 40;
-        bb = 50;
-        lum = 0.12;
-      }
-
-      // Heavy angled V-brows overhanging the eyes
-      const browDist = sdSegment(ax, y, 0.04, -0.11, 0.34, -0.23);
-      if (browDist < 0.026) {
-        rr = 15;
-        gg = 15;
-        bb = 20;
-        lum = 0.06;
-        ryukOut.r = rr;
-        ryukOut.g = gg;
-        ryukOut.b = bb;
-        ryukOut.lum = lum;
-        return;
-      }
-
-      // Skeletal nose bridge & twin slit nostrils
-      const nostrilDist = Math.hypot((ax - 0.032) * 1.4, (jawShiftY - 0.09) * 0.9);
-      if (nostrilDist < 0.028) {
-        rr = 12;
-        gg = 12;
-        bb = 16;
-        lum = 0.05;
-        ryukOut.r = rr;
-        ryukOut.g = gg;
-        ryukOut.b = bb;
-        ryukOut.lum = lum;
-        return;
-      }
-
-      // === BULGING EYES & SHINIGAMI EYE IGNITION ===
-      // Left eye center at (-0.185, -0.055), right eye at (+0.185, -0.055)
-      const ex = ax - 0.185;
-      const ey = y + 0.055;
-      const eyeR = Math.hypot(ex * 0.92, ey * 1.05);
-
-      if (eyeR < 0.138) {
-        // Thick dark orbital rim (`0.105` to `0.138`)
-        if (eyeR > 0.105) {
-          // Radiating red glow in dark socket rim when Shinigami Eyes ignite
-          const rimGlow = shinigamiMix * 0.45;
-          rr = mix(16, 180, rimGlow);
-          gg = 14;
-          bb = mix(22, 35, rimGlow);
-          lum = mix(0.06, 0.28, rimGlow);
-          ryukOut.r = rr;
-          ryukOut.g = gg;
-          ryukOut.b = bb;
-          ryukOut.lum = lum;
-          return;
-        }
-
-        // Eyelid blink SDF across the eyeball
-        const lidAperture = 0.105 * blinkOpen;
-        if (Math.abs(ey) > lidAperture) {
-          // Closed dark eyelid with crease
-          rr = 32;
-          gg = 30;
-          bb = 40;
-          lum = 0.12;
-          ryukOut.r = rr;
-          ryukOut.g = gg;
-          ryukOut.b = bb;
-          ryukOut.lum = lum;
-          return;
-        }
-
-        // Inside open eyeball!
-        // Phase 1: Eerie blank chalk-white eyes (#e8e8f0) with tiny pinpoint dot
-        // Phase 2+: Blazing Shinigami Eyes — glowing crimson (#ff112b) & amber-gold (#ffaa00) iris with pitch-black pupil
-        if (shinigamiMix < 0.05) {
-          const pinPupil = smoothstep(0.018, 0.028, eyeR);
-          rr = mix(20, 236, pinPupil);
-          gg = mix(20, 236, pinPupil);
-          bb = mix(25, 244, pinPupil);
-          lum = mix(0.08, 0.94, pinPupil);
-        } else {
-          // Shinigami Eye Deal Ignited!
-          const pupilR = 0.032;
-          const irisR = 0.088;
-          const angle = Math.atan2(ey, ex);
-          const spec = Math.exp(-Math.hypot(ex + 0.028, ey + 0.028) * 45.0);
-
-          if (eyeR < pupilR) {
-            // Pitch-black pupil singularity with specular catchlight
-            rr = mix(8, 255, spec);
-            gg = mix(4, 255, spec);
-            bb = mix(8, 255, spec);
-            lum = mix(0.03, 1.0, spec);
-          } else if (eyeR < irisR) {
-            // Glowing Crimson (#ff112b) & Amber-Gold (#ffaa00) Iris Rings
-            const nr = (eyeR - pupilR) / (irisR - pupilR);
-            const fibers = 0.5 + 0.5 * Math.sin(angle * 20.0 + t * 5.0);
-            const goldRing = Math.exp(-Math.pow((nr - 0.28) / 0.22, 2.0));
-            const goldMix = clamp(goldRing * 0.85 + fibers * 0.25, 0.0, 1.0);
-
-            const sgR = 255;
-            const sgG = mix(17, 170, goldMix);
-            const sgB = mix(43, 0, goldMix);
-            const sgLum = clamp(0.72 + 0.28 * goldMix, 0.65, 1.0);
-
-            rr = mix(236, sgR, shinigamiMix);
-            gg = mix(236, sgG, shinigamiMix);
-            bb = mix(244, sgB, shinigamiMix);
-            lum = mix(0.92, sgLum, shinigamiMix);
-          } else {
-            // Blood-shot crimson outer sclera glow
-            rr = mix(232, 255, shinigamiMix * 0.85);
-            gg = mix(232, 35, shinigamiMix * 0.75);
-            bb = mix(240, 55, shinigamiMix * 0.75);
-            lum = 0.78;
-          }
-        }
-
-        ryukOut.r = rr;
-        ryukOut.g = gg;
-        ryukOut.b = bb;
-        ryukOut.lum = lum;
-        return;
-      }
-
-      // === MACABRE EAR-TO-EAR GRIN ===
-      // Massive upturned smile curve across the lower face
-      const smileCurveY = 0.27 - 0.42 * (x * x);
-      const smileHalfH =
-        (0.088 + laughOffset * 0.45) * Math.max(0.0, 1.0 - Math.pow(ax / 0.34, 1.8));
-
-      const dySmile = Math.abs(jawShiftY - smileCurveY);
-      if (ax < 0.35 && dySmile < smileHalfH + 0.022) {
-        if (dySmile > smileHalfH) {
-          // Black inked lips & corner stitches
-          rr = 14;
-          gg = 14;
-          bb = 18;
-          lum = 0.05;
-        } else {
-          // Inside grin: vertical high-contrast teeth striations + horizontal gum/parting line
-          const toothGap = Math.abs(Math.sin(x * 46.0)) < 0.22;
-          const centerPart = Math.abs(jawShiftY - smileCurveY) < 0.012 + laughOffset * 0.2;
-          if (toothGap || centerPart) {
-            rr = 20;
-            gg = 16;
-            bb = 24;
-            lum = 0.07;
-          } else {
-            rr = 244;
-            gg = 244;
-            bb = 250;
-            lum = 0.95;
-          }
-        }
-        ryukOut.r = rr;
-        ryukOut.g = gg;
-        ryukOut.b = bb;
-        ryukOut.lum = lum;
-        return;
-      }
-
-      ryukOut.r = rr;
-      ryukOut.g = gg;
-      ryukOut.b = bb;
-      ryukOut.lum = lum;
-    };
-
-    /**
      * Phase 3 & 4: Inside Ryuk's Left Pupil -> Shinigami Space & Beating Crimson Heart / Apple Nebula
+     * (Preserved 100% intact!)
      */
     const evaluateShinigamiHeartSpace = (
       u: number,
@@ -743,28 +807,24 @@ export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
     const renderFrame = (now: number) => {
       const t = (now - startTime) * 0.001;
 
-      // Crossfade from MSI GF63 Laptop Opening (0.0s -> 1.3s) into Full Ryuk Sticker
-      const laptopToRyukMix = smoothstep(0.85, 1.35, t);
-
-      // Phase 1: Glitch In & Laugh (jaw chuckle oscillation up to 2.6s)
-      const laughEnv = smoothstep(0.9, 1.2, t) * smoothstep(4.2, 2.4, t);
-      const laughOffset = Math.max(0.0, Math.sin(t * 19.0)) * 0.055 * laughEnv;
+      // Phase 1: Glitch In & Laugh (0.0s -> 2.2s)
+      const laughEnv = smoothstep(0.15, 0.5, t) * smoothstep(4.2, 2.2, t);
+      const laughOpen = Math.max(0.0, Math.sin(t * 18.0)) * 0.065 * laughEnv;
 
       // Phase 2: Double Blink & Shinigami Eye Ignition (2.2s -> 4.2s)
-      // Blink 1 at 2.25s - 2.55s, Blink 2 at 2.65s - 3.00s
       let blinkOpen = 1.0;
-      if (t >= 2.25 && t <= 2.55) {
-        const bp = (t - 2.25) / 0.3;
+      if (t >= 2.15 && t <= 2.48) {
+        const bp = (t - 2.15) / 0.33;
         blinkOpen = bp < 0.5 ? 1.0 - easeInOutCubic(bp * 2.0) : easeInOutCubic((bp - 0.5) * 2.0);
-      } else if (t >= 2.65 && t <= 3.0) {
-        const bp = (t - 2.65) / 0.35;
+      } else if (t >= 2.58 && t <= 2.95) {
+        const bp = (t - 2.58) / 0.37;
         blinkOpen = bp < 0.5 ? 1.0 - easeInOutCubic(bp * 2.0) : easeInOutCubic((bp - 0.5) * 2.0);
       }
 
-      // Shinigami Eyes ignite right as the blink reopens (~2.45s -> 2.85s)
-      const shinigamiMix = smoothstep(2.38, 2.85, t);
+      // Shinigami Eyes ignite right as the blink reopens (~2.32s -> 2.80s)
+      const shinigamiMix = smoothstep(2.30, 2.80, t);
 
-      // Phase 3: Pan & Zoom into Ryuk's Left Eye (-0.176, -0.014) -> Crimson Heart Space (4.2s -> 8.0s)
+      // Phase 3: Pan & Zoom into Ryuk's Left Eye (-0.185, -0.055) -> Crimson Heart Space (4.2s -> 8.0s)
       let zoom = 1.0;
       let camCenterX = 0.0;
       let camCenterY = 0.0;
@@ -775,9 +835,9 @@ export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
         const zEase = easeInOutExpo(zNorm);
         zoom = mix(1.0, 16.0, zEase);
         const panEase = smoothstep(0.0, 0.45, zNorm);
-        camCenterX = mix(0.0, -0.176, panEase);
-        camCenterY = mix(0.0, -0.014, panEase);
-        spaceMix = smoothstep(0.16, 0.58, zNorm);
+        camCenterX = mix(0.0, -0.185, panEase);
+        camCenterY = mix(0.0, -0.055, panEase);
+        spaceMix = smoothstep(0.18, 0.58, zNorm);
       }
 
       // Phase 4: Dissolve Back to Website (8.0s -> 9.5s)
@@ -786,28 +846,46 @@ export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
         p4Progress = clamp((t - 8.0) / 1.5, 0.0, 1.0);
       }
 
-      // Clear background
+      // Render detailed Ryuk portrait into offscreen grid buffer when visible
+      let ryukPixels: Uint8ClampedArray | null = null;
+      if (spaceMix < 0.999 && offCtx) {
+        drawDetailedRyukPortrait(
+          offCtx,
+          cols,
+          rows,
+          t,
+          blinkOpen,
+          shinigamiMix,
+          laughOpen,
+          zoom,
+          camCenterX,
+          camCenterY
+        );
+        ryukPixels = offCtx.getImageData(0, 0, cols, rows).data;
+      }
+
+      // Clear main ASCII canvas
       ctx.fillStyle = "#050507";
       ctx.fillRect(0, 0, width, height);
 
       let lastColor = "";
-      const glitchPhase = t < 2.2 ? 1.0 - smoothstep(1.2, 2.2, t) : 0.0;
+      const glitchPhase = t < 1.8 ? 1.0 - smoothstep(0.6, 1.8, t) : 0.0;
 
       for (let r = 0; r < rows; r++) {
         const v = vCoords[r];
-        const py = r * CELL_H;
+        const py = r * cellH;
 
-        // Horizontal scanline glitch displacement during Phase 1
-        let rowGlitchU = 0.0;
+        // Subtle horizontal scanline glitch during initial materialization
+        let colShift = 0;
         if (glitchPhase > 0.01) {
           const rWave = Math.sin(r * 0.75 + t * 38.0) * Math.cos(r * 0.23 - t * 21.0);
-          if (rWave > 0.72) {
-            rowGlitchU = (rWave - 0.72) * 0.45 * glitchPhase;
+          if (rWave > 0.75) {
+            colShift = Math.round((rWave - 0.75) * 14 * glitchPhase);
           }
         }
 
         for (let c = 0; c < cols; c++) {
-          const u = uCoords[c] + rowGlitchU;
+          const u = uCoords[c];
 
           // Phase 4 outward character scatter dropout
           if (p4Progress > 0.05) {
@@ -823,34 +901,26 @@ export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
           let finalB = 0;
           let finalLum = 0;
 
-          if (spaceMix < 0.999) {
-            const ru = camCenterX + u / zoom;
-            const rv = camCenterY + v / zoom;
+          if (spaceMix < 0.999 && ryukPixels) {
+            const sc = clamp(c + colShift, 0, cols - 1);
+            const pIdx = (r * cols + sc) * 4;
+            finalR = ryukPixels[pIdx];
+            finalG = ryukPixels[pIdx + 1];
+            finalB = ryukPixels[pIdx + 2];
+            finalLum = (0.299 * finalR + 0.587 * finalG + 0.114 * finalB) / 255.0;
 
-            if (laptopToRyukMix < 0.999) {
-              evaluateMsiLaptop(u, v, t);
-            }
-            if (laptopToRyukMix > 0.001) {
-              evaluateRyukSticker(ru, rv, t, blinkOpen, shinigamiMix, laughOffset);
-            }
-
-            finalR = mix(laptopOut.r, ryukOut.r, laptopToRyukMix);
-            finalG = mix(laptopOut.g, ryukOut.g, laptopToRyukMix);
-            finalB = mix(laptopOut.b, ryukOut.b, laptopToRyukMix);
-            finalLum = mix(laptopOut.lum, ryukOut.lum, laptopToRyukMix);
-
-            // Drifting red/white terminal noise materialization during first 1.5s
-            if (t < 1.5) {
-              const matProgress = smoothstep(0.0, 1.4, t);
+            // Brief terminal noise materialization during first 0.75s
+            if (t < 0.75) {
+              const matProgress = smoothstep(0.0, 0.75, t);
               const noiseHash =
-                Math.sin((c + Math.floor(t * 24.0)) * 37.17 + r * 91.3) * 43758.5453;
+                Math.sin((c + Math.floor(t * 28.0)) * 37.17 + r * 91.3) * 43758.5453;
               const n01 = noiseHash - Math.floor(noiseHash);
               if (n01 > matProgress) {
-                if (n01 > 0.92) {
+                if (n01 > 0.90) {
                   finalR = 255;
                   finalG = 17;
                   finalB = 43;
-                  finalLum = 0.45 * (1.0 - matProgress);
+                  finalLum = 0.5 * (1.0 - matProgress);
                 } else {
                   continue;
                 }
@@ -880,7 +950,7 @@ export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
             lastColor = colorStr;
           }
 
-          ctx.fillText(ch, c * CELL_W, py);
+          ctx.fillText(ch, c * cellW, py);
         }
       }
 
