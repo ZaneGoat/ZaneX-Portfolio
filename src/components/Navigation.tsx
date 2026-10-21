@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Sparkles, Compass } from "lucide-react";
+import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Sparkles, Compass, Eye } from "lucide-react";
 import { navLinks } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
@@ -11,13 +11,15 @@ interface NavigationProps {
   onOpenBreach: () => void;
   onOpenCtf?: () => void;
   onOpenMaze?: () => void;
+  onReplayIntro?: () => void;
 }
 
 export const Navigation = ({
   onOpenTerminal,
   onOpenBreach,
   onOpenCtf,
-  onOpenMaze
+  onOpenMaze,
+  onReplayIntro
 }: NavigationProps) => {
   const { persona } = usePersona();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -96,6 +98,21 @@ export const Navigation = ({
 
           {/* Header Controls: Clean & uncluttered on mobile */}
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+            {/* Replay Procedural ASCII Intro Button */}
+            {onReplayIntro && (
+              <button
+                onClick={() => {
+                  sound.playBoot();
+                  onReplayIntro();
+                }}
+                className="p-2 bg-rose-500/15 border border-rose-500/40 text-rose-400 hover:bg-rose-500/25 rounded-lg transition-all flex items-center gap-1.5 font-mono text-xs font-bold cursor-pointer"
+                title="Replay Procedural RGB ASCII Art Intro"
+              >
+                <Eye className="w-4 h-4 text-rose-400" />
+                <span className="hidden xl:inline">ASCII INTRO</span>
+              </button>
+            )}
+
             {/* Quick 3D Game Action Button (Large screens) */}
             {onOpenMaze && (
               <button

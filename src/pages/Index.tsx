@@ -7,6 +7,7 @@ import { EasterEggs } from "@/components/EasterEggs";
 import { Navigation } from "@/components/Navigation";
 import { CyberdeckFAB } from "@/components/CyberdeckFAB";
 import { BentoGrid } from "@/components/BentoGrid";
+import { AsciiIntroOverlay } from "@/components/AsciiIntroOverlay";
 import { Projects } from "@/components/sections/Projects";
 import { Skills } from "@/components/sections/Skills";
 import { Philosophy } from "@/components/sections/Philosophy";
@@ -33,6 +34,9 @@ const Index = () => {
   const { persona } = usePersona();
   const { clearance } = useOperatorClearance();
   const [open, setOpen] = useState<Overlay | null>(null);
+  const [introOpen, setIntroOpen] = useState<boolean>(true);
+  const handleIntroComplete = useCallback(() => setIntroOpen(false), []);
+  const replayIntro = useCallback(() => setIntroOpen(true), []);
 
   // Once an overlay has been opened, keep it mounted so its exit animation and state survive.
   const [loaded, setLoaded] = useState<Record<Overlay, boolean>>({
@@ -85,12 +89,16 @@ const Index = () => {
   }, [open, openTerminal]);
 
   const matrixOpen = open === "matrix";
+  const canvasOverlayActive = matrixOpen || introOpen;
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-background text-foreground font-sans selection:bg-primary selection:text-background">
-      {/* Background FX — paused while the fullscreen construct owns the GPU */}
-      {!matrixOpen && <MatrixRain />}
-      {!matrixOpen && <FloatingParticles />}
+      {/* Procedural RGB ASCII Art Intro Animation before entering Index */}
+      <AsciiIntroOverlay isOpen={introOpen} onComplete={handleIntroComplete} />
+
+      {/* Background FX — paused while a fullscreen construct owns the GPU */}
+      {!canvasOverlayActive && <MatrixRain />}
+      {!canvasOverlayActive && <FloatingParticles />}
       <div className="scanlines fixed inset-0 pointer-events-none z-10 opacity-30" />
 
       <EasterEggs onOpenTerminal={openTerminal} onOpenMatrixTakeover={openMatrix} />
@@ -99,6 +107,7 @@ const Index = () => {
         onOpenBreach={openBreach}
         onOpenCtf={openCtf}
         onOpenMaze={openMaze}
+        onReplayIntro={replayIntro}
       />
       <CyberdeckFAB
         onOpenTerminal={openTerminal}
@@ -205,6 +214,14 @@ const Index = () => {
             <p>&copy; {new Date().getFullYear()} Aziz Maaizate (Zane Goat)</p>
           </div>
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 text-primary/70">
+            <button
+              onClick={replayIntro}
+              className="text-rose-400 hover:text-rose-300 underline decoration-rose-400/40 hover:decoration-rose-400 underline-offset-4 cursor-pointer transition-colors"
+              title="Replay Procedural RGB ASCII Art Intro"
+            >
+              ◉ Replay ASCII Intro
+            </button>
+            <span>·</span>
             <button
               onClick={openMaze}
               className="text-amber-400 hover:text-amber-300 underline decoration-amber-400/40 hover:decoration-amber-400 underline-offset-4 cursor-pointer transition-colors"
