@@ -44,7 +44,6 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [fadingOut, setFadingOut] = useState(false);
-  const [phaseLabel, setPhaseLabel] = useState("PHASE 01 // OCULAR SDF & BLINK");
   const completedRef = useRef(false);
 
   const finishIntro = useCallback(() => {
@@ -65,7 +64,6 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
 
     completedRef.current = false;
     setFadingOut(false);
-    setPhaseLabel("PHASE 01 // OCULAR SDF & BLINK");
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -449,21 +447,9 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
 
     let rafId = 0;
     const startTime = performance.now();
-    let currentPhase = 1;
 
     const renderFrame = (now: number) => {
       const t = (now - startTime) * 0.001;
-
-      if (t < 3.2 && currentPhase !== 1) {
-        currentPhase = 1;
-        setPhaseLabel("PHASE 01 // OCULAR SDF & BLINK");
-      } else if (t >= 3.2 && t < 7.5 && currentPhase !== 2) {
-        currentPhase = 2;
-        setPhaseLabel("PHASE 02 // PUPIL SINGULARITY & HEART NEBULA");
-      } else if (t >= 7.5 && currentPhase !== 3) {
-        currentPhase = 3;
-        setPhaseLabel("PHASE 03 // NEBULA DISSOLVE -> ZANEX ROOT");
-      }
 
       // Blink factor (1.2s -> 1.8s)
       let blinkOpen = 1.0;
@@ -578,22 +564,6 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
       aria-label="Procedural ASCII Art Intro Animation"
     >
       <canvas ref={canvasRef} className="block w-full h-full select-none" />
-
-      {/* Top-Left Telemetry Status */}
-      <div className="fixed top-5 left-5 z-[130] flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-black/65 border border-white/15 backdrop-blur-md font-mono text-[11px] tracking-widest uppercase text-white/75 pointer-events-none">
-        <span className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_10px_#ff2a55] animate-pulse" />
-        <span>{phaseLabel}</span>
-      </div>
-
-      {/* Bottom-Right Skip Intro Button */}
-      <button
-        type="button"
-        onClick={finishIntro}
-        className="fixed bottom-6 right-6 z-[130] flex items-center gap-2 px-4 py-2.5 rounded-full bg-black/70 hover:bg-rose-500/20 border border-white/20 hover:border-rose-400/60 backdrop-blur-md font-mono text-xs tracking-widest uppercase text-white/80 hover:text-white transition-all shadow-lg cursor-pointer"
-      >
-        <span>Skip Intro</span>
-        <span className="text-rose-400">→</span>
-      </button>
     </div>
   );
 };
