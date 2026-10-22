@@ -17,7 +17,6 @@ interface BentoGridProps {
   onOpenBreach: () => void;
   onOpenCsi?: () => void;
   onOpenCtf?: () => void;
-  onOpenThreatMap?: () => void;
   onOpenMegaCenter?: () => void;
   onOpenInfiltration?: () => void;
 }
@@ -49,7 +48,6 @@ export const BentoGrid = ({
   onOpenBreach,
   onOpenCsi,
   onOpenCtf,
-  onOpenThreatMap,
   onOpenMegaCenter,
   onOpenInfiltration
 }: BentoGridProps) => {

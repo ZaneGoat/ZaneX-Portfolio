@@ -10,7 +10,6 @@ interface CyberdeckFABProps {
   onOpenMatrixTakeover: () => void;
   onOpenCsi?: () => void;
   onOpenCtf?: () => void;
-  onOpenThreatMap?: () => void;
   onOpenMegaCenter?: () => void;
 }
 
@@ -20,7 +19,6 @@ export const CyberdeckFAB = ({
   onOpenMatrixTakeover,
   onOpenCsi,
   onOpenCtf,
-  onOpenThreatMap,
   onOpenMegaCenter
 }: CyberdeckFABProps) => {
   const { persona, cyclePersona, deviceChoice, spoofActive } = usePersona();

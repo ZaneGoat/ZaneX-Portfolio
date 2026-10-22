@@ -26,7 +26,7 @@ const OperatorInfiltrationModal = lazy(() => import("@/components/OperatorInfilt
 
 import { ZanophyMiniBar } from "@/components/ZanophyMiniBar";
 
-type Overlay = "terminal" | "breach" | "matrix" | "csi" | "ctf" | "threatmap" | "megacenter" | "infiltration";
+type Overlay = "terminal" | "breach" | "matrix" | "csi" | "ctf" | "megacenter" | "infiltration";
 
 const Index = () => {
   const { persona } = usePersona();
@@ -43,7 +43,6 @@ const Index = () => {
     matrix: false,
     csi: false,
     ctf: false,
-    threatmap: false,
     megacenter: false,
     infiltration: false
   });
@@ -59,7 +58,6 @@ const Index = () => {
   const openMatrix = useCallback(() => show("matrix"), [show]);
   const openCsi = useCallback(() => show("csi"), [show]);
   const openCtf = useCallback(() => show("ctf"), [show]);
-  const openThreatMap = useCallback(() => show("threatmap"), [show]);
   const openMegaCenter = useCallback(() => show("megacenter"), [show]);
   const openInfiltration = useCallback(() => show("infiltration"), [show]);
 
@@ -110,7 +108,6 @@ const Index = () => {
         onOpenMatrixTakeover={openMatrix}
         onOpenCsi={openCsi}
         onOpenCtf={openCtf}
-        onOpenThreatMap={openThreatMap}
         onOpenMegaCenter={openMegaCenter}
       />
 
@@ -120,7 +117,6 @@ const Index = () => {
           onOpenBreach={openBreach}
           onOpenCsi={openCsi}
           onOpenCtf={openCtf}
-          onOpenThreatMap={openThreatMap}
           onOpenMegaCenter={openMegaCenter}
           onOpenInfiltration={openInfiltration}
         />
@@ -148,7 +144,6 @@ const Index = () => {
             onOpenMatrixTakeover={openMatrix}
             onOpenCsi={openCsi}
             onOpenCtf={openCtf}
-            onOpenThreatMap={openThreatMap}
             onOpenMegaCenter={openMegaCenter}
           />
         )}

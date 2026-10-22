@@ -14,7 +14,6 @@ interface TerminalOverlayProps {
   onOpenMatrixTakeover?: () => void;
   onOpenCsi?: () => void;
   onOpenCtf?: () => void;
-  onOpenThreatMap?: () => void;
   onOpenMegaCenter?: () => void;
 }
 
@@ -22,6 +21,49 @@ interface LogEntry {
   type: "input" | "output" | "error" | "system";
   content: string | JSX.Element;
 }
+
+export interface DeckModule {
+  id: string;
+  label: string;
+  category: "flagship" | "ops" | "system" | "tool";
+  command: string;
+  icon: string;
+  badge: string;
+  desc: string;
+}
+
+export const DECK_CATEGORIES = [
+  { id: "all", label: "ALL" },
+  { id: "flagship", label: "FLAGSHIPS" },
+  { id: "ops", label: "OPERATIONS" },
+  { id: "system", label: "SYSTEM" },
+  { id: "tool", label: "TOOLS" }
+] as const;
+
+export const DECK_MODULES: DeckModule[] = [
+  // Flagships (Zane's 3 Signature Projects)
+  { id: "megacenter", label: "ZaneMegaCenter", category: "flagship", command: "hardware", icon: "⚡", badge: "EC", desc: "MSI EC Fan Governor" },
+  { id: "csi", label: "CSI Radar", category: "flagship", command: "csi", icon: "📡", badge: "RF", desc: "Wi-Fi Doppler Sensor" },
+  { id: "controler", label: "Controler-space", category: "flagship", command: "controler", icon: "🎮", badge: "HID", desc: "DualSense Latency Suite" },
+
+  // Operations & Security
+  { id: "breach", label: "Breach ICE", category: "ops", command: "breach", icon: "🔓", badge: "HEX", desc: "ICE Breaker Minigame" },
+  { id: "ctf", label: "CTF Bounties", category: "ops", command: "ctf", icon: "🛡️", badge: "QUEST", desc: "Cyber Bounties & Flags" },
+  { id: "clearance", label: "Clearance", category: "ops", command: "clearance", icon: "🔒", badge: "LVL", desc: "Operator Security Vault" },
+  { id: "matrix", label: "Matrix Construct", category: "ops", command: "matrix", icon: "🟢", badge: "FX", desc: "Rain & Particle Takeover" },
+  { id: "shinigami", label: "Shinigami Deal", category: "ops", command: "shinigami", icon: "👁️", badge: "RYUK", desc: "Death Note Eye Deal" },
+
+  // System & Intel
+  { id: "neofetch", label: "Neofetch", category: "system", command: "neofetch", icon: "📊", badge: "SYS", desc: "Kali Dragon Dashboard" },
+  { id: "whoami", label: "Whoami", category: "system", command: "whoami", icon: "👤", badge: "BIO", desc: "Active Identity Dossier" },
+  { id: "projects", label: "Git Repos", category: "system", command: "projects", icon: "💻", badge: "GIT", desc: "Live GitHub API Repos" },
+  { id: "device", label: "Telemetry", category: "system", command: "device", icon: "📱", badge: "HW", desc: "Hardware & Monitor Audit" },
+
+  // Tools & Audio
+  { id: "music", label: "Zanophy Audio", category: "tool", command: "music", icon: "🎵", badge: "3AM", desc: "Music Player Deck" },
+  { id: "help", label: "Help", category: "tool", command: "help", icon: "❓", badge: "CLI", desc: "Commands Manual" },
+  { id: "clear", label: "Clear", category: "tool", command: "clear", icon: "🧹", badge: "CLS", desc: "Wipe Console History" },
+];
 
 const FORTUNES = [
   "\"There is no spoon.\" – The Matrix",
@@ -39,7 +81,6 @@ export const TerminalOverlay = ({
   onOpenMatrixTakeover,
   onOpenCsi,
   onOpenCtf,
-  onOpenThreatMap,
   onOpenMegaCenter
 }: TerminalOverlayProps) => {
   const { persona, setPersona, telemetry, deviceChoice, setDeviceChoice, spoofActive } = usePersona();
@@ -53,6 +94,7 @@ export const TerminalOverlay = ({
   const [history, setHistory] = useState<string[]>([]);
   const [historyIdx, setHistoryIdx] = useState(-1);
   const [isMaximized, setIsMaximized] = useState(false);
+  const [deckCategory, setDeckCategory] = useState<string>("all");
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -155,134 +197,180 @@ export const TerminalOverlay = ({
     const trimmed = cmdStr.trim();
     if (!trimmed) return;
 
-    sound.playClick();
-    setHistory(prev => [...prev, trimmed]);
-    setHistoryIdx(-1);
+    try {
+      sound.playClick();
+      setHistory(prev => [...prev, trimmed]);
+      setHistoryIdx(-1);
 
-    const parts = trimmed.split(" ");
-    const cmd = parts[0].toLowerCase();
-    const arg = parts.slice(1).join(" ").trim().toLowerCase();
+      const parts = trimmed.split(" ");
+      const cmd = parts[0].toLowerCase();
+      const arg = parts.slice(1).join(" ").trim().toLowerCase();
 
-    const newLogs: LogEntry[] = [
-      ...logs,
-      { type: "input", content: `${shellUser}:~$ ${trimmed}` }
-    ];
+      const newLogs: LogEntry[] = [
+        ...logs,
+        { type: "input", content: `${shellUser}:~$ ${trimmed}` }
+      ];
 
-    switch (cmd) {
-      case "persona":
-      case "profile":
-        if (arg === "friend" || arg === "operator") {
-          setPersona(arg);
-          sound.playSuccess();
-          newLogs.push({
-            type: "output",
-            content: `Visitor persona switched to [${arg.toUpperCase()}]. Interface & bio re-calibrated.`
-          });
-        } else {
-          newLogs.push({
-            type: "output",
-            content: `Current persona: [${persona.toUpperCase()}]. Usage: persona [operator | friend]`
-          });
-        }
-        break;
+      switch (cmd) {
+        case "persona":
+        case "profile":
+          if (arg === "friend" || arg === "operator") {
+            setPersona(arg);
+            sound.playSuccess();
+            newLogs.push({
+              type: "output",
+              content: `Visitor persona switched to [${arg.toUpperCase()}]. Interface & bio re-calibrated.`
+            });
+          } else {
+            newLogs.push({
+              type: "output",
+              content: `Current persona: [${persona.toUpperCase()}]. Usage: persona [operator | friend]`
+            });
+          }
+          break;
 
-      case "device":
-      case "telemetry":
-        if (arg === "phone" || arg === "desktop" || arg === "auto") {
-          setDeviceChoice(arg);
-          newLogs.push({
-            type: "output",
-            content: `Device emulation set to [${arg.toUpperCase()}]. (Raw physical hardware: ${telemetry.os} ${telemetry.deviceCategory}).`
-          });
-        } else {
-          newLogs.push({
-            type: "output",
-            content: (
-              <div className="space-y-1 font-mono text-xs my-2">
-                <p className="text-primary font-bold">=== CLIENT HARDWARE TELEMETRY ===</p>
-                <p className="text-muted-foreground italic">
-                  &quot;Wait... why are you asking if phone or desktop? Zane already knows.&quot;
-                </p>
-                <div className="border border-primary/20 rounded p-2.5 bg-primary/5 space-y-1 mt-1 text-xs">
-                  <p><span className="text-primary font-bold">Physical OS:</span> {telemetry.os}</p>
-                  <p><span className="text-primary font-bold">Device Category:</span> {telemetry.deviceCategory.toUpperCase()}</p>
-                  <p><span className="text-primary font-bold">Physical Display:</span> {telemetry.screenWidth}×{telemetry.screenHeight} px @ {telemetry.dpr}x ({telemetry.orientation})</p>
-                  <p><span className="text-primary font-bold">Viewport Matrix:</span> {telemetry.viewportWidth}×{telemetry.viewportHeight} px</p>
-                  <p><span className="text-primary font-bold">Input Modality:</span> {telemetry.pointerType} {telemetry.touchCapable ? "(Touchscreen active)" : "(Pointer only)"}</p>
-                  <p><span className="text-primary font-bold">Declared Choice:</span> {deviceChoice.toUpperCase()}</p>
-                  <p><span className="text-primary font-bold">Honesty Audit:</span> <span className={spoofActive ? "text-red-400 font-bold" : "text-green-400 font-bold"}>{spoofActive ? "SPOOFED (Emulation Active)" : "HONEST (100% Match)"}</span></p>
+        case "device":
+        case "telemetry":
+          if (arg === "phone" || arg === "desktop" || arg === "auto") {
+            setDeviceChoice(arg);
+            newLogs.push({
+              type: "output",
+              content: `Device emulation set to [${arg.toUpperCase()}]. (Raw physical hardware: ${telemetry.os} ${telemetry.deviceCategory}).`
+            });
+          } else {
+            newLogs.push({
+              type: "output",
+              content: (
+                <div className="space-y-1 font-mono text-xs my-2">
+                  <p className="text-primary font-bold">=== CLIENT HARDWARE TELEMETRY ===</p>
+                  <p className="text-muted-foreground italic">
+                    &quot;Wait... why are you asking if phone or desktop? Zane already knows.&quot;
+                  </p>
+                  <div className="border border-primary/20 rounded p-2.5 bg-primary/5 space-y-1 mt-1 text-xs">
+                    <p><span className="text-primary font-bold">Physical OS:</span> {telemetry.os}</p>
+                    <p><span className="text-primary font-bold">Device Category:</span> {telemetry.deviceCategory.toUpperCase()}</p>
+                    <p><span className="text-primary font-bold">Physical Display:</span> {telemetry.screenWidth}×{telemetry.screenHeight} px @ {telemetry.dpr}x ({telemetry.orientation})</p>
+                    <p><span className="text-primary font-bold">Viewport Matrix:</span> {telemetry.viewportWidth}×{telemetry.viewportHeight} px</p>
+                    <p><span className="text-primary font-bold">Input Modality:</span> {telemetry.pointerType} {telemetry.touchCapable ? "(Touchscreen active)" : "(Pointer only)"}</p>
+                    <p><span className="text-primary font-bold">Declared Choice:</span> {deviceChoice.toUpperCase()}</p>
+                    <p><span className="text-primary font-bold">Honesty Audit:</span> <span className={spoofActive ? "text-red-400 font-bold" : "text-green-400 font-bold"}>{spoofActive ? "SPOOFED (Emulation Active)" : "HONEST (100% Match)"}</span></p>
+                  </div>
+                  <p className="text-[11px] text-primary/60 mt-1">
+                    Usage: <span className="text-primary font-bold">device [phone | desktop | auto]</span> to override emulation.
+                  </p>
                 </div>
-                <p className="text-[11px] text-primary/60 mt-1">
-                  Usage: <span className="text-primary font-bold">device [phone | desktop | auto]</span> to override emulation.
-                </p>
-              </div>
-            )
-          });
-        }
-        break;
+              )
+            });
+          }
+          break;
 
-      case "music":
-      case "zanophy":
-      case "spotify":
-        if (arg === "play") {
-          play();
-          newLogs.push({
-            type: "output",
-            content: `▶ Playing: ${currentTrack.title} — ${currentTrack.artist}`
-          });
-        } else if (arg === "pause" || arg === "stop") {
-          pause();
-          newLogs.push({
-            type: "output",
-            content: `⏸ Music paused.`
-          });
-        } else if (arg === "next") {
-          nextTrack();
-          newLogs.push({
-            type: "output",
-            content: `⏭ Skipped to next track.`
-          });
-        } else if (arg === "prev") {
-          prevTrack();
-          newLogs.push({
-            type: "output",
-            content: `⏮ Returned to previous track.`
-          });
-        } else if (arg === "list" || arg === "tracks") {
-          newLogs.push({
-            type: "output",
-            content: (
-              <div className="space-y-1 font-mono text-xs my-2">
-                <p className="text-emerald-400 font-bold">=== ZANOPHY // ZANE'S 3 AM PLAYLIST ===</p>
-                <div className="space-y-0.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-                  {playlist.map((t, idx) => (
-                    <div key={t.id} className="flex gap-2 text-foreground/80 hover:text-emerald-300">
-                      <span className="text-emerald-400 font-bold w-6 shrink-0">{idx + 1}.</span>
-                      <span className="truncate">{t.title} — <span className="text-muted-foreground">{t.artist}</span></span>
-                    </div>
-                  ))}
+        case "music":
+        case "zanophy":
+        case "spotify":
+          if (arg === "play") {
+            play();
+            newLogs.push({
+              type: "output",
+              content: `▶ Playing: ${currentTrack?.title || "Audio"} — ${currentTrack?.artist || "Zane"}`
+            });
+          } else if (arg === "pause" || arg === "stop") {
+            pause();
+            newLogs.push({
+              type: "output",
+              content: `⏸ Music paused.`
+            });
+          } else if (arg === "next") {
+            nextTrack();
+            newLogs.push({
+              type: "output",
+              content: `⏭ Skipped to next track.`
+            });
+          } else if (arg === "prev") {
+            prevTrack();
+            newLogs.push({
+              type: "output",
+              content: `⏮ Returned to previous track.`
+            });
+          } else if (arg === "list" || arg === "tracks") {
+            newLogs.push({
+              type: "output",
+              content: (
+                <div className="space-y-1 font-mono text-xs my-2">
+                  <p className="text-emerald-400 font-bold">=== ZANOPHY // ZANE'S 3 AM PLAYLIST ===</p>
+                  <div className="space-y-0.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                    {playlist.map((t, idx) => (
+                      <div key={t.id} className="flex gap-2 text-foreground/80 hover:text-emerald-300">
+                        <span className="text-emerald-400 font-bold w-6 shrink-0">{idx + 1}.</span>
+                        <span className="truncate">{t.title} — <span className="text-muted-foreground">{t.artist}</span></span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-primary/60 mt-1">
+                    Type <span className="text-primary font-bold">music &lt;number&gt;</span> to play track or <span className="text-primary font-bold">music gui</span> to launch full player.
+                  </p>
                 </div>
-                <p className="text-[10px] text-primary/60 mt-1">
-                  Type <span className="text-primary font-bold">music &lt;number&gt;</span> to play track or <span className="text-primary font-bold">music gui</span> to launch full player.
-                </p>
-              </div>
-            )
-          });
-        } else if (!isNaN(Number(arg)) && Number(arg) >= 1 && Number(arg) <= playlist.length) {
-          const idx = Number(arg) - 1;
-          selectTrack(idx);
-          newLogs.push({
-            type: "output",
-            content: `▶ Selected Track #${Number(arg)}: ${playlist[idx].title} — ${playlist[idx].artist}`
-          });
-        } else {
-          setIsFullPlayerOpen(true);
-          newLogs.push({
-            type: "output",
-            content: `Launching Zanophy Cyberpunk Music Deck... [Now Playing: ${currentTrack.title} — ${currentTrack.artist}]`
-          });
-        }
-        break;
+              )
+            });
+          } else if (!isNaN(Number(arg)) && Number(arg) >= 1 && Number(arg) <= playlist.length) {
+            const idx = Number(arg) - 1;
+            selectTrack(idx);
+            newLogs.push({
+              type: "output",
+              content: `▶ Selected Track #${Number(arg)}: ${playlist[idx].title} — ${playlist[idx].artist}`
+            });
+          } else if (arg === "gui" || arg === "open" || arg === "player") {
+            setIsFullPlayerOpen(true);
+            newLogs.push({
+              type: "output",
+              content: `Launching Zanophy Cyberpunk Music Deck... [Now Playing: ${currentTrack?.title || "3 AM Synthetics"} — ${currentTrack?.artist || "Zane"}]`
+            });
+          } else {
+            newLogs.push({
+              type: "output",
+              content: (
+                <div className="bg-emerald-500/10 border border-emerald-500/30 p-3.5 rounded-xl my-2 space-y-2 text-xs font-mono">
+                  <div className="flex items-center justify-between">
+                    <p className="text-emerald-400 font-bold flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                      [ZANOPHY AUDIO DECK] 3 AM CYBERPUNK FREQUENCIES
+                    </p>
+                    <button
+                      onClick={() => setIsFullPlayerOpen(true)}
+                      className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded text-[10px] font-bold hover:bg-emerald-500/30"
+                    >
+                      EXPAND GUI
+                    </button>
+                  </div>
+                  <div className="p-2 bg-black/60 rounded border border-emerald-500/20 text-[11px] space-y-1">
+                    <p className="text-foreground/90 font-bold">Now Playing: <span className="text-emerald-400">{currentTrack?.title || "Nightcall"}</span></p>
+                    <p className="text-muted-foreground">Artist: {currentTrack?.artist || "Kavinsky"}</p>
+                    <p className="text-muted-foreground text-[10px]">Status: {isPlaying ? "▶ PLAYING" : "⏸ PAUSED"}</p>
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={() => togglePlay()}
+                      className="px-2.5 py-1 bg-emerald-500 text-black font-bold text-[10px] rounded hover:scale-105 active:scale-95 transition-transform"
+                    >
+                      {isPlaying ? "⏸ PAUSE" : "▶ PLAY"}
+                    </button>
+                    <button
+                      onClick={() => nextTrack()}
+                      className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold text-[10px] rounded hover:bg-emerald-500/30"
+                    >
+                      ⏭ NEXT
+                    </button>
+                    <button
+                      onClick={() => handleCommand("music list")}
+                      className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400/80 border border-emerald-500/20 font-bold text-[10px] rounded hover:bg-emerald-500/20"
+                    >
+                      📜 PLAYLIST
+                    </button>
+                  </div>
+                </div>
+              )
+            });
+          }
+          break;
 
       case "help":
         newLogs.push({
@@ -465,17 +553,26 @@ export const TerminalOverlay = ({
         break;
 
       case "threatmap":
-        onClose();
-        if (onOpenThreatMap) onOpenThreatMap();
-        return;
+      case "threats":
+        newLogs.push({
+          type: "output",
+          content: "[i] ThreatMap module decommissioned. External threat data migrated to live GitHub repositories."
+        });
+        break;
 
       case "hardware":
       case "ec":
       case "megacenter":
         if (arg === "--gui" || arg === "gui" || arg === "--live" || cmd === "megacenter") {
-          onClose();
-          if (onOpenMegaCenter) onOpenMegaCenter();
-          return;
+          newLogs.push({
+            type: "system",
+            content: "[+] Launching ZaneMegaCenter Live EC Control Station..."
+          });
+          setTimeout(() => {
+            onClose();
+            if (onOpenMegaCenter) onOpenMegaCenter();
+          }, 300);
+          break;
         }
         sound.playBoot();
         newLogs.push({
@@ -500,7 +597,7 @@ export const TerminalOverlay = ({
                 )}
               </div>
               <div className="p-2 bg-black/60 rounded border border-primary/20 text-primary/90 text-[11px] space-y-0.5">
-                <p>• Host Machine: MSI GF65 Thin (MS-16W1) [Dual-Boot Kali]</p>
+                <p>• Host Machine: MSI GF63 Thin (MS-16R5) [Dual-Boot Kali]</p>
                 <p>• CPU Temp: 52°C | Fan 1: 4200 RPM (Custom Curve)</p>
                 <p>• GPU Temp: 46°C | Fan 2: 3900 RPM (Active ISW Override)</p>
                 <p>• EC Port 0x68/0x6C: Direct Register I/O Verified [NO STALLS]</p>
@@ -520,8 +617,19 @@ export const TerminalOverlay = ({
         break;
 
       case "ctf":
-      case "bounty":
+      case "bounty": {
         const flagCandidate = arg.startsWith("submit ") ? arg.replace("submit ", "").trim() : arg;
+        if (["gui", "--gui", "board"].includes(flagCandidate)) {
+          newLogs.push({
+            type: "system",
+            content: "[+] Launching Classified CTF Bounty Board..."
+          });
+          setTimeout(() => {
+            onClose();
+            if (onOpenCtf) onOpenCtf();
+          }, 300);
+          break;
+        }
         if (flagCandidate) {
           const knownFlags: Record<string, string> = {
             "zanex{dom_inspector_root_42}": "Flag 1: Subtle Inspector (+100 pts)",
@@ -547,7 +655,7 @@ export const TerminalOverlay = ({
                     [FLAG ACCEPTED // AUTHORIZATION GRANTED]
                   </p>
                   <p>{knownFlags[key]}</p>
-                  <p className="text-[10px] text-emerald-400/70">Type 'ctf' without arguments to view full bounty board.</p>
+                  <p className="text-[10px] text-emerald-400/70">Type 'ctf' to view bounty board status.</p>
                 </div>
               )
             });
@@ -559,11 +667,46 @@ export const TerminalOverlay = ({
             });
           }
         } else {
-          onClose();
-          if (onOpenCtf) onOpenCtf();
-          return;
+          sound.playBoot();
+          let solvedFlags: string[] = [];
+          try {
+            solvedFlags = JSON.parse(localStorage.getItem("zanex_ctf_solved") || "[]");
+          } catch {}
+          newLogs.push({
+            type: "output",
+            content: (
+              <div className="bg-yellow-500/10 border border-yellow-500/30 p-3.5 rounded-xl my-2 space-y-2 text-xs font-mono">
+                <div className="flex items-center justify-between">
+                  <p className="text-yellow-400 font-bold flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
+                    [CLASSIFIED CTF BOUNTY MATRIX]
+                  </p>
+                  {onOpenCtf && (
+                    <button
+                      onClick={() => {
+                        onClose();
+                        if (onOpenCtf) onOpenCtf();
+                      }}
+                      className="px-2.5 py-1 bg-yellow-500 text-black font-bold text-[10px] rounded hover:scale-105 active:scale-95 transition-transform"
+                    >
+                      OPEN FULL BOUNTY GUI
+                    </button>
+                  )}
+                </div>
+                <div className="space-y-1 text-[11px] text-yellow-300/90 p-2 bg-black/60 rounded border border-yellow-500/20">
+                  <p>• Challenge 01 (DOM Recon): {solvedFlags.includes("flag1") ? "✔ SOLVED (+100 pts)" : "🔒 LOCKED (inspect robots.txt / DOM)"}</p>
+                  <p>• Challenge 02 (Subcarrier RF Leak): {solvedFlags.includes("flag2") ? "✔ SOLVED (+250 pts)" : "🔒 LOCKED (investigate Controler buffer)"}</p>
+                  <p>• Challenge 03 (ICE Hex Breaker): {solvedFlags.includes("flag3") ? "✔ SOLVED (+500 pts)" : "🔒 LOCKED (breach Arasaka subnet)"}</p>
+                </div>
+                <p className="text-[10px] text-yellow-400/70">
+                  Tip: submit flags via <code>ctf submit ZANEX&#123;...&#125;</code> or run <code>ctf gui</code>
+                </p>
+              </div>
+            )
+          });
         }
         break;
+      }
 
       case "curl":
         if (arg.includes("robots") || arg.includes("robot")) {
@@ -772,8 +915,15 @@ Allow: /
         break;
 
       case "breach":
-        onClose();
-        if (onOpenBreach) onOpenBreach();
+      case "ice":
+        newLogs.push({
+          type: "system",
+          content: "[+] Engaging Arasaka ICE Breaker subroutine..."
+        });
+        setTimeout(() => {
+          onClose();
+          if (onOpenBreach) onOpenBreach();
+        }, 300);
         break;
 
       case "maze":
@@ -804,8 +954,27 @@ Allow: /
 
       case "matrix":
       case "construct":
-        onClose();
-        if (onOpenMatrixTakeover) onOpenMatrixTakeover();
+        newLogs.push({
+          type: "system",
+          content: "[+] Initializing full Matrix Construct takeover..."
+        });
+        setTimeout(() => {
+          onClose();
+          if (onOpenMatrixTakeover) onOpenMatrixTakeover();
+        }, 300);
+        break;
+
+      case "shinigami":
+      case "ryuk":
+      case "deal":
+        newLogs.push({
+          type: "system",
+          content: "[!] Shinigami realm boundary breached. Summoning Ryuk Eye Deal..."
+        });
+        setTimeout(() => {
+          onClose();
+          window.dispatchEvent(new CustomEvent("zanex:open-ryuk-deal"));
+        }, 300);
         break;
 
       case "time":
@@ -856,7 +1025,19 @@ Allow: /
 
     setLogs(newLogs);
     setInput("");
-  };
+  } catch (err) {
+    console.error("Terminal execution error:", err);
+    sound.playError();
+    setLogs(prev => [
+      ...prev,
+      {
+        type: "error",
+        content: `[!] TERMINAL RUNTIME FAULT: ${err instanceof Error ? err.message : "Execution error"}. Type 'help' to recover.`
+      }
+    ]);
+    setInput("");
+  }
+};
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     sound.playKeypress();
@@ -884,10 +1065,9 @@ Allow: /
     }
   };
 
-  const quickChips = [
-    "maze", "clearance", "music", "help", "ctf", "csi", "controler", "hardware", "device", "whoami", "neofetch", 
-    "projects", "breach", "matrix", "clear"
-  ];
+  const filteredModules = deckCategory === "all"
+    ? DECK_MODULES
+    : DECK_MODULES.filter(m => m.category === deckCategory);
 
   return (
     <AnimatePresence>
@@ -940,25 +1120,67 @@ Allow: /
               <div ref={endRef} />
             </div>
 
-            {/* Mobile / Touch Quick Chips */}
-            <div className="px-3 md:px-4 py-2 bg-primary/5 border-t border-primary/20 flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
-              <span className="text-[9px] md:text-[10px] text-primary/60 font-bold tracking-wider shrink-0 mr-1 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                DECK:
-              </span>
-              {quickChips.map(chip => (
-                <button
-                  key={chip}
-                  onClick={() => {
-                    sound.haptic(25);
-                    handleCommand(chip);
-                    setInput("");
-                  }}
-                  className="px-2.5 py-1 bg-primary/10 hover:bg-primary/25 active:bg-primary/35 active:scale-95 text-primary rounded-md text-[11px] font-bold shrink-0 transition-all border border-primary/30 shadow-[0_0_8px_hsl(var(--primary)/0.15)] flex items-center gap-1 cursor-pointer"
-                >
-                  <span>{chip}</span>
-                </button>
-              ))}
+            {/* Reorganized & Categorized Cyberdeck Selection Toolbar */}
+            <div className="px-3 py-2 bg-primary/5 border-t border-primary/20 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-primary tracking-wider shrink-0">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <span>DECK SELECTION</span>
+                </div>
+
+                {/* Category Filter Pills */}
+                <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+                  {DECK_CATEGORIES.map(cat => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        sound.playClick();
+                        setDeckCategory(cat.id);
+                      }}
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all shrink-0 cursor-pointer ${
+                        deckCategory === cat.id
+                          ? "bg-primary text-background shadow-[0_0_8px_hsl(var(--primary)/0.4)]"
+                          : "bg-primary/10 text-primary/70 hover:bg-primary/20 hover:text-primary"
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Module Chips Horizontal Carousel */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5">
+                {filteredModules.map(mod => {
+                  const colorClass =
+                    mod.category === "flagship"
+                      ? "border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/25 hover:border-amber-400"
+                      : mod.category === "ops"
+                      ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/25 hover:border-cyan-400"
+                      : mod.category === "system"
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/25 hover:border-emerald-400"
+                      : "border-purple-500/40 bg-purple-500/10 text-purple-300 hover:bg-purple-500/25 hover:border-purple-400";
+
+                  return (
+                    <button
+                      key={mod.id}
+                      onClick={() => {
+                        sound.haptic(25);
+                        handleCommand(mod.command);
+                        setInput("");
+                      }}
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold shrink-0 transition-all border active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-sm ${colorClass}`}
+                      title={mod.desc}
+                    >
+                      <span className="text-xs">{mod.icon}</span>
+                      <span>{mod.label}</span>
+                      <span className="text-[9px] opacity-75 font-mono px-1 py-0.2 rounded bg-black/40 border border-current">
+                        {mod.badge}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Input Bar */}
@@ -976,7 +1198,7 @@ Allow: /
               />
               <button
                 onClick={() => handleCommand(input)}
-                className="p-1.5 bg-primary text-background rounded hover:scale-105 active:scale-95 transition-all text-xs font-bold"
+                className="p-1.5 bg-primary text-background rounded hover:scale-105 active:scale-95 transition-all text-xs font-bold cursor-pointer"
               >
                 <CornerDownLeft className="w-3.5 h-3.5" />
               </button>
