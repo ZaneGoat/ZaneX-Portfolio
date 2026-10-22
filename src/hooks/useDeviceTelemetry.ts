@@ -9,6 +9,8 @@ export interface DeviceTelemetry {
   deviceCategory: DeviceCategory;
   screenWidth: number;
   screenHeight: number;
+  viewportWidth: number;
+  viewportHeight: number;
   dpr: number;
   touchCapable: boolean;
   pointerType: "touch" | "mouse" | "hybrid";
@@ -33,6 +35,8 @@ function getTelemetry(): DeviceTelemetry {
       deviceCategory: "desktop",
       screenWidth: 1920,
       screenHeight: 1080,
+      viewportWidth: 1920,
+      viewportHeight: 1080,
       dpr: 1,
       touchCapable: false,
       pointerType: "mouse",
@@ -44,14 +48,19 @@ function getTelemetry(): DeviceTelemetry {
   const ua = navigator.userAgent;
   const os = detectOS(ua);
   const touchCapable = "ontouchstart" in window || (navigator.maxTouchPoints || 0) > 0;
-  const width = window.innerWidth;
-  const height = window.innerHeight;
+  
+  // Real physical screen monitor resolution (e.g., 1920x1080)
+  const physicalWidth = window.screen?.width || window.innerWidth;
+  const physicalHeight = window.screen?.height || window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
   const dpr = Number((window.devicePixelRatio || 1).toFixed(1));
 
   let deviceCategory: DeviceCategory = "desktop";
-  if (/iPad|Tablet|PlayBook/.test(ua) || (touchCapable && width >= 768 && width <= 1024)) {
+  if (/iPad|Tablet|PlayBook/.test(ua) || (touchCapable && viewportWidth >= 768 && viewportWidth <= 1024)) {
     deviceCategory = "tablet";
-  } else if (/Mobi|Android|iPhone|iPod/.test(ua) || (touchCapable && width < 768)) {
+  } else if (/Mobi|Android|iPhone|iPod/.test(ua) || (touchCapable && viewportWidth < 768)) {
     deviceCategory = "phone";
   } else {
     deviceCategory = "desktop";
@@ -65,16 +74,18 @@ function getTelemetry(): DeviceTelemetry {
       ? "hybrid"
       : "mouse";
 
-  const orientation = width >= height ? "landscape" : "portrait";
+  const orientation = physicalWidth >= physicalHeight ? "landscape" : "portrait";
 
-  const summary = `${os} ${deviceCategory === "phone" ? "Mobile" : deviceCategory === "tablet" ? "Tablet" : "Workstation"} (${width}×${height} @ ${dpr}x, ${pointerType})`;
+  const summary = `${os} ${deviceCategory === "phone" ? "Mobile" : deviceCategory === "tablet" ? "Tablet" : "Workstation"} (${physicalWidth}×${physicalHeight} @ ${dpr}x, ${pointerType})`;
 
   return {
     isMobile,
     os,
     deviceCategory,
-    screenWidth: width,
-    screenHeight: height,
+    screenWidth: physicalWidth,
+    screenHeight: physicalHeight,
+    viewportWidth,
+    viewportHeight,
     dpr,
     touchCapable,
     pointerType,

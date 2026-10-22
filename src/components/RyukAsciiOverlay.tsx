@@ -614,27 +614,29 @@ export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
     const resizeGrid = () => {
       width = window.innerWidth;
       height = window.innerHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-      // High-density cell size on mobile phones so Ryuk's facial details are crystal clear!
+      let fontSize = 11;
       if (width < 640) {
-        cellW = 5;
-        cellH = 8;
+        fontSize = 9;
       } else if (width < 1024) {
-        cellW = 6;
-        cellH = 10;
+        fontSize = 11;
       } else {
-        cellW = 7;
-        cellH = 12;
+        fontSize = 13;
       }
 
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
+      ctx.font = `bold ${fontSize}px 'Consolas', 'Courier New', monospace`;
+      const charWidth = ctx.measureText("M").width || 7.5;
+      cellW = Math.max(5, Math.round(charWidth));
+      cellH = Math.max(8, Math.round(fontSize * 1.25));
+
+      // 1:1 pixel buffer avoids 4K retina blit bottlenecks on 1080p desktop displays
+      canvas.width = width;
+      canvas.height = height;
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.font = `bold ${cellH - 1}px 'Consolas', 'Courier New', monospace`;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.font = `bold ${fontSize}px 'Consolas', 'Courier New', monospace`;
       ctx.textBaseline = "top";
 
       cols = Math.max(30, Math.ceil(width / cellW));
@@ -884,6 +886,22 @@ export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
           }
         }
 
+        let batchStr = "";
+        let batchStartCol = -1;
+        let batchColor = "";
+
+        const flushBatch = () => {
+          if (batchStr.length > 0 && batchColor) {
+            if (batchColor !== lastColor) {
+              ctx.fillStyle = batchColor;
+              lastColor = batchColor;
+            }
+            ctx.fillText(batchStr, batchStartCol * cellW, py);
+            batchStr = "";
+            batchStartCol = -1;
+          }
+        };
+
         for (let c = 0; c < cols; c++) {
           const u = uCoords[c];
 
@@ -892,6 +910,7 @@ export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
             const cellHash = Math.sin(c * 12.9898 + r * 78.233) * 43758.5453;
             const rand01 = cellHash - Math.floor(cellHash);
             if (rand01 < p4Progress * 1.08 - 0.08) {
+              flushBatch();
               continue;
             }
           }
@@ -922,6 +941,7 @@ export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
                   finalB = 43;
                   finalLum = 0.5 * (1.0 - matProgress);
                 } else {
+                  flushBatch();
                   continue;
                 }
               }
@@ -937,21 +957,27 @@ export const RyukAsciiOverlay: React.FC<RyukAsciiOverlayProps> = ({
           }
 
           const charIdx = clamp(Math.floor(finalLum * (RAMP_LEN - 1)), 0, RAMP_LEN - 1);
-          if (charIdx === 0) continue;
-
-          const ch = RAMP[charIdx];
-          const qr = finalR & 248;
-          const qg = finalG & 248;
-          const qb = finalB & 248;
-          const colorStr = `rgb(${qr},${qg},${qb})`;
-
-          if (colorStr !== lastColor) {
-            ctx.fillStyle = colorStr;
-            lastColor = colorStr;
+          if (charIdx === 0) {
+            flushBatch();
+            continue;
           }
 
-          ctx.fillText(ch, c * cellW, py);
+          const ch = RAMP[charIdx];
+          const qr = (finalR >> 3) << 3;
+          const qg = (finalG >> 3) << 3;
+          const qb = (finalB >> 3) << 3;
+          const colorStr = `rgb(${qr},${qg},${qb})`;
+
+          if (batchStr.length > 0 && colorStr === batchColor && batchStartCol + batchStr.length === c) {
+            batchStr += ch;
+          } else {
+            flushBatch();
+            batchColor = colorStr;
+            batchStartCol = c;
+            batchStr = ch;
+          }
         }
+        flushBatch();
       }
 
       if (t >= 9.5) {

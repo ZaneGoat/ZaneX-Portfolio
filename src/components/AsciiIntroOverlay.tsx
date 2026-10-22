@@ -101,28 +101,30 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
     const resizeGrid = () => {
       width = window.innerWidth;
       height = window.innerHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const isDesktop = width >= 768;
 
-      // Crisp cell dimensions
+      let fontSize = 12;
       if (width < 640) {
-        cellW = 6;
-        cellH = 10;
-      } else if (width < 1200) {
-        cellW = 7;
-        cellH = 12;
+        fontSize = 10;
+      } else if (width < 1024) {
+        fontSize = 12;
       } else {
-        cellW = 8;
-        cellH = 13;
+        fontSize = 14;
       }
 
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
+      ctx.font = `bold ${fontSize}px 'Consolas', 'Courier New', monospace`;
+      const charWidth = ctx.measureText("M").width || 8.4;
+      cellW = Math.max(5, Math.round(charWidth));
+      cellH = Math.max(8, Math.round(fontSize * 1.25));
+
+      // 1:1 pixel buffer prevents 4K retina blit stalls on 1080p desktop monitors
+      canvas.width = width;
+      canvas.height = height;
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.font = `bold ${cellH - 1}px 'Consolas', 'Courier New', monospace`;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.font = `bold ${fontSize}px 'Consolas', 'Courier New', monospace`;
       ctx.textBaseline = "top";
 
       cols = Math.max(30, Math.ceil(width / cellW));
@@ -163,15 +165,15 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
     const spaceOut = { r: 0, g: 0, b: 0, lum: 0 };
 
     const evaluateEye = (u: number, v: number, t: number, blinkOpen: number) => {
-      // Horizontal eye span: [-1.05, 1.05]
-      const eyeSpanX = 1.05;
+      // Fast early rejection: eye aperture + lashes span [-1.05, 1.05] in U and [-0.42, 0.42] in V
       const absU = Math.abs(u);
-
-      if (absU >= eyeSpanX) {
+      const absV = Math.abs(v);
+      if (absU >= 1.05 || absV >= 0.42) {
         eyeOut.lum = 0;
         return;
       }
 
+      const eyeSpanX = 1.05;
       const nx = u / eyeSpanX;
       // Symmetrical almond arch: 1.0 at center, 0.0 at outer corners
       const arch = Math.pow(Math.max(0.0, 1.0 - nx * nx), 0.85);
@@ -484,6 +486,22 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
         const v = vCoords[r];
         const py = r * cellH;
 
+        let batchStr = "";
+        let batchStartCol = -1;
+        let batchColor = "";
+
+        const flushBatch = () => {
+          if (batchStr.length > 0 && batchColor) {
+            if (batchColor !== lastColor) {
+              ctx.fillStyle = batchColor;
+              lastColor = batchColor;
+            }
+            ctx.fillText(batchStr, batchStartCol * cellW, py);
+            batchStr = "";
+            batchStartCol = -1;
+          }
+        };
+
         for (let c = 0; c < cols; c++) {
           const u = uCoords[c];
 
@@ -491,6 +509,7 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
             const cellHash = Math.sin(c * 12.9898 + r * 78.233) * 43758.5453;
             const rand01 = cellHash - Math.floor(cellHash);
             if (rand01 < p3Progress * 1.08 - 0.08) {
+              flushBatch();
               continue;
             }
           }
@@ -517,21 +536,27 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
           }
 
           const charIdx = clamp(Math.floor(finalLum * (RAMP_LEN - 1)), 0, RAMP_LEN - 1);
-          if (charIdx === 0) continue;
-
-          const ch = RAMP[charIdx];
-          const qr = finalR & 248;
-          const qg = finalG & 248;
-          const qb = finalB & 248;
-          const colorStr = `rgb(${qr},${qg},${qb})`;
-
-          if (colorStr !== lastColor) {
-            ctx.fillStyle = colorStr;
-            lastColor = colorStr;
+          if (charIdx === 0) {
+            flushBatch();
+            continue;
           }
 
-          ctx.fillText(ch, c * cellW, py);
+          const ch = RAMP[charIdx];
+          const qr = (finalR >> 3) << 3;
+          const qg = (finalG >> 3) << 3;
+          const qb = (finalB >> 3) << 3;
+          const colorStr = `rgb(${qr},${qg},${qb})`;
+
+          if (batchStr.length > 0 && colorStr === batchColor && batchStartCol + batchStr.length === c) {
+            batchStr += ch;
+          } else {
+            flushBatch();
+            batchColor = colorStr;
+            batchStartCol = c;
+            batchStr = ch;
+          }
         }
+        flushBatch();
       }
 
       if (t >= 9.45) {

@@ -135,7 +135,8 @@ export const TerminalOverlay = ({
                 <div className="border border-primary/20 rounded p-2.5 bg-primary/5 space-y-1 mt-1 text-xs">
                   <p><span className="text-primary font-bold">Physical OS:</span> {telemetry.os}</p>
                   <p><span className="text-primary font-bold">Device Category:</span> {telemetry.deviceCategory.toUpperCase()}</p>
-                  <p><span className="text-primary font-bold">Viewport Matrix:</span> {telemetry.screenWidth}×{telemetry.screenHeight} px @ {telemetry.dpr}x ({telemetry.orientation})</p>
+                  <p><span className="text-primary font-bold">Physical Display:</span> {telemetry.screenWidth}×{telemetry.screenHeight} px @ {telemetry.dpr}x ({telemetry.orientation})</p>
+                  <p><span className="text-primary font-bold">Viewport Matrix:</span> {telemetry.viewportWidth}×{telemetry.viewportHeight} px</p>
                   <p><span className="text-primary font-bold">Input Modality:</span> {telemetry.pointerType} {telemetry.touchCapable ? "(Touchscreen active)" : "(Pointer only)"}</p>
                   <p><span className="text-primary font-bold">Declared Choice:</span> {deviceChoice.toUpperCase()}</p>
                   <p><span className="text-primary font-bold">Honesty Audit:</span> <span className={spoofActive ? "text-red-400 font-bold" : "text-green-400 font-bold"}>{spoofActive ? "SPOOFED (Emulation Active)" : "HONEST (100% Match)"}</span></p>
