@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Zap, Radio, Palette, Volume2, VolumeX, X, Cpu, Globe, ShieldAlert, Wind, UserCheck, Sparkles, Smartphone, Eye } from "lucide-react";
+import { Terminal, Zap, Radio, Palette, Volume2, VolumeX, X, Cpu, Globe, ShieldAlert, Wind, UserCheck, Smartphone, Eye } from "lucide-react";
 import { sound } from "@/lib/sound";
 import { usePersona } from "@/context/PersonaContext";
 
@@ -12,7 +12,6 @@ interface CyberdeckFABProps {
   onOpenCtf?: () => void;
   onOpenThreatMap?: () => void;
   onOpenMegaCenter?: () => void;
-  onOpenMaze?: () => void;
 }
 
 export const CyberdeckFAB = ({
@@ -22,8 +21,7 @@ export const CyberdeckFAB = ({
   onOpenCsi,
   onOpenCtf,
   onOpenThreatMap,
-  onOpenMegaCenter,
-  onOpenMaze
+  onOpenMegaCenter
 }: CyberdeckFABProps) => {
   const { persona, cyclePersona, deviceChoice, spoofActive } = usePersona();
   const [isOpen, setIsOpen] = useState(false);
@@ -139,25 +137,6 @@ export const CyberdeckFAB = ({
                 </div>
                 <span className="text-[10px] text-secondary/60 font-mono">GAME</span>
               </button>
-
-              {/* 3D Arcane Maze Explorer */}
-              {onOpenMaze && (
-                <button
-                  onClick={() => {
-                    sound.playBoot();
-                    sound.haptic(40);
-                    setIsOpen(false);
-                    onOpenMaze();
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 active:scale-95 transition-all text-left"
-                >
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-                    <span className="font-bold">3D Arcane Realm</span>
-                  </div>
-                  <span className="text-[10px] text-amber-400/60 font-mono">3D RPG</span>
-                </button>
-              )}
 
               {/* CTF Bounty Board */}
               {onOpenCtf && (

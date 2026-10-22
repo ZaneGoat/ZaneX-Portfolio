@@ -19,7 +19,6 @@ interface BentoGridProps {
   onOpenCtf?: () => void;
   onOpenThreatMap?: () => void;
   onOpenMegaCenter?: () => void;
-  onOpenMaze?: () => void;
   onOpenInfiltration?: () => void;
 }
 
@@ -52,7 +51,6 @@ export const BentoGrid = ({
   onOpenCtf,
   onOpenThreatMap,
   onOpenMegaCenter,
-  onOpenMaze,
   onOpenInfiltration
 }: BentoGridProps) => {
   const { persona } = usePersona();
@@ -308,22 +306,13 @@ export const BentoGrid = ({
                 </h3>
                 <p className="text-muted-foreground text-sm leading-relaxed max-w-2xl mb-6 font-mono">
                   All enterprise full-stack ERP architectures, Wi-Fi CSI Doppler subcarrier radars, Robin Tor OSINT scrapers, and MSI EC governors are encrypted.
-                  Enter the <strong className="text-amber-300">3D Arcane Maze</strong> and evoke cipher <strong>'OPERATOR'</strong> in the wall pedestal [E] to decrypt.
+                  Solve the <strong className="text-primary">Infiltration Challenges</strong> or evoke cipher <strong>'OPERATOR'</strong> to decrypt.
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  {onOpenMaze && (
-                    <button
-                      onClick={() => { sound.playBoot(); onOpenMaze(); }}
-                      className="flex items-center gap-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 font-mono font-bold px-5 py-3 rounded-xl hover:scale-105 active:scale-95 transition-all text-xs cursor-pointer shadow-[0_0_20px_rgba(245,158,11,0.4)]"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      ENTER 3D ARCANE MAZE
-                    </button>
-                  )}
                   {onOpenInfiltration && (
                     <button
                       onClick={() => { sound.playBoot(); onOpenInfiltration(); }}
-                      className="flex items-center gap-2 border border-primary/50 bg-primary/10 text-primary font-mono font-bold px-5 py-3 rounded-xl hover:bg-primary/20 active:scale-95 transition-all text-xs cursor-pointer"
+                      className="flex items-center gap-2 border border-primary/50 bg-primary/20 text-primary font-mono font-bold px-5 py-3 rounded-xl hover:bg-primary/30 active:scale-95 transition-all text-xs cursor-pointer shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
                     >
                       <Key className="w-4 h-4" />
                       INFILTRATION CHALLENGES

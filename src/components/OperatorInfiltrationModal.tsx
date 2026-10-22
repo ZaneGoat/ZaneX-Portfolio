@@ -9,7 +9,6 @@ import {
   Database,
   CheckCircle2,
   X,
-  Sparkles,
   Zap,
   RotateCcw,
   Key
@@ -21,13 +20,11 @@ import { toast } from "sonner";
 interface OperatorInfiltrationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenMaze?: () => void;
 }
 
 export const OperatorInfiltrationModal: React.FC<OperatorInfiltrationModalProps> = ({
   isOpen,
-  onClose,
-  onOpenMaze
+  onClose
 }) => {
   const { clearance, clearanceLevel, isAllUnlocked, unlockNode, unlockAll, resetClearance } =
     useOperatorClearance();
@@ -84,7 +81,7 @@ export const OperatorInfiltrationModal: React.FC<OperatorInfiltrationModalProps>
     } else {
       sound.playError();
       toast.error("INVALID DECLASSIFICATION TOKEN", {
-        description: "Launch the 3D Arcane Maze and type 'OPERATOR' in the ancient wall cipher [E]."
+        description: "Enter declassification cipher 'OPERATOR' or 'ZANEX'."
       });
     }
   };
@@ -304,10 +301,10 @@ export const OperatorInfiltrationModal: React.FC<OperatorInfiltrationModalProps>
               <div>
                 <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase mb-2">
                   <Database className="w-4 h-4" />
-                  <span>Challenge 03: 3D Arcane Maze Sanctum Infiltration</span>
+                  <span>Challenge 03: Black-Site Vault Decryption Cipher</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                  The top-secret security projects (Wi-Fi CSI Sensing Radar, Robin Tor OSINT, ZaneMegaCenter) are locked in the black-site vault. Launch the <strong>3D Arcane Maze</strong> and enter cipher <strong>'OPERATOR'</strong> in the wall pedestal [E], or paste the declassification token here:
+                  The top-secret security projects (Wi-Fi CSI Sensing Radar, Robin Tor OSINT, ZaneMegaCenter) are locked in the black-site vault. Enter the master declassification cipher (e.g. <strong>'OPERATOR'</strong> or <strong>'ZANEX'</strong>):
                 </p>
 
                 {clearance.projectsUnlocked ? (
@@ -322,31 +319,17 @@ export const OperatorInfiltrationModal: React.FC<OperatorInfiltrationModalProps>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {onOpenMaze && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onClose();
-                          onOpenMaze();
-                        }}
-                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 font-bold text-xs py-2.5 rounded-xl hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
-                      >
-                        <Sparkles className="w-4 h-4" />
-                        LAUNCH 3D ARCANE MAZE & EVOKE CIPHER
-                      </button>
-                    )}
-
                     <form onSubmit={handleSolveToken} className="flex gap-2">
                       <input
                         type="text"
                         value={tokenInput}
                         onChange={e => setTokenInput(e.target.value)}
-                        placeholder="Enter token (e.g. OPERATOR or ZANEX)..."
+                        placeholder="Enter cipher token (e.g. OPERATOR or ZANEX)..."
                         className="flex-1 bg-black/60 border border-primary/40 rounded-xl px-4 py-2.5 text-xs text-primary focus:outline-none focus:border-primary"
                       />
                       <button
                         type="submit"
-                        className="bg-primary text-background font-bold text-xs px-5 py-2.5 rounded-xl hover:scale-105 active:scale-95 transition-all"
+                        className="bg-primary text-background font-bold text-xs px-5 py-2.5 rounded-xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
                       >
                         DECRYPT
                       </button>

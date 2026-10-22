@@ -1,11 +1,10 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { PersonaProvider } from "./context/PersonaContext";
 import { MusicProvider } from "./context/MusicContext";
 import { OperatorClearanceProvider } from "./context/OperatorClearanceContext";
 import Index from "./pages/Index";
 
-const ArcaneGamePage = lazy(() => import("./pages/ArcaneGamePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const App = () => (
@@ -16,8 +15,8 @@ const App = () => (
           <Suspense fallback={null}>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/game" element={<ArcaneGamePage />} />
-              <Route path="/arcane-maze" element={<ArcaneGamePage />} />
+              <Route path="/game" element={<Navigate to="/" replace />} />
+              <Route path="/arcane-maze" element={<Navigate to="/" replace />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -16,7 +16,6 @@ interface TerminalOverlayProps {
   onOpenCtf?: () => void;
   onOpenThreatMap?: () => void;
   onOpenMegaCenter?: () => void;
-  onOpenMaze?: () => void;
 }
 
 interface LogEntry {
@@ -41,8 +40,7 @@ export const TerminalOverlay = ({
   onOpenCsi,
   onOpenCtf,
   onOpenThreatMap,
-  onOpenMegaCenter,
-  onOpenMaze
+  onOpenMegaCenter
 }: TerminalOverlayProps) => {
   const { persona, setPersona, telemetry, deviceChoice, setDeviceChoice, spoofActive } = usePersona();
   const { currentTrack, isPlaying, togglePlay, play, pause, nextTrack, prevTrack, playlist, selectTrack, setIsFullPlayerOpen } = useMusic();
@@ -238,10 +236,6 @@ export const TerminalOverlay = ({
                 <div className="flex gap-2">
                   <span className="text-primary font-bold w-24 shrink-0">music</span>
                   <span className="text-muted-foreground text-[11px]">Zanophy player: play, pause, next, list, gui</span>
-                </div>
-                <div className="flex gap-2">
-                  <span className="text-primary font-bold w-24 shrink-0">maze</span>
-                  <span className="text-muted-foreground text-[11px]">Launch 3D WebGL Arcane Maze Explorer</span>
                 </div>
                 <div className="flex gap-2">
                   <span className="text-primary font-bold w-24 shrink-0">clearance</span>
@@ -749,12 +743,10 @@ Allow: /
 
       case "maze":
       case "arcane":
-        onClose();
-        if (onOpenMaze) {
-          onOpenMaze();
-        } else {
-          newLogs.push({ type: "error", content: "Error: 3D Arcane Maze engine not initialized." });
-        }
+        newLogs.push({
+          type: "system",
+          content: "[i] 3D Arcane Realm decommissioned. New classified cyber gaming construct incoming..."
+        });
         break;
 
       case "clearance":
@@ -768,7 +760,7 @@ Allow: /
               <p>Node 02 (Hardware Rig): {clearance.hardwareUnlocked ? <span className="text-emerald-400 font-bold">[DECLASSIFIED]</span> : <span className="text-red-400 font-bold">[REDACTED // LOCKED]</span>}</p>
               <p>Node 03 (Black-Ops Projects): {clearance.projectsUnlocked ? <span className="text-emerald-400 font-bold">[DECLASSIFIED]</span> : <span className="text-red-400 font-bold">[REDACTED // LOCKED]</span>}</p>
               <p className="text-muted-foreground mt-2">
-                &gt; To declassify Node 03, enter the 3D Arcane Maze ('maze') and type 'OPERATOR' in the ancient wall cipher [E].
+                &gt; To declassify Node 03, enter the cipher 'OPERATOR' in Challenge 03 or Infiltration Modal.
               </p>
             </div>
           )

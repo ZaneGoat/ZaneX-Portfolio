@@ -23,12 +23,11 @@ const CtfBountyBoard = lazy(() => import("@/components/CtfBountyBoard").then(m =
 const RobinThreatMap = lazy(() => import("@/components/RobinThreatMap").then(m => ({ default: m.RobinThreatMap })));
 const ZaneMegaCenterModal = lazy(() => import("@/components/ZaneMegaCenterModal").then(m => ({ default: m.ZaneMegaCenterModal })));
 const ZanophyModal = lazy(() => import("@/components/ZanophyModal").then(m => ({ default: m.ZanophyModal })));
-const ArcaneMazeModal = lazy(() => import("@/components/ArcaneMazeModal").then(m => ({ default: m.ArcaneMazeModal })));
 const OperatorInfiltrationModal = lazy(() => import("@/components/OperatorInfiltrationModal").then(m => ({ default: m.OperatorInfiltrationModal })));
 
 import { ZanophyMiniBar } from "@/components/ZanophyMiniBar";
 
-type Overlay = "terminal" | "breach" | "matrix" | "csi" | "ctf" | "threatmap" | "megacenter" | "maze" | "infiltration";
+type Overlay = "terminal" | "breach" | "matrix" | "csi" | "ctf" | "threatmap" | "megacenter" | "infiltration";
 
 const Index = () => {
   const { persona } = usePersona();
@@ -47,7 +46,6 @@ const Index = () => {
     ctf: false,
     threatmap: false,
     megacenter: false,
-    maze: false,
     infiltration: false
   });
 
@@ -64,7 +62,6 @@ const Index = () => {
   const openCtf = useCallback(() => show("ctf"), [show]);
   const openThreatMap = useCallback(() => show("threatmap"), [show]);
   const openMegaCenter = useCallback(() => show("megacenter"), [show]);
-  const openMaze = useCallback(() => show("maze"), [show]);
   const openInfiltration = useCallback(() => show("infiltration"), [show]);
 
   useEffect(() => {
@@ -106,7 +103,6 @@ const Index = () => {
         onOpenTerminal={openTerminal}
         onOpenBreach={openBreach}
         onOpenCtf={openCtf}
-        onOpenMaze={openMaze}
         onReplayIntro={replayIntro}
       />
       <CyberdeckFAB
@@ -117,7 +113,6 @@ const Index = () => {
         onOpenCtf={openCtf}
         onOpenThreatMap={openThreatMap}
         onOpenMegaCenter={openMegaCenter}
-        onOpenMaze={openMaze}
       />
 
       <main className="relative z-10 pt-16">
@@ -128,7 +123,6 @@ const Index = () => {
           onOpenCtf={openCtf}
           onOpenThreatMap={openThreatMap}
           onOpenMegaCenter={openMegaCenter}
-          onOpenMaze={openMaze}
           onOpenInfiltration={openInfiltration}
         />
 
@@ -146,7 +140,7 @@ const Index = () => {
 
         {/* Culture, Philosophy, Breach Protocol & Minigames */}
         <Philosophy />
-        <Games onOpenBreach={openBreach} onOpenMaze={openMaze} />
+        <Games onOpenBreach={openBreach} />
         <Contact />
       </main>
 
@@ -161,7 +155,6 @@ const Index = () => {
             onOpenCtf={openCtf}
             onOpenThreatMap={openThreatMap}
             onOpenMegaCenter={openMegaCenter}
-            onOpenMaze={openMaze}
           />
         )}
         {loaded.breach && <BreachProtocol isOpen={open === "breach"} onClose={close} />}
@@ -188,17 +181,10 @@ const Index = () => {
             onClose={close}
           />
         )}
-        {loaded.maze && (
-          <ArcaneMazeModal
-            isOpen={open === "maze"}
-            onClose={close}
-          />
-        )}
         {loaded.infiltration && (
           <OperatorInfiltrationModal
             isOpen={open === "infiltration"}
             onClose={close}
-            onOpenMaze={openMaze}
           />
         )}
         <ZanophyModal />
@@ -220,14 +206,6 @@ const Index = () => {
               title="Replay Procedural RGB ASCII Art Intro"
             >
               ◉ Replay ASCII Intro
-            </button>
-            <span>·</span>
-            <button
-              onClick={openMaze}
-              className="text-amber-400 hover:text-amber-300 underline decoration-amber-400/40 hover:decoration-amber-400 underline-offset-4 cursor-pointer transition-colors"
-              title="Launch 3D Arcane Maze Realm"
-            >
-              ✦ 3D Arcane Realm
             </button>
             <span>·</span>
             <button

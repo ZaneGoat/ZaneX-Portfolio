@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Sparkles, Compass, Eye, Smartphone } from "lucide-react";
+import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Eye, Smartphone } from "lucide-react";
 import { navLinks } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
@@ -10,7 +10,6 @@ interface NavigationProps {
   onOpenTerminal: () => void;
   onOpenBreach: () => void;
   onOpenCtf?: () => void;
-  onOpenMaze?: () => void;
   onReplayIntro?: () => void;
 }
 
@@ -18,7 +17,6 @@ export const Navigation = ({
   onOpenTerminal,
   onOpenBreach,
   onOpenCtf,
-  onOpenMaze,
   onReplayIntro
 }: NavigationProps) => {
   const { persona } = usePersona();
@@ -79,21 +77,6 @@ export const Navigation = ({
                 {link.name}
               </a>
             ))}
-
-            {/* Dedicated 3D Game Link in Desktop Navbar */}
-            {onOpenMaze && (
-              <button
-                onClick={() => {
-                  sound.playBoot();
-                  onOpenMaze();
-                }}
-                className="flex items-center gap-1.5 text-amber-300 hover:text-amber-200 transition-colors font-bold text-xs lg:text-sm cursor-pointer"
-                title="Launch 3D Arcane Realm in Fullscreen"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                <span>✦ 3D Arcane</span>
-              </button>
-            )}
           </div>
 
           {/* Header Controls: Clean & uncluttered on mobile */}
@@ -110,21 +93,6 @@ export const Navigation = ({
               >
                 <Eye className="w-4 h-4 text-rose-400" />
                 <span className="hidden xl:inline">ASCII INTRO</span>
-              </button>
-            )}
-
-            {/* Quick 3D Game Action Button (Large screens) */}
-            {onOpenMaze && (
-              <button
-                onClick={() => {
-                  sound.playBoot();
-                  onOpenMaze();
-                }}
-                className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 rounded-lg transition-all font-mono text-xs font-bold shadow-[0_0_15px_rgba(245,158,11,0.25)]"
-                title="Launch 3D Arcane Realm (Standalone Fullscreen)"
-              >
-                <Compass className="w-3.5 h-3.5 text-amber-400" />
-                <span>3D GAME</span>
               </button>
             )}
 
@@ -203,29 +171,6 @@ export const Navigation = ({
             className="fixed inset-x-0 top-[52px] sm:top-14 z-40 bg-[#050816]/98 border-b border-primary/25 backdrop-blur-2xl p-5 md:hidden font-mono shadow-2xl max-h-[calc(100vh-55px)] overflow-y-auto"
           >
             <div className="flex flex-col gap-3">
-              {/* Featured 3D Game Launcher on Mobile */}
-              {onOpenMaze && (
-                <button
-                  onClick={() => {
-                    sound.playBoot();
-                    setIsMenuOpen(false);
-                    onOpenMaze();
-                  }}
-                  className="w-full flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-yellow-500/25 to-amber-500/20 border-2 border-amber-500/50 text-amber-300 font-bold text-sm shadow-[0_0_20px_rgba(245,158,11,0.25)] active:scale-95 transition-all text-left cursor-pointer"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
-                    <div>
-                      <div className="leading-tight">✦ 3D Arcane Realm</div>
-                      <div className="text-[10px] text-amber-200/70 font-normal">Standalone WebGL RPG</div>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-mono px-2 py-1 rounded bg-amber-500/30 text-amber-200 border border-amber-400/40">
-                    FULLSCREEN
-                  </span>
-                </button>
-              )}
-
               {/* Persona Switcher in Mobile Drawer */}
               <div className="py-2 border-y border-primary/15 flex justify-center">
                 <PersonaSwitcher variant="compact" />
