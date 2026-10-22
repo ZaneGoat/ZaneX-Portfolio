@@ -6,6 +6,7 @@ import {
   SkipForward,
   SkipBack,
   Volume2,
+  Volume1,
   VolumeX,
   Shuffle,
   Repeat,
@@ -20,6 +21,7 @@ import {
   Check
 } from "lucide-react";
 import { useMusic } from "@/context/MusicContext";
+import { ZANE_YOUTUBE_PLAYLIST_URL } from "@/data/playlist";
 import { sound } from "@/lib/sound";
 
 export const ZanophyModal: React.FC = () => {
@@ -53,6 +55,7 @@ export const ZanophyModal: React.FC = () => {
   const [customUrl, setCustomUrl] = useState("");
   const [customError, setCustomError] = useState("");
   const [customSuccess, setCustomSuccess] = useState(false);
+  const [showMobilePlaylist, setShowMobilePlaylist] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const formatTime = (secs: number) => {
@@ -149,14 +152,14 @@ export const ZanophyModal: React.FC = () => {
             className="w-full max-w-5xl h-[92vh] max-h-[860px] bg-[#070b0e] border-2 border-emerald-500/50 rounded-3xl shadow-[0_0_80px_rgba(29,185,84,0.35)] flex flex-col overflow-hidden text-foreground relative"
           >
             {/* Top Navigation Bar */}
-            <div className="bg-[#0b1217] border-b border-emerald-500/20 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0">
+            <div className="bg-[#0b1217] border-b border-emerald-500/20 px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="p-1.5 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-emerald-400">
                   <Disc3 className={`w-5 h-5 ${isPlaying ? "animate-spin" : ""}`} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-base sm:text-lg font-black tracking-tight text-emerald-400">
+                    <span className="text-sm sm:text-lg font-black tracking-tight text-emerald-400">
                       ZANOPHY<span className="text-foreground"> // PLAYER</span>
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-bold hidden sm:inline">
@@ -166,18 +169,34 @@ export const ZanophyModal: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                {/* Mobile View Toggle: hidden on desktop, lets phone user switch between Player and Playlist */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playClick();
+                    setShowMobilePlaylist(prev => !prev);
+                  }}
+                  className="lg:hidden text-[10px] font-bold px-2.5 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 flex items-center gap-1.5 hover:bg-emerald-500/25 active:scale-95 transition-all cursor-pointer font-mono"
+                  title="Toggle Playlist on Mobile"
+                >
+                  <Music2 className="w-3.5 h-3.5" />
+                  <span>{showMobilePlaylist ? "Player Deck" : `Tracks (${playlist.length})`}</span>
+                </button>
+
                 <a
-                  href="https://music.youtube.com/playlist?list=PLOLJsI8Bv-f8"
+                  href={ZANE_YOUTUBE_PLAYLIST_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[11px] text-emerald-400/80 hover:text-emerald-300 flex items-center gap-1 border border-emerald-500/30 px-2.5 py-1 rounded-lg bg-emerald-500/10 transition-colors"
+                  className="text-[11px] text-emerald-400/90 hover:text-emerald-300 flex items-center gap-1 border border-emerald-500/30 px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors"
+                  title="Open Zane's 3 AM YouTube Playlist"
                 >
                   <ExternalLink className="w-3 h-3" />
-                  <span className="hidden sm:inline">Original YouTube Playlist</span>
+                  <span className="hidden sm:inline">YouTube Playlist</span>
                 </a>
 
                 <button
+                  type="button"
                   onClick={() => {
                     sound.playClick();
                     setIsFullPlayerOpen(false);
@@ -193,10 +212,14 @@ export const ZanophyModal: React.FC = () => {
             {/* Main Content: Split Grid (Left Now Playing, Right Playlist) */}
             <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
               {/* Left Column: Now Playing & Audio Controls */}
-              <div className="lg:col-span-5 p-5 sm:p-6 border-b lg:border-b-0 lg:border-r border-emerald-500/20 flex flex-col justify-between overflow-y-auto custom-scrollbar bg-gradient-to-b from-[#090f14] to-[#05080b]">
+              <div
+                className={`${
+                  showMobilePlaylist ? "hidden" : "flex"
+                } lg:flex w-full lg:col-span-5 p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-emerald-500/20 flex-col justify-between overflow-y-auto custom-scrollbar bg-gradient-to-b from-[#090f14] to-[#05080b]`}
+              >
                 <div>
                   {/* Big Album Artwork */}
-                  <div className="relative w-48 sm:w-64 aspect-square mx-auto mb-5 rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(29,185,84,0.3)] border-2 border-emerald-500/40 group">
+                  <div className="relative w-40 sm:w-56 md:w-64 max-h-[30vh] sm:max-h-[36vh] aspect-square mx-auto mb-3 sm:mb-5 rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(29,185,84,0.3)] border-2 border-emerald-500/40 group shrink-0">
                     <img
                       src={currentTrack.thumbnail}
                       alt={currentTrack.title}
@@ -217,8 +240,8 @@ export const ZanophyModal: React.FC = () => {
                   </div>
 
                   {/* Title & Artist */}
-                  <div className="text-center sm:text-left mb-4">
-                    <h2 className="text-lg sm:text-xl font-black text-foreground truncate leading-tight">
+                  <div className="text-center sm:text-left mb-3 sm:mb-4 px-1">
+                    <h2 className="text-base sm:text-xl font-black text-foreground truncate leading-tight">
                       {currentTrack.title}
                     </h2>
                     <p className="text-xs sm:text-sm text-emerald-400/90 truncate font-bold mt-1">
@@ -227,26 +250,27 @@ export const ZanophyModal: React.FC = () => {
                   </div>
 
                   {/* Scrubber / Progress Bar */}
-                  <div className="space-y-1 mb-5">
+                  <div className="space-y-1 mb-3 sm:mb-4 px-1">
                     <input
                       type="range"
                       min={0}
                       max={duration || 100}
                       value={currentTime}
                       onChange={e => seekTo(Number(e.target.value))}
-                      className="w-full h-1.5 bg-emerald-950/60 rounded-lg appearance-none cursor-pointer accent-emerald-500 hover:accent-emerald-400 transition-all"
+                      className="w-full h-2 bg-emerald-950/60 rounded-lg appearance-none cursor-pointer accent-emerald-500 hover:accent-emerald-400 transition-all touch-none py-1.5"
                     />
-                    <div className="flex justify-between text-[11px] text-muted-foreground font-mono">
+                    <div className="flex justify-between text-[11px] text-muted-foreground font-mono select-none">
                       <span>{formatTime(currentTime)}</span>
                       <span>{duration > 0 ? formatTime(duration) : currentTrack.duration || "--:--"}</span>
                     </div>
                   </div>
 
                   {/* Controls: Shuffle, Prev, Big Play/Pause, Next, Loop */}
-                  <div className="flex items-center justify-center gap-3 sm:gap-5 mb-5">
+                  <div className="flex items-center justify-center gap-3 sm:gap-5 mb-3 sm:mb-4">
                     <button
+                      type="button"
                       onClick={toggleShuffle}
-                      className={`p-2 rounded-full transition-colors cursor-pointer ${
+                      className={`p-2 rounded-full transition-colors cursor-pointer active:scale-90 ${
                         isShuffle ? "text-emerald-400 bg-emerald-500/20" : "text-foreground/50 hover:text-foreground"
                       }`}
                       title={isShuffle ? "Shuffle On" : "Shuffle Off"}
@@ -255,14 +279,16 @@ export const ZanophyModal: React.FC = () => {
                     </button>
 
                     <button
+                      type="button"
                       onClick={prevTrack}
-                      className="p-2 text-foreground/80 hover:text-emerald-400 active:scale-95 transition-all cursor-pointer"
+                      className="p-2 text-foreground/80 hover:text-emerald-400 active:scale-90 transition-all cursor-pointer"
                       title="Previous"
                     >
                       <SkipBack className="w-5 h-5" />
                     </button>
 
                     <button
+                      type="button"
                       onClick={togglePlay}
                       className="p-3 sm:p-4 rounded-full bg-emerald-500 hover:bg-emerald-400 text-background font-black shadow-[0_0_25px_rgba(29,185,84,0.7)] active:scale-95 transition-all cursor-pointer"
                       title={isPlaying ? "Pause" : "Play"}
@@ -275,16 +301,18 @@ export const ZanophyModal: React.FC = () => {
                     </button>
 
                     <button
+                      type="button"
                       onClick={nextTrack}
-                      className="p-2 text-foreground/80 hover:text-emerald-400 active:scale-95 transition-all cursor-pointer"
+                      className="p-2 text-foreground/80 hover:text-emerald-400 active:scale-90 transition-all cursor-pointer"
                       title="Next"
                     >
                       <SkipForward className="w-5 h-5" />
                     </button>
 
                     <button
+                      type="button"
                       onClick={toggleLoop}
-                      className={`p-2 rounded-full transition-colors cursor-pointer ${
+                      className={`p-2 rounded-full transition-colors cursor-pointer active:scale-90 ${
                         isLoop ? "text-emerald-400 bg-emerald-500/20" : "text-foreground/50 hover:text-foreground"
                       }`}
                       title={isLoop ? "Loop Single Song On" : "Loop Off"}
@@ -293,39 +321,94 @@ export const ZanophyModal: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* Volume Slider */}
-                  <div className="flex items-center justify-center gap-2 max-w-xs mx-auto mb-4">
+                  {/* Volume Controller: Touch-friendly with [-] and [+] step buttons */}
+                  <div className="flex items-center justify-between sm:justify-center gap-2 max-w-xs mx-auto mb-3 bg-[#05090c] border border-emerald-500/25 px-3 py-1.5 rounded-xl">
                     <button
+                      type="button"
                       onClick={toggleMute}
-                      className="text-foreground/60 hover:text-emerald-400 transition-colors"
+                      className="p-1 text-foreground/60 hover:text-emerald-400 active:scale-90 transition-colors cursor-pointer shrink-0"
                       title={isMuted ? "Unmute" : "Mute"}
+                      aria-label="Toggle Mute"
                     >
-                      {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4" />}
+                      {isMuted || volume === 0 ? (
+                        <VolumeX className="w-4 h-4 text-red-400" />
+                      ) : volume < 50 ? (
+                        <Volume1 className="w-4 h-4 text-emerald-400" />
+                      ) : (
+                        <Volume2 className="w-4 h-4 text-emerald-400" />
+                      )}
                     </button>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={isMuted ? 0 : volume}
-                      onChange={e => setVolume(Number(e.target.value))}
-                      className="w-28 sm:w-36 h-1 bg-emerald-950/60 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                    />
-                    <span className="text-[10px] text-muted-foreground w-7">{isMuted ? "0%" : `${volume}%`}</span>
+
+                    <button
+                      type="button"
+                      onClick={() => setVolume(Math.max(0, volume - 10))}
+                      className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-mono text-xs font-bold active:scale-90 transition-all cursor-pointer shrink-0 select-none"
+                      title="Decrease Volume 10%"
+                      aria-label="Decrease Volume"
+                    >
+                      -
+                    </button>
+
+                    <div className="flex-1 px-1">
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={isMuted ? 0 : volume}
+                        onChange={e => setVolume(Number(e.target.value))}
+                        className="w-full h-2 bg-emerald-950/70 rounded-lg appearance-none cursor-pointer accent-emerald-400 touch-none py-1.5"
+                        aria-label="Volume Slider"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setVolume(Math.min(100, volume + 10))}
+                      className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-mono text-xs font-bold active:scale-90 transition-all cursor-pointer shrink-0 select-none"
+                      title="Increase Volume 10%"
+                      aria-label="Increase Volume"
+                    >
+                      +
+                    </button>
+
+                    <span className="text-[11px] text-emerald-400 font-mono w-8 text-right select-none font-bold shrink-0">
+                      {isMuted ? "0%" : `${volume}%`}
+                    </span>
                   </div>
                 </div>
 
                 {/* Animated Canvas Visualizer */}
-                <div className="mt-auto pt-3 border-t border-emerald-500/15">
-                  <div className="flex items-center justify-between text-[10px] text-emerald-400/70 mb-1">
+                <div className="mt-auto pt-2 border-t border-emerald-500/15">
+                  <div className="flex items-center justify-between text-[10px] text-emerald-400/70 mb-1 font-mono">
                     <span>AUDIO SPECTRUM // 32 BANDS</span>
-                    <span>{isPlaying ? "LIVE" : "STANDBY"}</span>
+                    <span className="flex items-center gap-1">
+                      <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? "bg-emerald-400 animate-ping" : "bg-muted-foreground"}`} />
+                      {isPlaying ? "LIVE" : "STANDBY"}
+                    </span>
                   </div>
-                  <canvas ref={canvasRef} width={280} height={40} className="w-full h-10 rounded-lg bg-black/40" />
+                  <canvas ref={canvasRef} width={280} height={36} className="w-full h-9 rounded-lg bg-black/40 border border-emerald-500/20" />
                 </div>
               </div>
 
               {/* Right Column: Playlist Tracklist & Custom Stream Injection */}
-              <div className="lg:col-span-7 p-4 sm:p-6 flex flex-col overflow-hidden bg-[#070b0e]">
+              <div
+                className={`${
+                  showMobilePlaylist ? "flex" : "hidden"
+                } lg:flex w-full lg:col-span-7 p-4 sm:p-6 flex-col overflow-hidden bg-[#070b0e]`}
+              >
+                {/* Mobile Return to Player button */}
+                <div className="flex items-center justify-between mb-3 lg:hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowMobilePlaylist(false)}
+                    className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 font-bold bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-lg active:scale-95 transition-all cursor-pointer font-mono"
+                  >
+                    ← Back to Player
+                  </button>
+                  <span className="text-[10px] text-muted-foreground font-mono">
+                    {playlist.length} TRACKS LOADED
+                  </span>
+                </div>
                 {/* Playlist Header & Search */}
                 <div className="border-b border-emerald-500/20 pb-4 mb-3">
                   <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -361,7 +444,10 @@ export const ZanophyModal: React.FC = () => {
                     return (
                       <div
                         key={track.id}
-                        onClick={() => selectTrack(originalIndex)}
+                        onClick={() => {
+                          selectTrack(originalIndex);
+                          setShowMobilePlaylist(false);
+                        }}
                         className={`flex items-center gap-3 p-2 sm:p-2.5 rounded-xl cursor-pointer transition-all group ${
                           isCurrent
                             ? "bg-emerald-500/15 border border-emerald-500/40 shadow-[0_0_15px_rgba(29,185,84,0.15)]"

@@ -151,6 +151,7 @@ export const terminalCommandsHelp = [
   { cmd: "controler [--gui]", desc: "DualSense & Gamepad calibration suite" },
   { cmd: "hardware [--gui]", desc: "MSI GF65 EC hardware simulator & live fan curve tuner" },
   { cmd: "projects", desc: "List all enterprise ERP, AI, Systems, and Security projects" },
+  { cmd: "playlist", desc: "Open Zane's official 3 AM YouTube playlist directly" },
   { cmd: "cat [id]", desc: "Inspect architectural deep-dive of any project or file" },
   { cmd: "curl [url]", desc: "Simulate HTTP request (e.g. curl /robots.txt)" },
   { cmd: "repo [id]", desc: "Open the GitHub repository for any project" },

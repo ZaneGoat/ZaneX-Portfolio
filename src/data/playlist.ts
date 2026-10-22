@@ -129,6 +129,8 @@ export const ZANOPHY_PLAYLIST: Track[] = [
   }
 ];
 
+export const ZANE_YOUTUBE_PLAYLIST_URL = "https://www.youtube.com/playlist?list=PLOLJsI8Bv-f8";
+
 export function extractYouTubeVideoId(input: string): string | null {
   if (!input) return null;
   const trimmed = input.trim();

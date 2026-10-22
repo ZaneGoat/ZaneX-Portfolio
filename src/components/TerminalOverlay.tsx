@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal as TerminalIcon, X, Maximize2, Minimize2, CornerDownLeft, ExternalLink } from "lucide-react";
 import { systemSpecsByPersona, projectsData, skillsData, terminalCommandsHelp } from "@/data/portfolio";
+import { ZANE_YOUTUBE_PLAYLIST_URL } from "@/data/playlist";
 import { usePersona } from "@/context/PersonaContext";
 import { useMusic } from "@/context/MusicContext";
 import { useOperatorClearance } from "@/context/OperatorClearanceContext";
@@ -61,6 +62,7 @@ export const DECK_MODULES: DeckModule[] = [
 
   // Tools & Audio
   { id: "music", label: "Zanophy Audio", category: "tool", command: "music", icon: "🎵", badge: "3AM", desc: "Music Player Deck" },
+  { id: "playlist", label: "YT Playlist", category: "tool", command: "playlist", icon: "▶️", badge: "YT", desc: "Zane's 3 AM YouTube Playlist" },
   { id: "help", label: "Help", category: "tool", command: "help", icon: "❓", badge: "CLI", desc: "Commands Manual" },
   { id: "clear", label: "Clear", category: "tool", command: "clear", icon: "🧹", badge: "CLS", desc: "Wipe Console History" },
 ];
@@ -324,6 +326,13 @@ export const TerminalOverlay = ({
               type: "output",
               content: `Launching Zanophy Cyberpunk Music Deck... [Now Playing: ${currentTrack?.title || "3 AM Synthetics"} — ${currentTrack?.artist || "Zane"}]`
             });
+          } else if (arg === "yt" || arg === "youtube" || arg === "playlist") {
+            sound.playClick();
+            window.open(ZANE_YOUTUBE_PLAYLIST_URL, "_blank", "noopener,noreferrer");
+            newLogs.push({
+              type: "output",
+              content: `Dispatched Zane's 3 AM YouTube Playlist in a new tab: ${ZANE_YOUTUBE_PLAYLIST_URL}`
+            });
           } else {
             newLogs.push({
               type: "output",
@@ -372,6 +381,41 @@ export const TerminalOverlay = ({
           }
           break;
 
+        case "playlist":
+        case "ytplaylist":
+        case "youtube":
+          sound.playClick();
+          window.open(ZANE_YOUTUBE_PLAYLIST_URL, "_blank", "noopener,noreferrer");
+          newLogs.push({
+            type: "output",
+            content: (
+              <div className="bg-red-500/10 border border-red-500/30 p-3.5 rounded-xl my-2 space-y-2 text-xs font-mono">
+                <div className="flex items-center justify-between">
+                  <p className="text-red-400 font-bold flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                    [YOUTUBE PLAYLIST] ZANE'S 3 AM MIDNIGHT RADIO
+                  </p>
+                  <a
+                    href={ZANE_YOUTUBE_PLAYLIST_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2.5 py-1 bg-red-500 hover:bg-red-600 text-white font-bold rounded text-[11px] flex items-center gap-1 transition-colors"
+                  >
+                    <span>OPEN YOUTUBE</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <p className="text-muted-foreground text-[11px]">
+                  Direct stream link dispatched to external browser: <span className="text-red-300 underline">{ZANE_YOUTUBE_PLAYLIST_URL}</span>
+                </p>
+                <div className="p-2 bg-black/60 rounded border border-red-500/20 text-[11px] text-foreground/80">
+                  <p>Curated stream of Phonk, Dream Pop, Desert Blues, Neo-Classical & Moroccan Lo-Fi frequencies.</p>
+                </div>
+              </div>
+            )
+          });
+          break;
+
       case "help":
         newLogs.push({
           type: "output",
@@ -396,6 +440,10 @@ export const TerminalOverlay = ({
                 <div className="flex gap-2">
                   <span className="text-primary font-bold w-24 shrink-0">music</span>
                   <span className="text-muted-foreground text-[11px]">Zanophy player: play, pause, next, list, gui</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-primary font-bold w-24 shrink-0">playlist</span>
+                  <span className="text-muted-foreground text-[11px]">Direct link to Zane's 3 AM YouTube playlist</span>
                 </div>
                 <div className="flex gap-2">
                   <span className="text-primary font-bold w-24 shrink-0">clearance</span>
