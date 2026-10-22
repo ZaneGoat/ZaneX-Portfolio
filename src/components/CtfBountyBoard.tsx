@@ -47,12 +47,12 @@ export const CTF_FLAGS: CtfFlagInfo[] = [
   },
   {
     id: "flag2",
-    name: "Robin's Leaked Vault",
-    category: "OSINT",
+    name: "Subcarrier RF Leak Vault",
+    category: "SIGNALS",
     difficulty: "MEDIUM",
     points: 250,
-    hint: "Run 'robin --investigate' or inspect 'cat .robin_secret' in ZaneOS Shell.",
-    description: "Robin scrapes underground onion forums. Intercept the classified payload hidden in the dark-web archive.",
+    hint: "Run 'csi --scan' or inspect 'cat .radio_secret' in ZaneOS Shell.",
+    description: "Intercept the raw 802.11 CSI OFDM subcarrier phase perturbation payload hidden in the RF buffer.",
     flagValue: "ZANEX{DARK_ONION_EXTRACTOR_99}"
   },
   {

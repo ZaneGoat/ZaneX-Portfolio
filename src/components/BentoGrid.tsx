@@ -302,7 +302,7 @@ export const BentoGrid = ({
                   Access Denied // Classified Weaponry Vault
                 </h3>
                 <p className="text-muted-foreground text-sm leading-relaxed max-w-2xl mb-6 font-mono">
-                  All enterprise full-stack ERP architectures, Wi-Fi CSI Doppler subcarrier radars, Robin Tor OSINT scrapers, and MSI EC governors are encrypted.
+                  All enterprise full-stack ERP architectures, Wi-Fi CSI Doppler subcarrier radars, DualSense HID governors, and MSI EC fan governors are encrypted.
                   Solve the <strong className="text-primary">Infiltration Challenges</strong> or evoke cipher <strong>'OPERATOR'</strong> to decrypt.
                 </p>
                 <div className="flex flex-wrap gap-3">

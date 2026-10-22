@@ -357,13 +357,8 @@ export const TerminalOverlay = ({
         });
         break;
 
-      case "robin":
-      case "osint":
-        if (arg === "--map" || arg === "map") {
-          onClose();
-          if (onOpenThreatMap) onOpenThreatMap();
-          return;
-        }
+      case "controler":
+      case "gamepad":
         if (arg === "--investigate" || arg === "investigate") {
           sound.playSuccess();
           newLogs.push({
@@ -372,10 +367,10 @@ export const TerminalOverlay = ({
               <div className="bg-secondary/15 border-2 border-secondary/60 p-3.5 rounded-xl my-2 space-y-2 text-xs font-mono">
                 <div className="flex items-center gap-2 text-secondary font-bold">
                   <span className="w-2 h-2 rounded-full bg-secondary animate-ping" />
-                  [ROBIN VAULT DECRYPTED] CLASSIFIED ONION EXPLOIT PAYLOAD
+                  [HID TELEMETRY DECRYPTED] CLASSIFIED SUBCARRIER EXPLOIT PAYLOAD
                 </div>
                 <p className="text-muted-foreground text-[11px]">
-                  Source: dread6x...onion / Robin Threat Vault artifact dump
+                  Source: Controler-space Low-Latency USB/BT HID buffer dump
                 </p>
                 <div className="p-2.5 bg-black/80 rounded border border-secondary/40 text-secondary">
                   <span className="text-[10px] text-secondary/70 block uppercase font-bold">★ CTF FLAG #2 INTERCEPTED:</span>
@@ -397,39 +392,28 @@ export const TerminalOverlay = ({
               <div className="flex items-center justify-between">
                 <p className="text-secondary font-bold flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-secondary animate-ping" />
-                  [ROBIN_OSINT v2.1] AI DARK WEB RECON AGENT
+                  [CONTROLER-SPACE v2.0] DUALSENSE & HID TELEMETRY SUITE
                 </p>
                 <div className="flex gap-1.5">
-                  {onOpenThreatMap && (
-                    <button
-                      onClick={() => {
-                        onClose();
-                        onOpenThreatMap();
-                      }}
-                      className="px-2.5 py-1 bg-secondary text-background font-bold text-[10px] rounded hover:scale-105 active:scale-95 transition-transform"
-                    >
-                      THREAT MAP GUI
-                    </button>
-                  )}
                   <button
-                    onClick={() => handleCommand("robin --investigate")}
+                    onClick={() => handleCommand("controler --investigate")}
                     className="px-2 py-1 bg-secondary/20 border border-secondary/40 text-secondary font-bold text-[10px] rounded hover:bg-secondary/30 transition-colors"
                   >
-                    INVESTIGATE
+                    INVESTIGATE BUFFER
                   </button>
                 </div>
               </div>
               <div className="p-2 bg-black/60 rounded border border-secondary/20 text-secondary/90 text-[11px] space-y-0.5">
-                <p>• Tor SOCKS5 Proxy: 127.0.0.1:9050 [ACTIVE // 3-HOP RELAY]</p>
-                <p>• Onion Crawler: Multi-threaded async scraper initialized</p>
-                <p>• Threat Pipeline: PGP Key Extractor, Exposed Artifact Harvester</p>
-                <p>• AI Engine: Local Ollama / DeepSeek Threat Synthesis Core</p>
+                <p>• Polling Rate: 1000Hz (1.0ms sub-millisecond input lag)</p>
+                <p>• Deadzone Matrix: Dynamic Exponential & S-Curve calibration</p>
+                <p>• Trigger Haptics: DualSense L2/R2 adaptive resistance profiles</p>
+                <p>• Driver Layer: Direct Linux evdev & raw HID report parser</p>
               </div>
               <div className="flex items-center justify-between pt-1">
                 <span className="text-[11px] text-secondary/70">
-                  Tip: run <code>robin --map</code> or <code>robin --investigate</code>
+                  Tip: run <code>controler --investigate</code> or <code>cat .radio_secret</code>
                 </span>
-                <a href="https://github.com/ZaneGoat/robin" target="_blank" rel="noopener noreferrer" className="underline font-bold text-secondary text-[11px]">
+                <a href="https://github.com/ZaneGoat/Controler-space" target="_blank" rel="noopener noreferrer" className="underline font-bold text-secondary text-[11px]">
                   [GITHUB REPO]
                 </a>
               </div>
@@ -499,7 +483,7 @@ export const TerminalOverlay = ({
         if (flagCandidate) {
           const knownFlags: Record<string, string> = {
             "zanex{dom_inspector_root_42}": "Flag 1: Subtle Inspector (+100 pts)",
-            "zanex{dark_onion_extractor_99}": "Flag 2: Robin's Leaked Vault (+250 pts)",
+            "zanex{dark_onion_extractor_99}": "Flag 2: Subcarrier RF Leak Vault (+250 pts)",
             "zanex{hex_breach_buffer_master}": "Flag 3: ICE Breaker Protocol (+500 pts)"
           };
           const key = flagCandidate.toLowerCase();
@@ -674,8 +658,8 @@ Allow: /
         break;
 
       case "cat":
-        if (arg === ".robin_secret" || arg === "secret" || arg === "secret.txt" || arg === ".secret" || arg === "robin_secret") {
-          handleCommand("robin --investigate");
+        if (arg === ".radio_secret" || arg === ".controler_secret" || arg === "secret" || arg === "secret.txt" || arg === ".secret" || arg === ".robin_secret") {
+          handleCommand("controler --investigate");
           return;
         }
         if (arg === "robots.txt" || arg === "/robots.txt") {
@@ -859,7 +843,7 @@ Allow: /
   };
 
   const quickChips = [
-    "maze", "clearance", "music", "help", "ctf", "csi", "robin", "hardware", "device", "whoami", "neofetch", 
+    "maze", "clearance", "music", "help", "ctf", "csi", "controler", "hardware", "device", "whoami", "neofetch", 
     "projects", "breach", "matrix", "clear"
   ];
 
@@ -944,7 +928,7 @@ Allow: /
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="type command (e.g. 'csi', 'robin', 'hardware', 'whoami', 'fortune', 'help')..."
+                placeholder="type command (e.g. 'csi', 'controler', 'hardware', 'whoami', 'fortune', 'help')..."
                 className="flex-1 bg-transparent text-primary text-xs md:text-sm outline-none font-mono placeholder:text-primary/30"
                 autoFocus
               />

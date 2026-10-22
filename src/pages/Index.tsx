@@ -20,7 +20,6 @@ const BreachProtocol = lazy(() => import("@/components/BreachProtocol").then(m =
 const MatrixTakeover = lazy(() => import("@/components/MatrixTakeover").then(m => ({ default: m.MatrixTakeover })));
 const CsiRadarModal = lazy(() => import("@/components/CsiRadarModal").then(m => ({ default: m.CsiRadarModal })));
 const CtfBountyBoard = lazy(() => import("@/components/CtfBountyBoard").then(m => ({ default: m.CtfBountyBoard })));
-const RobinThreatMap = lazy(() => import("@/components/RobinThreatMap").then(m => ({ default: m.RobinThreatMap })));
 const ZaneMegaCenterModal = lazy(() => import("@/components/ZaneMegaCenterModal").then(m => ({ default: m.ZaneMegaCenterModal })));
 const ZanophyModal = lazy(() => import("@/components/ZanophyModal").then(m => ({ default: m.ZanophyModal })));
 const OperatorInfiltrationModal = lazy(() => import("@/components/OperatorInfiltrationModal").then(m => ({ default: m.OperatorInfiltrationModal })));
@@ -162,13 +161,6 @@ const Index = () => {
             onClose={close}
             onOpenTerminal={openTerminal}
             onOpenBreach={openBreach}
-          />
-        )}
-        {loaded.threatmap && (
-          <RobinThreatMap
-            isOpen={open === "threatmap"}
-            onClose={close}
-            onOpenTerminal={openTerminal}
           />
         )}
         {loaded.megacenter && (

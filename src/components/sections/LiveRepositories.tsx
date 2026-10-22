@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Github, ExternalLink, Star, GitFork, Search, RefreshCw, 
-  Terminal, Code2, Sparkles, Check, Copy, AlertCircle, Database
+  Terminal, Code2, Sparkles, Check, Copy, AlertCircle, Database, Pin
 } from "lucide-react";
 import { useGitHubRepos, GitHubRepo } from "@/services/github";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -198,24 +198,37 @@ export const LiveRepositories: React.FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ delay: Math.min(i * 0.04, 0.3) }}
-                    className="bg-[#050816]/90 border border-primary/20 hover:border-primary/50 rounded-2xl p-6 backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_30px_hsl(var(--primary)/0.15)] group"
+                    className={`bg-[#050816]/90 rounded-2xl p-6 backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_35px_hsl(var(--primary)/0.2)] group border ${
+                      repo.isPinned
+                        ? "border-primary/50 bg-gradient-to-br from-[#071318]/90 via-[#050816]/90 to-[#0c0818]/90 shadow-[0_0_25px_hsl(var(--primary)/0.15)] ring-1 ring-primary/30"
+                        : "border-primary/20 hover:border-primary/50"
+                    }`}
                   >
                     <div>
-                      {/* Card Header: Language & Activity */}
+                      {/* Card Header: Language, Pinned Badge & Activity */}
                       <div className="flex items-center justify-between gap-2 mb-3.5">
-                        {repo.language ? (
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold border ${langStyle.bg} ${langStyle.text} ${langStyle.border}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${langStyle.dot}`} />
-                            {repo.language}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-primary/10 text-primary/70 border border-primary/20">
-                            <Code2 className="w-3 h-3" />
-                            Multi-Stack
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {repo.isPinned && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 border border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                              <Pin className="w-2.5 h-2.5 fill-amber-400 text-amber-400 rotate-45" />
+                              <span>PINNED</span>
+                            </span>
+                          )}
 
-                        <span className="text-[11px] text-muted-foreground">
+                          {repo.language ? (
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold border ${langStyle.bg} ${langStyle.text} ${langStyle.border}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${langStyle.dot}`} />
+                              {repo.language}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-primary/10 text-primary/70 border border-primary/20">
+                              <Code2 className="w-3 h-3" />
+                              Multi-Stack
+                            </span>
+                          )}
+                        </div>
+
+                        <span className="text-[11px] text-muted-foreground shrink-0">
                           {formatRelativeTime(repo.updated_at)}
                         </span>
                       </div>

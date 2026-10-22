@@ -16,52 +16,86 @@ export interface GitHubRepo {
   topics: string[];
   fork: boolean;
   archived: boolean;
+  isPinned?: boolean;
 }
 
-const CACHE_KEY = "zanex_github_repos_v2";
+export const PINNED_REPO_NAMES = ["ZaneMegaCenter", "csi_project", "Controler-space"];
+
+export const isPinnedRepo = (name: string): boolean => {
+  return PINNED_REPO_NAMES.some(p => p.toLowerCase() === name.toLowerCase().replace(/[\s_-]+/g, ""));
+};
+
+const getPinnedOrder = (name: string): number => {
+  const normalized = name.toLowerCase().replace(/[\s_-]+/g, "");
+  const idx = PINNED_REPO_NAMES.findIndex(p => p.toLowerCase().replace(/[\s_-]+/g, "") === normalized);
+  return idx === -1 ? 999 : idx;
+};
+
+const CACHE_KEY = "zanex_github_repos_v3";
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 /**
  * High-fidelity fallback snapshot used when offline, in dev without internet,
  * or when unauthenticated GitHub rate limits are encountered.
+ * Pinned flagships at top: ZaneMegaCenter, csi_project, Controler-space.
  */
 export const FALLBACK_REPOS: GitHubRepo[] = [
   {
     id: 101,
-    name: "csi_project",
-    full_name: "ZaneGoat/csi_project",
-    description: "Wi-Fi CSI Sensing Radar: Non-invasive camera-free human presence & Doppler motion recognition using 802.11 subcarriers.",
-    html_url: "https://github.com/ZaneGoat/csi_project",
-    homepage: null,
-    language: "Python",
-    stargazers_count: 5,
-    forks_count: 1,
-    open_issues_count: 0,
-    updated_at: "2026-10-20T12:00:00Z",
-    created_at: "2025-06-10T00:00:00Z",
-    topics: ["wifi-csi", "rf-sensing", "radar", "signal-processing", "python"],
-    fork: false,
-    archived: false
-  },
-  {
-    id: 102,
     name: "ZaneMegaCenter",
     full_name: "ZaneGoat/ZaneMegaCenter",
     description: "Low-level Linux Embedded Controller (EC) register I/O governor and live fan curve tuner for MSI GF65 laptops.",
     html_url: "https://github.com/ZaneGoat/ZaneMegaCenter",
     homepage: null,
     language: "Python",
-    stargazers_count: 4,
+    stargazers_count: 5,
     forks_count: 0,
     open_issues_count: 0,
     updated_at: "2026-10-18T10:00:00Z",
     created_at: "2025-05-15T00:00:00Z",
     topics: ["linux-ec", "hardware-tuning", "fan-control", "customtkinter", "isw"],
     fork: false,
-    archived: false
+    archived: false,
+    isPinned: true
+  },
+  {
+    id: 102,
+    name: "csi_project",
+    full_name: "ZaneGoat/csi_project",
+    description: "Wi-Fi CSI Sensing Radar: Non-invasive camera-free human presence & Doppler motion recognition using 802.11 subcarriers.",
+    html_url: "https://github.com/ZaneGoat/csi_project",
+    homepage: null,
+    language: "Python",
+    stargazers_count: 6,
+    forks_count: 1,
+    open_issues_count: 0,
+    updated_at: "2026-10-20T12:00:00Z",
+    created_at: "2025-06-10T00:00:00Z",
+    topics: ["wifi-csi", "rf-sensing", "radar", "signal-processing", "python"],
+    fork: false,
+    archived: false,
+    isPinned: true
   },
   {
     id: 103,
+    name: "Controler-space",
+    full_name: "ZaneGoat/Controler-space",
+    description: "Low-latency DualSense & HID gamepad deadzone calibration, stick curves, and adaptive trigger haptics for Linux.",
+    html_url: "https://github.com/ZaneGoat/Controler-space",
+    homepage: null,
+    language: "Python",
+    stargazers_count: 4,
+    forks_count: 0,
+    open_issues_count: 0,
+    updated_at: "2026-09-30T04:00:00Z",
+    created_at: "2025-07-20T00:00:00Z",
+    topics: ["gamepad", "dualsense", "hid-api", "haptics", "python"],
+    fork: false,
+    archived: false,
+    isPinned: true
+  },
+  {
+    id: 104,
     name: "ZaneX-Portfolio",
     full_name: "ZaneGoat/ZaneX-Portfolio",
     description: "High-performance Cyberpunk portfolio workstation with interactive terminals, CTF bounty hunting, and visitor profiles.",
@@ -78,23 +112,6 @@ export const FALLBACK_REPOS: GitHubRepo[] = [
     archived: false
   },
   {
-    id: 104,
-    name: "Controler-space",
-    full_name: "ZaneGoat/Controler-space",
-    description: "Low-latency DualSense & HID gamepad deadzone calibration, stick curves, and adaptive trigger haptics for Linux.",
-    html_url: "https://github.com/ZaneGoat/Controler-space",
-    homepage: null,
-    language: "Python",
-    stargazers_count: 3,
-    forks_count: 0,
-    open_issues_count: 0,
-    updated_at: "2026-09-30T04:00:00Z",
-    created_at: "2025-07-20T00:00:00Z",
-    topics: ["gamepad", "dualsense", "hid-api", "haptics", "python"],
-    fork: false,
-    archived: false
-  },
-  {
     id: 105,
     name: "Highway-Sys",
     full_name: "ZaneGoat/Highway-Sys",
@@ -102,7 +119,7 @@ export const FALLBACK_REPOS: GitHubRepo[] = [
     html_url: "https://github.com/ZaneGoat/Highway-Sys",
     homepage: null,
     language: "Python",
-    stargazers_count: 2,
+    stargazers_count: 3,
     forks_count: 0,
     open_issues_count: 0,
     updated_at: "2026-08-06T00:00:00Z",
@@ -181,23 +198,6 @@ export const FALLBACK_REPOS: GitHubRepo[] = [
   },
   {
     id: 110,
-    name: "robin",
-    full_name: "ZaneGoat/robin",
-    description: "Autonomous OSINT intelligence scraping suite operating over the Tor network with local LLM summarization.",
-    html_url: "https://github.com/ZaneGoat/robin",
-    homepage: null,
-    language: "Python",
-    stargazers_count: 4,
-    forks_count: 0,
-    open_issues_count: 0,
-    updated_at: "2025-12-04T13:00:00Z",
-    created_at: "2025-01-10T00:00:00Z",
-    topics: ["osint", "tor", "darkweb", "security", "threat-intel"],
-    fork: true,
-    archived: false
-  },
-  {
-    id: 111,
     name: "SPA",
     full_name: "ZaneGoat/SPA",
     description: "Application de Gestion complète pour centre SPA et bien-être : réservations, forfaits soins et encaissement.",
@@ -214,7 +214,7 @@ export const FALLBACK_REPOS: GitHubRepo[] = [
     archived: false
   },
   {
-    id: 112,
+    id: 111,
     name: "Pizza-express",
     full_name: "ZaneGoat/Pizza-express",
     description: "Application Python de gestion de commande, cuisine et livraison express pour pizzeria.",
@@ -232,6 +232,33 @@ export const FALLBACK_REPOS: GitHubRepo[] = [
   }
 ];
 
+const sortAndFilterRepos = (rawRepos: GitHubRepo[]): GitHubRepo[] => {
+  // Exclude 'robin' and any fork named robin
+  const filtered = rawRepos.filter(r => r.name.toLowerCase() !== "robin");
+
+  return filtered
+    .map(r => ({
+      ...r,
+      isPinned: isPinnedRepo(r.name)
+    }))
+    .sort((a, b) => {
+      const aPinned = isPinnedRepo(a.name);
+      const bPinned = isPinnedRepo(b.name);
+
+      if (aPinned && bPinned) {
+        return getPinnedOrder(a.name) - getPinnedOrder(b.name);
+      }
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+
+      // For non-pinned, prioritize original non-forks
+      if (a.fork !== b.fork) return a.fork ? 1 : -1;
+
+      // Then by updated date
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+    });
+};
+
 export const useGitHubRepos = () => {
   const [repos, setRepos] = useState<GitHubRepo[]>(() => {
     try {
@@ -239,13 +266,13 @@ export const useGitHubRepos = () => {
       if (cached) {
         const { data, timestamp } = JSON.parse(cached);
         if (Date.now() - timestamp < CACHE_TTL_MS && Array.isArray(data) && data.length > 0) {
-          return data;
+          return sortAndFilterRepos(data);
         }
       }
     } catch {
       // Ignore cache read failures
     }
-    return FALLBACK_REPOS;
+    return sortAndFilterRepos(FALLBACK_REPOS);
   });
 
   const [loading, setLoading] = useState<boolean>(true);
@@ -262,7 +289,7 @@ export const useGitHubRepos = () => {
         if (cached) {
           const { data, timestamp } = JSON.parse(cached);
           if (Date.now() - timestamp < CACHE_TTL_MS && Array.isArray(data) && data.length > 0) {
-            setRepos(data);
+            setRepos(sortAndFilterRepos(data));
             setIsCached(true);
             setLoading(false);
             return;
@@ -284,12 +311,7 @@ export const useGitHubRepos = () => {
 
       const data: GitHubRepo[] = await res.json();
       if (Array.isArray(data) && data.length > 0) {
-        // Sort: Non-forks first, then by updated date
-        const sorted = data.sort((a, b) => {
-          if (a.fork !== b.fork) return a.fork ? 1 : -1;
-          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-        });
-
+        const sorted = sortAndFilterRepos(data);
         setRepos(sorted);
         setIsCached(false);
         try {
@@ -298,12 +320,12 @@ export const useGitHubRepos = () => {
           // Ignore cache quota errors
         }
       } else {
-        setRepos(FALLBACK_REPOS);
+        setRepos(sortAndFilterRepos(FALLBACK_REPOS));
       }
     } catch (err: any) {
       console.warn("GitHub fetch failed, using fallback repos:", err?.message);
       setError(err?.message || "Failed to load latest repositories");
-      setRepos(prev => (prev.length > 0 ? prev : FALLBACK_REPOS));
+      setRepos(prev => (prev.length > 0 ? sortAndFilterRepos(prev) : sortAndFilterRepos(FALLBACK_REPOS)));
     } finally {
       setLoading(false);
     }

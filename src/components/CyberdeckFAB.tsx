@@ -176,24 +176,6 @@ export const CyberdeckFAB = ({
                 </button>
               )}
 
-              {/* Robin Threat Map */}
-              {onOpenThreatMap && (
-                <button
-                  onClick={() => {
-                    sound.playBoot();
-                    sound.haptic(40);
-                    setIsOpen(false);
-                    onOpenThreatMap();
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 text-cyan-300 active:scale-95 transition-all text-left"
-                >
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-cyan-400" />
-                    <span className="font-bold">Robin Threat Map</span>
-                  </div>
-                  <span className="text-[10px] text-cyan-400/60 font-mono">OSINT</span>
-                </button>
-              )}
 
               {/* Zane Mega Center Live */}
               {onOpenMegaCenter && (

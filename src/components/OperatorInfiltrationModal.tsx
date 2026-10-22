@@ -304,7 +304,7 @@ export const OperatorInfiltrationModal: React.FC<OperatorInfiltrationModalProps>
                   <span>Challenge 03: Black-Site Vault Decryption Cipher</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                  The top-secret security projects (Wi-Fi CSI Sensing Radar, Robin Tor OSINT, ZaneMegaCenter) are locked in the black-site vault. Enter the master declassification cipher (e.g. <strong>'OPERATOR'</strong> or <strong>'ZANEX'</strong>):
+                  The top-secret security projects (Wi-Fi CSI Sensing Radar, Controler-space Gamepad Suite, ZaneMegaCenter) are locked in the black-site vault. Enter the master declassification cipher (e.g. <strong>'OPERATOR'</strong> or <strong>'ZANEX'</strong>):
                 </p>
 
                 {clearance.projectsUnlocked ? (
@@ -313,7 +313,7 @@ export const OperatorInfiltrationModal: React.FC<OperatorInfiltrationModalProps>
                     <div>
                       <strong>ACCESS GRANTED // BLACK-OPS ARCHIVES UNMASKED:</strong>
                       <p className="text-[11px] text-emerald-300 mt-0.5">
-                        All classified projects (Wi-Fi CSI Radar, Robin OSINT, ZaneMegaCenter) are now fully visible!
+                        All classified projects (Wi-Fi CSI Radar, Controler-space, ZaneMegaCenter) are now fully visible!
                       </p>
                     </div>
                   </div>

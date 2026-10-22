@@ -148,7 +148,7 @@ export const terminalCommandsHelp = [
   { cmd: "whoami", desc: "Display operator identity & security clearance" },
   { cmd: "ctf [flag]", desc: "Hack My Portfolio CTF bounty board & flag submission" },
   { cmd: "csi [--gui]", desc: "Wi-Fi CSI Doppler radar & 64 OFDM subcarrier visualizer" },
-  { cmd: "robin [--map]", desc: "Dark-web OSINT crawler & Tor threat intelligence map" },
+  { cmd: "controler [--gui]", desc: "DualSense & Gamepad calibration suite" },
   { cmd: "hardware [--gui]", desc: "MSI GF65 EC hardware simulator & live fan curve tuner" },
   { cmd: "projects", desc: "List all enterprise ERP, AI, Systems, and Security projects" },
   { cmd: "cat [id]", desc: "Inspect architectural deep-dive of any project or file" },
