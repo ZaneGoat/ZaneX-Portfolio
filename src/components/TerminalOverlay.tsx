@@ -56,6 +56,82 @@ export const TerminalOverlay = ({
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const renderNeofetch = () => {
+    return (
+      <div className="my-2 font-mono">
+        <div className="flex flex-col md:flex-row gap-4 sm:gap-6 items-start">
+          {/* Cyber Kali Dragon ASCII Emblem */}
+          <pre className="text-cyan-400 font-bold text-[11px] leading-tight select-none shrink-0 drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]">
+{`
+          .;'
+         .;'
+        .;'
+       .:'
+      .:'
+     .:'
+   .::'    ..
+  .::'  .:::::
+ .::' .:::::::::
+.::' ::::::::::::
+.::. :::::::::::::
+.::. :::::::::::::
+.::' ::::::::::::
+ .::. ::::::::::
+  .::.  '::::::
+   .::.   ...
+    .::.
+     .::.
+`}
+          </pre>
+
+          {/* System Specs & Telemetry */}
+          <div className="space-y-1 text-xs">
+            <div className="pb-1 border-b border-primary/30">
+              <span className="text-cyan-400 font-bold text-sm">{shellUser}</span>
+              <p className="text-muted-foreground text-[10px]">--------------------------------</p>
+            </div>
+            <p><span className="text-primary font-bold">OS:</span> Kali GNU/Linux Rolling [x86_64]</p>
+            <p><span className="text-primary font-bold">Host:</span> MSI GF63 Thin (EC Hardware Governed)</p>
+            <p><span className="text-primary font-bold">Kernel:</span> 6.8.11-kali1-amd64</p>
+            <p><span className="text-primary font-bold">Uptime:</span> {activeSpecs.uptime}</p>
+            <p><span className="text-primary font-bold">Shell:</span> {activeSpecs.shell}</p>
+            <p><span className="text-primary font-bold">Display:</span> {telemetry.screenWidth}×{telemetry.screenHeight} Physical @ {telemetry.dpr}x ({telemetry.viewportWidth}×{telemetry.viewportHeight} Viewport)</p>
+            <p><span className="text-primary font-bold">DE / WM:</span> Cyberdeck HUD v4.2 / Xfwm4</p>
+            <p><span className="text-primary font-bold">Terminal:</span> ZaneOS Matrix VTY</p>
+            <p><span className="text-primary font-bold">CPU:</span> 11th Gen Intel i7-11800H (16) @ 4.60GHz</p>
+            <p><span className="text-primary font-bold">GPU:</span> NVIDIA GeForce GTX 1650 Mobile</p>
+            <p><span className="text-primary font-bold">Memory:</span> 14.2 GiB / 32.0 GiB (Governed by ZaneMegaCenter)</p>
+            <p><span className="text-primary font-bold">Flagships:</span> <span className="text-primary/90 font-semibold">ZaneMegaCenter</span> • <span className="text-primary/90 font-semibold">csi_project</span> • <span className="text-primary/90 font-semibold">Controler-space</span></p>
+            <p><span className="text-primary font-bold">Clearance:</span> Level {clearanceLevel}/3 [{clearance.identityUnlocked ? "UNLOCKED // ROOT" : "OPERATOR // ENCRYPTED"}]</p>
+
+            {/* Neofetch Palette Swatches */}
+            <div className="flex gap-1.5 pt-2">
+              <span className="w-3.5 h-3.5 bg-black border border-white/20 rounded-sm" />
+              <span className="w-3.5 h-3.5 bg-red-500 rounded-sm" />
+              <span className="w-3.5 h-3.5 bg-green-500 rounded-sm" />
+              <span className="w-3.5 h-3.5 bg-yellow-500 rounded-sm" />
+              <span className="w-3.5 h-3.5 bg-blue-500 rounded-sm" />
+              <span className="w-3.5 h-3.5 bg-purple-500 rounded-sm" />
+              <span className="w-3.5 h-3.5 bg-cyan-400 rounded-sm" />
+              <span className="w-3.5 h-3.5 bg-zinc-100 rounded-sm" />
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Nav / Help Hint */}
+        <div className="mt-3 pt-2 border-t border-primary/20 text-[11px] text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+          <span>Type <span className="text-primary font-bold">help</span> for commands</span>
+          <span>•</span>
+          <span><span className="text-primary font-bold">projects</span> for live GitHub repos</span>
+          <span>•</span>
+          <span><span className="text-primary font-bold">clearance</span> for vault challenge</span>
+          <span>•</span>
+          <span><span className="text-primary font-bold">clear</span> to wipe screen</span>
+        </div>
+      </div>
+    );
+  };
+
   useEffect(() => {
     if (isOpen) {
       sound.playBoot();
@@ -63,12 +139,7 @@ export const TerminalOverlay = ({
         setLogs([
           {
             type: "system",
-            content: (
-              <div className="text-primary/70 mb-2">
-                <p>ZaneOS Kernel v4.2.0-kali [x86_64] authenticated.</p>
-                <p>Welcome, Operator. Type <span className="text-primary font-bold">help</span> to view available system routines.</p>
-              </div>
-            )
+            content: renderNeofetch()
           }
         ]);
       }
@@ -273,37 +344,7 @@ export const TerminalOverlay = ({
       case "neofetch":
         newLogs.push({
           type: "output",
-          content: (
-            <div className="flex flex-col sm:flex-row gap-6 my-3 font-mono">
-              <pre className="text-primary font-bold text-xs leading-none shrink-0">
-{`
-   /\\_____/\\
-  /  o   o  \\
- ( ==  ^  == )   ZANE_GOAT
-  )         (    ----------
- (           )   KALI BOX
-( (  )   (  ) )
-(__(__)___(__)__)
-`}
-              </pre>
-              <div className="space-y-1 text-xs">
-                <p><span className="text-primary font-bold">User:</span> {activeSpecs.handle} ({activeSpecs.realName})</p>
-                <p><span className="text-primary font-bold">Role:</span> {activeSpecs.role}</p>
-                <p><span className="text-primary font-bold">OS:</span> {activeSpecs.os}</p>
-                <p><span className="text-primary font-bold">Shell:</span> {activeSpecs.shell}</p>
-                <p><span className="text-primary font-bold">Uptime:</span> {activeSpecs.uptime}</p>
-                <p><span className="text-primary font-bold">Location:</span> {activeSpecs.location}</p>
-                <div className="flex gap-1 pt-2">
-                  <span className="w-3 h-3 bg-red-500 rounded-sm" />
-                  <span className="w-3 h-3 bg-green-500 rounded-sm" />
-                  <span className="w-3 h-3 bg-yellow-500 rounded-sm" />
-                  <span className="w-3 h-3 bg-blue-500 rounded-sm" />
-                  <span className="w-3 h-3 bg-purple-500 rounded-sm" />
-                  <span className="w-3 h-3 bg-cyan-500 rounded-sm" />
-                </div>
-              </div>
-            </div>
-          )
+          content: renderNeofetch()
         });
         break;
 
