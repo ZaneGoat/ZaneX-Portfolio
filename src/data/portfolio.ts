@@ -172,7 +172,6 @@ export const navLinks = [
   { name: "Overview", href: "#overview" },
   { name: "Repositories", href: "#repositories" },
   { name: "Tech Matrix", href: "#skills" },
-  { name: "Terminal", href: "#terminal" },
   { name: "Minigame", href: "#games" },
   { name: "Contact", href: "#contact" }
 ];

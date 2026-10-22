@@ -69,7 +69,7 @@ export const CyberdeckFAB = ({
   return (
     <div
       onPointerDown={e => e.stopPropagation()}
-      className={`fixed bottom-5 right-5 z-40 font-mono select-none ${forceShowOnDesktop ? "" : "md:hidden"}`}
+      className="fixed bottom-5 right-5 z-40 font-mono select-none"
     >
       {/* Backdrop for easy dismiss */}
       <AnimatePresence>
