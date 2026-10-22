@@ -640,25 +640,34 @@ Allow: /
           content: (
             <div className="space-y-2 my-2">
               <p className="text-primary font-bold">=== DEPLOYED & ACTIVE REPOSITORIES ===</p>
-              {projectsData.map(p => (
-                <div key={p.id} className="text-xs py-1.5 border-b border-primary/10">
-                  <div className="flex items-center justify-between">
-                    <span>
-                      <span className="text-primary font-bold">[{p.category}]</span>{" "}
-                      <span className="text-foreground font-bold">{p.title}</span>
-                    </span>
-                    {p.github && (
-                      <a href={p.github} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-[11px] font-bold">
-                        [GITHUB REPO]
-                      </a>
-                    )}
-                  </div>
-                  <p className="text-muted-foreground text-[11px]">{p.subtitle}</p>
-                  <div className="text-[10px] text-primary/60 mt-0.5">
-                    ID: <code>{p.id}</code> | inspect: <code>cat {p.id}</code> | open: <code>repo {p.id}</code>
-                  </div>
+              {projectsData.length === 0 ? (
+                <div className="text-xs py-2 text-muted-foreground space-y-1">
+                  <p>All production repositories are managed directly on Git:</p>
+                  <a href="https://github.com/ZaneGoat" target="_blank" rel="noopener noreferrer" className="text-primary underline font-bold inline-block">
+                    https://github.com/ZaneGoat
+                  </a>
                 </div>
-              ))}
+              ) : (
+                projectsData.map(p => (
+                  <div key={p.id} className="text-xs py-1.5 border-b border-primary/10">
+                    <div className="flex items-center justify-between">
+                      <span>
+                        <span className="text-primary font-bold">[{p.category}]</span>{" "}
+                        <span className="text-foreground font-bold">{p.title}</span>
+                      </span>
+                      {p.github && (
+                        <a href={p.github} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-[11px] font-bold">
+                          [GITHUB REPO]
+                        </a>
+                      )}
+                    </div>
+                    <p className="text-muted-foreground text-[11px]">{p.subtitle}</p>
+                    <div className="text-[10px] text-primary/60 mt-0.5">
+                      ID: <code>{p.id}</code> | inspect: <code>cat {p.id}</code> | open: <code>repo {p.id}</code>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           )
         });

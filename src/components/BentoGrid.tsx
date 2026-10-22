@@ -56,9 +56,6 @@ export const BentoGrid = ({
   const { persona } = usePersona();
   const { clearance, clearanceLevel } = useOperatorClearance();
   const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.guest;
-  const [activeTab, setActiveTab] = useState(0);
-  const flagships = projectsData.slice(0, 4);
-  const active = flagships[activeTab] ?? flagships[0];
 
   const isOperator = persona === "operator";
 
@@ -182,11 +179,11 @@ export const BentoGrid = ({
                 </button>
               ) : (
                 <a
-                  href="#projects"
+                  href="#skills"
                   onClick={() => sound.playClick()}
                   className="flex items-center justify-center gap-2 border border-primary/40 text-primary font-mono font-bold px-4 sm:px-5 py-3 rounded-xl hover:bg-primary/10 transition-colors text-xs sm:text-sm"
                 >
-                  VIEW PROJECTS
+                  TECH MATRIX
                 </a>
               )}
 
@@ -322,90 +319,47 @@ export const BentoGrid = ({
               </motion.div>
             ) : (
               <>
-                <motion.div {...fadeUp(0.26)} className="hud-card md:col-span-2 lg:col-span-3 p-6 md:p-8">
+                <motion.div {...fadeUp(0.26)} className="hud-card md:col-span-2 lg:col-span-3 p-6 md:p-8 flex flex-col justify-between">
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/15 pb-4 mb-5">
                     <div className="flex items-center gap-2 text-primary font-mono text-xs font-bold uppercase tracking-widest">
-                      <Database className="w-4 h-4" /> Flagship architectures
+                      <Github className="w-4 h-4" /> Production Repositories on Git
                     </div>
-                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full pb-1" role="tablist">
-                      {flagships.map((p, idx) => (
-                        <button
-                          key={p.id}
-                          role="tab"
-                          aria-selected={activeTab === idx}
-                          onClick={() => { sound.playClick(); setActiveTab(idx); }}
-                          className={`px-3 py-1 rounded-lg text-[11px] font-mono font-bold transition-colors shrink-0 ${
-                            activeTab === idx ? "bg-primary text-background" : "bg-primary/10 text-primary/70 hover:text-primary"
-                          }`}
-                        >
-                          {p.title.split(" ")[0]}
-                        </button>
-                      ))}
-                    </div>
+                    <a
+                      href="https://github.com/ZaneGoat"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => sound.playClick()}
+                      className="px-3 py-1 rounded-lg text-[11px] font-mono font-bold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-all flex items-center gap-1.5"
+                    >
+                      <span>github.com/ZaneGoat</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
                   </div>
 
                   <div className="grid md:grid-cols-5 gap-6">
                     <div className="md:col-span-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-2xl font-bold text-primary">{active.title}</h3>
-                        <span className="px-2 py-0.5 bg-primary/15 text-primary rounded-full text-[10px] font-mono font-bold">{active.category}</span>
-                      </div>
-                      <p className="text-primary/70 text-xs font-mono mb-3">{active.subtitle}</p>
-                      <p className="text-muted-foreground text-sm leading-relaxed">{active.description}</p>
+                      <h3 className="text-2xl font-bold text-primary mb-1">Git-First Engineering Stack</h3>
+                      <p className="text-primary/70 text-xs font-mono mb-3">Enterprise ERPs, Wi-Fi CSI Radars, OSINT scrapers & EC firmware tools</p>
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        Legacy client/guest showcase modules have been decommissioned. All production systems are version-controlled, audited, and maintained directly across active Git repositories.
+                      </p>
                     </div>
                     <div className="md:col-span-2 flex flex-col justify-between gap-4">
-                      <ul className="space-y-1.5 text-xs font-mono text-muted-foreground">
-                        {active.highlights.slice(0, 3).map(h => (
-                          <li key={h} className="flex gap-2"><span className="text-primary">▸</span>{h}</li>
-                        ))}
-                      </ul>
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex flex-wrap gap-1.5">
-                          {active.tags.slice(0, 3).map(t => (
-                            <span key={t} className="px-2 py-0.5 bg-primary/10 border border-primary/20 text-primary text-[10px] font-mono rounded">{t}</span>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {active.id === "csi_project" && onOpenCsi && (
-                            <button
-                              onClick={() => { sound.playBoot(); onOpenCsi(); }}
-                              className="shrink-0 text-xs font-mono font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/40 px-2.5 py-1 rounded-lg hover:bg-emerald-500/25 flex items-center gap-1.5 transition-all hover:scale-105"
-                            >
-                              <Radio className="w-3 h-3 text-emerald-400" />
-                              LIVE RADAR
-                            </button>
-                          )}
-                          {active.id === "robin" && onOpenThreatMap && (
-                            <button
-                              onClick={() => { sound.playBoot(); onOpenThreatMap(); }}
-                              className="shrink-0 text-xs font-mono font-bold text-cyan-300 bg-cyan-500/15 border border-cyan-500/40 px-2.5 py-1 rounded-lg hover:bg-cyan-500/25 flex items-center gap-1.5 transition-all hover:scale-105"
-                            >
-                              <Globe className="w-3 h-3 text-cyan-400" />
-                              THREAT MAP
-                            </button>
-                          )}
-                          {active.id === "zanemegacenter" && onOpenMegaCenter && (
-                            <button
-                              onClick={() => { sound.playBoot(); onOpenMegaCenter(); }}
-                              className="shrink-0 text-xs font-mono font-bold text-primary bg-primary/15 border border-primary/40 px-2.5 py-1 rounded-lg hover:bg-primary/25 flex items-center gap-1.5 transition-all hover:scale-105"
-                            >
-                              <Wind className="w-3 h-3 text-primary" />
-                              LIVE EC STATION
-                            </button>
-                          )}
-                          {active.github && (
-                            <a
-                              href={active.github}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={() => sound.playClick()}
-                              className="shrink-0 text-xs font-mono font-bold text-primary hover:underline flex items-center gap-1"
-                            >
-                              REPO <ExternalLink className="w-3 h-3" />
-                            </a>
-                          )}
-                        </div>
+                      <div className="space-y-2 text-xs font-mono text-muted-foreground">
+                        <div className="flex items-center gap-2"><span className="text-primary">▸</span> Organization: @ZaneGoat</div>
+                        <div className="flex items-center gap-2"><span className="text-primary">▸</span> Deployment: Automated CI / Microservices</div>
+                        <div className="flex items-center gap-2"><span className="text-primary">▸</span> Status: Production Git Sync Active</div>
                       </div>
+                      <a
+                        href="https://github.com/ZaneGoat"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => sound.playClick()}
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-background rounded-xl font-mono text-xs font-bold transition-transform hover:scale-105 active:scale-95 shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
+                      >
+                        <Github className="w-4 h-4" />
+                        <span>BROWSE GITHUB PROFILE</span>
+                      </a>
                     </div>
                   </div>
                 </motion.div>
