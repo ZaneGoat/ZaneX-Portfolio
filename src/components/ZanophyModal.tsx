@@ -252,14 +252,16 @@ export const ZanophyModal: React.FC = () => {
 
                   {/* Scrubber / Progress Bar */}
                   <div className="space-y-1 mb-3 sm:mb-4 px-1">
-                    <input
-                      type="range"
-                      min={0}
-                      max={duration || 100}
-                      value={currentTime}
-                      onChange={e => seekTo(Number(e.target.value))}
-                      className="w-full h-2 bg-emerald-950/60 rounded-lg appearance-none cursor-pointer accent-emerald-500 hover:accent-emerald-400 transition-all touch-none py-1.5"
-                    />
+                    <div className="flex items-center py-1">
+                      <input
+                        type="range"
+                        min={0}
+                        max={duration || 100}
+                        value={currentTime}
+                        onChange={e => seekTo(Number(e.target.value))}
+                        className="w-full h-1.5 bg-emerald-950/80 rounded-lg cursor-pointer accent-emerald-500 hover:accent-emerald-400 touch-none"
+                      />
+                    </div>
                     <div className="flex justify-between text-[11px] text-muted-foreground font-mono select-none">
                       <span>{formatTime(currentTime)}</span>
                       <span>{duration > 0 ? formatTime(duration) : currentTrack.duration || "--:--"}</span>
@@ -342,7 +344,7 @@ export const ZanophyModal: React.FC = () => {
 
                     <button
                       type="button"
-                      onClick={() => setVolume(Math.max(0, volume - 10))}
+                      onClick={() => setVolume(Math.max(0, (isMuted ? 0 : volume) - 10))}
                       className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-mono text-xs font-bold active:scale-90 transition-all cursor-pointer shrink-0 select-none"
                       title="Decrease Volume 10%"
                       aria-label="Decrease Volume"
@@ -350,21 +352,23 @@ export const ZanophyModal: React.FC = () => {
                       -
                     </button>
 
-                    <div className="flex-1 px-1">
+                    <div className="flex-1 flex items-center px-1 py-2">
                       <input
                         type="range"
                         min={0}
                         max={100}
+                        step={1}
                         value={isMuted ? 0 : volume}
                         onChange={e => setVolume(Number(e.target.value))}
-                        className="w-full h-2 bg-emerald-950/70 rounded-lg appearance-none cursor-pointer accent-emerald-400 touch-none py-1.5"
+                        onInput={e => setVolume(Number((e.target as HTMLInputElement).value))}
+                        className="w-full h-1.5 bg-emerald-950/80 rounded-lg cursor-pointer accent-emerald-400 touch-none"
                         aria-label="Volume Slider"
                       />
                     </div>
 
                     <button
                       type="button"
-                      onClick={() => setVolume(Math.min(100, volume + 10))}
+                      onClick={() => setVolume(Math.min(100, (isMuted ? 0 : volume) + 10))}
                       className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-mono text-xs font-bold active:scale-90 transition-all cursor-pointer shrink-0 select-none"
                       title="Increase Volume 10%"
                       aria-label="Increase Volume"

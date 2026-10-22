@@ -24,6 +24,8 @@ interface MusicContextType {
   isLoop: boolean;
   isFullPlayerOpen: boolean;
   setIsFullPlayerOpen: (open: boolean) => void;
+  isMinimized: boolean;
+  setIsMinimized: (min: boolean) => void;
   mood: ZanophyMood;
   setMood: (mood: ZanophyMood) => void;
   isMoodMenuOpen: boolean;
@@ -90,12 +92,47 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isShuffle, setIsShuffle] = useState<boolean>(false);
   const [isLoop, setIsLoop] = useState<boolean>(false);
-  const [isFullPlayerOpen, setIsFullPlayerOpen] = useState<boolean>(false);
+  const [isFullPlayerOpen, setIsFullPlayerOpenState] = useState<boolean>(false);
+  const [isMinimized, setIsMinimized] = useState<boolean>(true);
+
+  const setIsFullPlayerOpen = useCallback((open: boolean) => {
+    setIsFullPlayerOpenState(open);
+    if (!open) {
+      setIsMinimized(true);
+    }
+  }, []);
 
   const playerRef = useRef<any>(null);
   const isApiReadyRef = useRef<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const pollTimerRef = useRef<any>(null);
+  const volumeRef = useRef<number>(volume);
+  const isMutedRef = useRef<boolean>(isMuted);
+  const handleTrackEndedRef = useRef<() => void>(() => {});
+  const nextTrackRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    volumeRef.current = volume;
+  }, [volume]);
+
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
+
+  const syncPlayerVolume = useCallback((vol: number, muted: boolean) => {
+    const p = playerRef.current;
+    if (!p) return;
+    try {
+      if (typeof p.setVolume === "function") {
+        p.setVolume(vol);
+      }
+      if (muted || vol === 0) {
+        if (typeof p.mute === "function") p.mute();
+      } else {
+        if (typeof p.unMute === "function") p.unMute();
+      }
+    } catch {}
+  }, []);
 
   const currentTrack = playlist[currentTrackIndex] || playlist[0];
 
@@ -124,28 +161,28 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               enablejsapi: 1
             },
             events: {
-              onReady: (event: any) => {
-                event.target.setVolume(volume);
-                if (isMuted) event.target.mute();
+              onReady: () => {
+                syncPlayerVolume(volumeRef.current, isMutedRef.current);
               },
               onStateChange: (event: any) => {
                 // 1 = PLAYING, 2 = PAUSED, 3 = BUFFERING, 0 = ENDED
                 if (event.data === 1) {
                   setIsPlaying(true);
                   setIsBuffering(false);
+                  syncPlayerVolume(volumeRef.current, isMutedRef.current);
                 } else if (event.data === 2) {
                   setIsPlaying(false);
                   setIsBuffering(false);
                 } else if (event.data === 3) {
                   setIsBuffering(true);
                 } else if (event.data === 0) {
-                  handleTrackEnded();
+                  handleTrackEndedRef.current();
                 }
               },
               onError: (err: any) => {
                 console.warn("[Zanophy] YouTube player error, auto-skipping:", err);
                 // On restricted or blocked video, skip to next after 1 second
-                setTimeout(() => nextTrack(), 1000);
+                setTimeout(() => nextTrackRef.current(), 1000);
               }
             }
           });
@@ -232,6 +269,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (playerRef.current && typeof playerRef.current.loadVideoById === "function") {
       try {
         playerRef.current.loadVideoById(track.videoId);
+        syncPlayerVolume(volumeRef.current, isMutedRef.current);
         setIsPlaying(true);
         setCurrentTime(0);
         sound.playBoot();
@@ -240,7 +278,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         play();
       }
     }
-  }, [play]);
+  }, [play, syncPlayerVolume]);
 
   const selectTrack = useCallback((index: number) => {
     if (index < 0 || index >= playlist.length) return;
@@ -278,6 +316,11 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [isLoop, play, nextTrack]);
 
+  useEffect(() => {
+    handleTrackEndedRef.current = handleTrackEnded;
+    nextTrackRef.current = nextTrack;
+  }, [handleTrackEnded, nextTrack]);
+
   const seekTo = useCallback((seconds: number) => {
     if (playerRef.current && typeof playerRef.current.seekTo === "function") {
       try {
@@ -288,36 +331,32 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const setVolume = useCallback((vol: number) => {
-    const clamped = Math.max(0, Math.min(100, vol));
+    const clamped = Math.max(0, Math.min(100, Math.round(vol)));
     setVolumeState(clamped);
+    volumeRef.current = clamped;
     try {
       localStorage.setItem(STORAGE_VOLUME_KEY, String(clamped));
     } catch {}
 
-    if (playerRef.current && typeof playerRef.current.setVolume === "function") {
-      try {
-        playerRef.current.setVolume(clamped);
-        if (clamped > 0 && isMuted) {
-          playerRef.current.unMute();
-          setIsMuted(false);
-        }
-      } catch {}
+    const shouldMute = clamped === 0;
+    if (shouldMute !== isMutedRef.current) {
+      setIsMuted(shouldMute);
+      isMutedRef.current = shouldMute;
     }
-  }, [isMuted]);
+    syncPlayerVolume(clamped, shouldMute);
+  }, [syncPlayerVolume]);
 
   const toggleMute = useCallback(() => {
     sound.playClick();
-    if (!playerRef.current) return;
-    try {
-      if (isMuted) {
-        playerRef.current.unMute();
-        setIsMuted(false);
-      } else {
-        playerRef.current.mute();
-        setIsMuted(true);
-      }
-    } catch {}
-  }, [isMuted]);
+    const nextMuted = !isMutedRef.current;
+    setIsMuted(nextMuted);
+    isMutedRef.current = nextMuted;
+    if (!nextMuted && volumeRef.current === 0) {
+      setVolumeState(50);
+      volumeRef.current = 50;
+    }
+    syncPlayerVolume(volumeRef.current, nextMuted);
+  }, [syncPlayerVolume]);
 
   const toggleShuffle = useCallback(() => {
     sound.playClick();
@@ -409,6 +448,8 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         isLoop,
         isFullPlayerOpen,
         setIsFullPlayerOpen,
+        isMinimized,
+        setIsMinimized,
         mood,
         setMood,
         isMoodMenuOpen,

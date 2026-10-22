@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Maximize2, Disc3, ChevronUp } from "lucide-react";
 import { useMusic } from "@/context/MusicContext";
@@ -14,19 +14,20 @@ export const ZanophyMiniBar: React.FC = () => {
     prevTrack,
     isMuted,
     toggleMute,
-    mood,
-    openMoodMenu
+    setIsFullPlayerOpen,
+    isMinimized,
+    setIsMinimized,
+    mood
   } = useMusic();
 
-  const [isMinimized, setIsMinimized] = useState(false);
-
-  const handleShortcutClick = () => {
+  const handleOpenFullPlayer = () => {
     sound.playBoot();
     sound.haptic(30);
-    openMoodMenu();
+    setIsFullPlayerOpen(true);
   };
 
-  // If minimized into a floating cyber disc
+  // Stage 1: Rounded floating disc (does not hide page content)
+  // Clicking the rounded disc makes the MiniBar badge appear (Stage 2)
   if (isMinimized) {
     return (
       <motion.button
@@ -35,24 +36,31 @@ export const ZanophyMiniBar: React.FC = () => {
         exit={{ scale: 0.8, opacity: 0 }}
         onClick={() => {
           sound.playClick();
+          sound.haptic(20);
           setIsMinimized(false);
-          openMoodMenu();
         }}
-        className="fixed bottom-4 left-4 z-40 p-2.5 rounded-full bg-black/90 border-2 border-emerald-500/60 shadow-[0_0_25px_rgba(29,185,84,0.4)] backdrop-blur-xl flex items-center gap-2 group cursor-pointer font-mono"
-        title="Open Zanophy Mood Selector"
+        className={`fixed bottom-4 left-4 z-40 p-3 rounded-full bg-[#070b0e]/95 border-2 backdrop-blur-xl flex items-center justify-center group cursor-pointer font-mono transition-transform hover:scale-105 active:scale-95 ${
+          mood === "jazz"
+            ? "border-amber-500/60 shadow-[0_0_25px_rgba(245,158,11,0.4)]"
+            : "border-emerald-500/60 shadow-[0_0_25px_rgba(29,185,84,0.4)]"
+        }`}
+        title="Click to show Zanophy Badge"
       >
-        <Disc3 className={`w-5 h-5 ${mood === "jazz" ? "text-amber-400" : "text-emerald-400"} ${isPlaying ? "animate-spin" : ""}`} />
-        <span className="text-[10px] font-bold text-emerald-400 pr-1 group-hover:inline hidden">
-          ZANOPHY
-        </span>
+        <Disc3
+          className={`w-5 h-5 ${mood === "jazz" ? "text-amber-400" : "text-emerald-400"} ${
+            isPlaying ? "animate-spin" : ""
+          }`}
+        />
       </motion.button>
     );
   }
 
+  // Stage 2: MiniBar Badge
+  // Clicking on the badge opens Full Zanophy (Stage 3)
   return (
     <motion.div
-      initial={{ y: 50, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
+      initial={{ y: 30, opacity: 0, scale: 0.95 }}
+      animate={{ y: 0, opacity: 1, scale: 1 }}
       className="fixed bottom-4 left-2.5 sm:left-5 z-40 max-w-[calc(100vw-5rem)] sm:max-w-md font-mono select-none"
     >
       <div
@@ -62,13 +70,13 @@ export const ZanophyMiniBar: React.FC = () => {
             : "border-emerald-500/50 shadow-[0_0_35px_rgba(29,185,84,0.25)]"
         }`}
       >
-        {/* Album Artwork with Spinning Vinyl Ring */}
+        {/* Album Artwork - Click opens Full Zanophy */}
         <div
-          onClick={handleShortcutClick}
+          onClick={handleOpenFullPlayer}
           className={`relative w-9 h-9 sm:w-11 sm:h-11 rounded-xl overflow-hidden shrink-0 cursor-pointer group border ${
             mood === "jazz" ? "border-amber-500/40" : "border-emerald-500/40"
           }`}
-          title="Click to Choose Mood (Random / They are Jazz)"
+          title="Click to open Full Zanophy"
         >
           <img
             src={currentTrack.thumbnail}
@@ -95,11 +103,11 @@ export const ZanophyMiniBar: React.FC = () => {
           </div>
         </div>
 
-        {/* Track Title & Active Mood Label */}
+        {/* Track Title & Active Mood Label - Click opens Full Zanophy */}
         <div
-          onClick={handleShortcutClick}
+          onClick={handleOpenFullPlayer}
           className="flex-1 min-w-0 pr-1 cursor-pointer overflow-hidden text-left"
-          title="Click to Choose Mood (Random / They are Jazz)"
+          title="Click to open Full Zanophy"
         >
           <div className="flex items-center gap-1.5">
             <span
@@ -174,7 +182,7 @@ export const ZanophyMiniBar: React.FC = () => {
           </button>
         </div>
 
-        {/* Mute & Minimize */}
+        {/* Mute & Collapse to Rounded Disc */}
         <div className="flex items-center gap-0.5 pl-1 border-l border-emerald-500/20 shrink-0">
           <button
             onClick={toggleMute}
@@ -190,7 +198,7 @@ export const ZanophyMiniBar: React.FC = () => {
               setIsMinimized(true);
             }}
             className="p-1 text-foreground/40 hover:text-foreground/80 transition-colors cursor-pointer"
-            title="Minimize"
+            title="Collapse to Rounded Button"
           >
             <ChevronUp className="w-3.5 h-3.5 rotate-180" />
           </button>
