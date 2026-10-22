@@ -426,13 +426,17 @@ export const TerminalOverlay = ({
               type: "output",
               content: (
                 <div className="bg-black/60 border border-emerald-500/30 p-3.5 rounded-xl my-2 space-y-2 text-xs font-mono">
-                  <pre className="text-[10px] text-emerald-400 font-bold leading-tight">
-{`  ___  __   _  _  __  ____  _  _  _  _ 
- (__ \\/ _\\ ( \\( )/  \\(  _ \\( \\/ )/ )( \\
-  / _/    \\/ /) (  O )) __/ )  / ) \\/ (
- (____\\_/\\_/\\_(_/ \\__/(__)  (__/  \\____/`}
+                  <pre className="text-[7px] sm:text-[9px] text-emerald-400 font-bold leading-[1.15] whitespace-pre">
+{[
+  "███████╗ █████╗ ███╗   ██╗ ██████╗ ██████╗ ██╗  ██╗██╗   ██╗",
+  "╚══███╔╝██╔══██╗████╗  ██║██╔═══██╗██╔══██╗██║  ██║╚██╗ ██╔╝",
+  "  ███╔╝ ███████║██╔██╗ ██║██║   ██║██████╔╝███████║ ╚████╔╝ ",
+  " ███╔╝  ██╔══██║██║╚██╗██║██║   ██║██╔═══╝ ██╔══██║  ╚██╔╝  ",
+  "███████╗██║  ██║██║ ╚████║╚██████╔╝██║     ██║  ██║   ██║   ",
+  "╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝     ╚═╝  ╚═╝   ╚═╝   "
+].join("\n")}
                   </pre>
-                  <p className="text-emerald-300 font-bold">=== ZANOPHY AUDIO FREQUENCY // CHOOSE MOOD ===</p>
+                  <p className="text-emerald-300 font-bold">=== ZANOPHY // CHOOSE MOOD ===</p>
                   <p className="text-muted-foreground text-[11px]">
                     Current active frequency: <span className="text-primary font-bold">{MOODS[mood].name.toUpperCase()}</span> ({MOODS[mood].tagline})
                   </p>

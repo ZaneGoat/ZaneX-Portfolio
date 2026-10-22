@@ -172,7 +172,7 @@ export const ZanophyModal: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2 sm:gap-3">
-                {/* Mood Selector Button with ASCII/Cyber badge */}
+                {/* Mood Selector Button */}
                 <button
                   type="button"
                   onClick={() => {
@@ -181,28 +181,12 @@ export const ZanophyModal: React.FC = () => {
                   }}
                   className={`text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 ${
                     mood === "jazz"
-                      ? "bg-amber-500/20 text-amber-300 border-amber-500/50 hover:bg-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
-                      : "bg-emerald-500/20 text-emerald-300 border-emerald-500/50 hover:bg-emerald-500/30 shadow-[0_0_15px_rgba(29,185,84,0.2)]"
+                      ? "bg-amber-500/20 text-amber-300 border-amber-500/50 hover:bg-amber-500/30"
+                      : "bg-emerald-500/20 text-emerald-300 border-emerald-500/50 hover:bg-emerald-500/30"
                   }`}
                   title="Switch Mood (Random / They are Jazz)"
                 >
-                  <Disc3 className="w-3.5 h-3.5" />
-                  <span className="hidden xs:inline">MOOD:</span>
-                  <span>{mood === "jazz" ? "JAZZ 🎷" : "RANDOM 🎲"}</span>
-                </button>
-
-                {/* Mobile View Toggle: hidden on desktop, lets phone user switch between Player and Playlist */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    sound.playClick();
-                    setShowMobilePlaylist(prev => !prev);
-                  }}
-                  className="lg:hidden text-[10px] font-bold px-2.5 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 flex items-center gap-1.5 hover:bg-emerald-500/25 active:scale-95 transition-all cursor-pointer font-mono"
-                  title="Toggle Playlist on Mobile"
-                >
-                  <Music2 className="w-3.5 h-3.5" />
-                  <span>{showMobilePlaylist ? "Player Deck" : `Tracks (${playlist.length})`}</span>
+                  <span>Mood: {mood === "jazz" ? "They are Jazz" : "Random"}</span>
                 </button>
 
                 <a
@@ -213,7 +197,7 @@ export const ZanophyModal: React.FC = () => {
                   title={`Open Original ${MOODS[mood].name} Playlist`}
                 >
                   <ExternalLink className="w-3 h-3" />
-                  <span className="hidden sm:inline">Playlist ↗</span>
+                  <span className="hidden sm:inline">YouTube Playlist</span>
                 </a>
 
                 <button
@@ -230,14 +214,10 @@ export const ZanophyModal: React.FC = () => {
               </div>
             </div>
 
-            {/* Main Content: Split Grid (Left Now Playing, Right Playlist) */}
+            {/* Main Content: Split Grid (Left Now Playing, Right Playlist on Desktop) */}
             <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
               {/* Left Column: Now Playing & Audio Controls */}
-              <div
-                className={`${
-                  showMobilePlaylist ? "hidden" : "flex"
-                } lg:flex w-full lg:col-span-5 p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-emerald-500/20 flex-col justify-between overflow-y-auto custom-scrollbar bg-gradient-to-b from-[#090f14] to-[#05080b]`}
-              >
+              <div className="flex w-full lg:col-span-5 p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-emerald-500/20 flex-col justify-between overflow-y-auto custom-scrollbar bg-gradient-to-b from-[#090f14] to-[#05080b]">
                 <div>
                   {/* Big Album Artwork */}
                   <div className="relative w-40 sm:w-56 md:w-64 max-h-[30vh] sm:max-h-[36vh] aspect-square mx-auto mb-3 sm:mb-5 rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(29,185,84,0.3)] border-2 border-emerald-500/40 group shrink-0">
@@ -411,48 +391,15 @@ export const ZanophyModal: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right Column: Playlist Tracklist & Custom Stream Injection */}
-              <div
-                className={`${
-                  showMobilePlaylist ? "flex" : "hidden"
-                } lg:flex w-full lg:col-span-7 p-4 sm:p-6 flex-col overflow-hidden bg-[#070b0e]`}
-              >
-                {/* Mobile Return to Player button */}
-                <div className="flex items-center justify-between mb-3 lg:hidden">
-                  <button
-                    type="button"
-                    onClick={() => setShowMobilePlaylist(false)}
-                    className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 font-bold bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-lg active:scale-95 transition-all cursor-pointer font-mono"
-                  >
-                    ← Back to Player
-                  </button>
-                  <span className="text-[10px] text-muted-foreground font-mono">
-                    {playlist.length} TRACKS LOADED
-                  </span>
-                </div>
+              {/* Right Column: Playlist Tracklist & Custom Stream Injection (Desktop only) */}
+              <div className="hidden lg:flex w-full lg:col-span-7 p-4 sm:p-6 flex-col overflow-hidden bg-[#070b0e]">
                 {/* Playlist Header & Search */}
                 <div className="border-b border-emerald-500/20 pb-4 mb-3">
                   <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-base sm:text-lg font-black text-foreground">
-                          {MOODS[mood].name.toUpperCase()} // {MOODS[mood].tagline}
-                        </h3>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            sound.playClick();
-                            openMoodMenu();
-                          }}
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-colors cursor-pointer ${
-                            mood === "jazz"
-                              ? "bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30"
-                              : "bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30"
-                          }`}
-                        >
-                          CHANGE MOOD
-                        </button>
-                      </div>
+                      <h3 className="text-base sm:text-lg font-black text-foreground">
+                        {MOODS[mood].name.toUpperCase()} // {MOODS[mood].tagline}
+                      </h3>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
                         {playlist.length} Tracks · {MOODS[mood].sub}
                       </p>
