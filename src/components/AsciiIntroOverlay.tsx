@@ -7,8 +7,6 @@ interface AsciiIntroOverlayProps {
 
 const RAMP = " .'`^\",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
 const RAMP_LEN = RAMP.length;
-const CELL_W = 10;
-const CELL_H = 16;
 
 interface Star {
   x: number;
@@ -92,6 +90,8 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
 
     let width = 0;
     let height = 0;
+    let cellW = 8;
+    let cellH = 13;
     let cols = 0;
     let rows = 0;
     let aspect = 1;
@@ -103,30 +103,47 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
       height = window.innerHeight;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
+      // Balanced cell sizing for crisp proportions on both widescreen desktop & mobile
+      if (width < 640) {
+        cellW = 6;
+        cellH = 10;
+      } else if (width < 1200) {
+        cellW = 7;
+        cellH = 12;
+      } else {
+        cellW = 8;
+        cellH = 13;
+      }
+
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.font = `bold ${CELL_H - 2}px 'Consolas', 'Courier New', monospace`;
+      ctx.font = `bold ${cellH - 1}px 'Consolas', 'Courier New', monospace`;
       ctx.textBaseline = "top";
 
-      cols = Math.max(20, Math.ceil(width / CELL_W));
-      rows = Math.max(15, Math.ceil(height / CELL_H));
+      cols = Math.max(30, Math.ceil(width / cellW));
+      rows = Math.max(20, Math.ceil(height / cellH));
       aspect = width / Math.max(1, height);
 
       uCoords = new Float32Array(cols);
       vCoords = new Float32Array(rows);
 
-      const normScale = aspect >= 1.0 ? 1.0 : 1.0 / Math.max(0.55, aspect);
+      // On wide desktop screens (aspect 16:9 ~ 1.77+), constrain the coordinate space
+      // so the eye stays perfectly centered and naturally proportioned instead of being stretched/squished
+      const baseSpan = Math.min(width, height * 1.35);
+      const spanX = baseSpan;
+      const spanY = baseSpan * (cellW / cellH);
+
       for (let c = 0; c < cols; c++) {
-        const nx = ((c + 0.5) / cols) * 2.0 - 1.0;
-        uCoords[c] = nx * aspect * normScale;
+        const px = (c + 0.5) * cellW - width * 0.5;
+        uCoords[c] = (px / (spanX * 0.5)) * 1.15;
       }
       for (let r = 0; r < rows; r++) {
-        const ny = ((r + 0.5) / rows) * 2.0 - 1.0;
-        vCoords[r] = ny * normScale;
+        const py = (r + 0.5) * cellH - height * 0.5;
+        vCoords[r] = (py / (spanY * 0.5)) * 1.15;
       }
     };
 
@@ -146,18 +163,21 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
     const spaceOut = { r: 0, g: 0, b: 0, lum: 0 };
 
     const evaluateEye = (u: number, v: number, t: number, blinkOpen: number) => {
-      const cosTerm = Math.cos(clamp(u * 1.45, -1.57, 1.57));
+      // Natural human almond eye contours: upper lid arches higher and peaks slightly nasal
+      const cosTerm = Math.cos(clamp(u * 1.35, -1.57, 1.57));
       const baseArch = Math.max(0.0, cosTerm);
 
-      const upperLid = -0.36 * Math.pow(baseArch, 1.15) * blinkOpen;
-      const lowerLid = 0.32 * Math.pow(baseArch, 1.25) * blinkOpen;
+      // Anatomical almond eye aperture: upper lid reaches -0.28, lower lid reaches +0.22
+      const upperLid = (-0.30 * Math.pow(baseArch, 1.05) - 0.02 * u) * blinkOpen;
+      const lowerLid = (0.24 * Math.pow(baseArch, 1.25) + 0.015 * u) * blinkOpen;
 
       const insideAperture =
-        Math.abs(u) < 1.08 && v > upperLid && v < lowerLid && blinkOpen > 0.015;
+        Math.abs(u) < 1.12 && v > upperLid && v < lowerLid && blinkOpen > 0.015;
 
       if (insideAperture) {
-        const lookX = 0.025 * Math.sin(t * 1.7);
-        const lookY = 0.015 * Math.cos(t * 1.3);
+        // Natural micro-saccades
+        const lookX = 0.018 * Math.sin(t * 1.4);
+        const lookY = 0.012 * Math.cos(t * 1.1);
         const eu = u - lookX;
         const ev = v - lookY;
         const r = Math.hypot(eu, ev);
@@ -166,20 +186,22 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
         const distToUpper = v - upperLid;
         const distToLower = lowerLid - v;
         const lidShadow =
-          smoothstep(0.0, 0.08, distToUpper) * smoothstep(0.0, 0.06, distToLower);
+          smoothstep(0.0, 0.10, distToUpper) * smoothstep(0.0, 0.06, distToLower);
 
-        const specDist = Math.hypot(eu + 0.105, ev + 0.095);
-        const spec2Dist = Math.hypot(eu - 0.085, ev - 0.075);
+        // Specular highlight: crisp pin-point glint + softer secondary reflection
+        const specDist = Math.hypot(eu + 0.085, ev + 0.075);
+        const spec2Dist = Math.hypot(eu - 0.075, ev - 0.065);
         const spec =
-          Math.exp(-specDist * specDist * 950.0) +
-          0.45 * Math.exp(-spec2Dist * spec2Dist * 1400.0);
+          Math.exp(-specDist * specDist * 1100.0) +
+          0.38 * Math.exp(-spec2Dist * spec2Dist * 1400.0);
 
-        if (r < 0.13) {
-          const pupilEdge = smoothstep(0.11, 0.13, r);
-          let rr = mix(6, 55, pupilEdge);
-          let gg = mix(5, 32, pupilEdge);
-          let bb = mix(10, 18, pupilEdge);
-          let lum = mix(0.03, 0.18, pupilEdge);
+        if (r < 0.12) {
+          // Pupil: deep velvet black with smooth anti-aliased edge
+          const pupilEdge = smoothstep(0.10, 0.12, r);
+          let rr = mix(4, 45, pupilEdge);
+          let gg = mix(4, 28, pupilEdge);
+          let bb = mix(8, 16, pupilEdge);
+          let lum = mix(0.02, 0.16, pupilEdge);
 
           if (spec > 0.08) {
             const s = clamp(spec, 0.0, 1.0);
@@ -194,29 +216,30 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
           eyeOut.b = bb;
           eyeOut.lum = lum;
           return;
-        } else if (r < 0.34) {
-          const nr = (r - 0.13) / (0.34 - 0.13);
-          const fiberWave = Math.sin(angle * 28.0 + Math.sin(r * 35.0 + t * 0.8));
-          const fiberWave2 = Math.cos(angle * 19.0 - Math.cos(r * 42.0));
-          const fibers = 0.5 + 0.32 * fiberWave + 0.18 * fiberWave2;
+        } else if (r < 0.32) {
+          // Iris: amber/gold radial fibers with collarette ring and dark limbal border
+          const nr = (r - 0.12) / (0.32 - 0.12);
+          const fiberWave = Math.sin(angle * 26.0 + Math.sin(r * 32.0 + t * 0.7));
+          const fiberWave2 = Math.cos(angle * 18.0 - Math.cos(r * 40.0));
+          const fibers = 0.5 + 0.34 * fiberWave + 0.16 * fiberWave2;
 
-          const collarette = Math.exp(-Math.pow((nr - 0.28) / 0.18, 2.0));
-          const limbal = smoothstep(1.0, 0.78, nr);
+          const collarette = Math.exp(-Math.pow((nr - 0.30) / 0.16, 2.0));
+          const limbal = smoothstep(1.0, 0.75, nr);
 
-          const tone = clamp(fibers * 0.68 + collarette * 0.42, 0.0, 1.0) * limbal;
+          const tone = clamp(fibers * 0.65 + collarette * 0.45, 0.0, 1.0) * limbal;
 
-          let rr = mix(184, 245, tone) * (0.45 + 0.55 * limbal);
-          let gg = mix(107, 165, tone) * (0.45 + 0.55 * limbal);
-          let bb = mix(53, 85, tone) * (0.45 + 0.55 * limbal);
+          let rr = mix(195, 250, tone) * (0.42 + 0.58 * limbal);
+          let gg = mix(115, 175, tone) * (0.42 + 0.58 * limbal);
+          let bb = mix(55, 90, tone) * (0.42 + 0.58 * limbal);
 
-          rr *= 0.4 + 0.6 * lidShadow;
-          gg *= 0.4 + 0.6 * lidShadow;
-          bb *= 0.4 + 0.6 * lidShadow;
+          rr *= 0.45 + 0.55 * lidShadow;
+          gg *= 0.45 + 0.55 * lidShadow;
+          bb *= 0.45 + 0.55 * lidShadow;
 
           let lum = clamp(
-            (0.28 + 0.62 * tone) * limbal * (0.45 + 0.55 * lidShadow),
+            (0.30 + 0.65 * tone) * limbal * (0.45 + 0.55 * lidShadow),
             0.05,
-            0.95
+            0.96
           );
 
           if (spec > 0.05) {
@@ -233,21 +256,22 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
           eyeOut.lum = lum;
           return;
         } else {
-          const sphereZ = Math.sqrt(Math.max(0.05, 1.0 - (u * u * 0.72 + v * v * 2.2)));
-          const limbusAO = smoothstep(0.34, 0.39, r);
-          const caruncle = smoothstep(-1.05, -0.72, u);
-          const shade = sphereZ * (0.35 + 0.65 * lidShadow) * (0.75 + 0.25 * limbusAO);
+          // Sclera: spherical 3D shading with pinkish caruncle at corners
+          const sphereZ = Math.sqrt(Math.max(0.05, 1.0 - (u * u * 0.68 + v * v * 2.0)));
+          const limbusAO = smoothstep(0.32, 0.37, r);
+          const caruncle = smoothstep(-1.05, -0.70, u);
+          const shade = sphereZ * (0.38 + 0.62 * lidShadow) * (0.75 + 0.25 * limbusAO);
 
-          let rr = 216 * shade;
-          let gg = 216 * shade;
-          let bb = 232 * shade;
+          let rr = 220 * shade;
+          let gg = 220 * shade;
+          let bb = 236 * shade;
 
-          const cornerPink = (1.0 - caruncle) * 0.35 + smoothstep(0.65, 1.02, Math.abs(u)) * 0.22;
-          rr = mix(rr, 215, cornerPink);
-          gg = mix(gg, 130, cornerPink);
-          bb = mix(bb, 135, cornerPink);
+          const cornerPink = (1.0 - caruncle) * 0.32 + smoothstep(0.68, 1.05, Math.abs(u)) * 0.20;
+          rr = mix(rr, 220, cornerPink);
+          gg = mix(gg, 135, cornerPink);
+          bb = mix(bb, 140, cornerPink);
 
-          const lum = clamp(shade * 0.85, 0.08, 0.9);
+          const lum = clamp(shade * 0.88, 0.08, 0.92);
           eyeOut.r = rr;
           eyeOut.g = gg;
           eyeOut.b = bb;
@@ -256,63 +280,64 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
         }
       }
 
-      // Eyelids, Creases & Orbital Skin
+      // Eyelids, Creases, Brow & Orbital Skin
       const dUpper = Math.abs(v - upperLid);
       const dLower = Math.abs(v - lowerLid);
       const dLid = Math.min(dUpper, dLower);
 
       const lashLine =
-        Math.abs(u) < 1.08 ? Math.exp(-dLid * dLid * 1800.0) : 0.0;
+        Math.abs(u) < 1.12 ? Math.exp(-dLid * dLid * 2000.0) : 0.0;
 
-      const creaseCurve = -0.36 * Math.pow(baseArch, 1.1) * (0.35 + 0.65 * blinkOpen) - 0.14;
+      // Natural supratarsal crease arching over the eye
+      const creaseCurve = -0.30 * Math.pow(baseArch, 1.05) * (0.35 + 0.65 * blinkOpen) - 0.15;
       const dCrease =
-        Math.abs(v - creaseCurve) + Math.max(0.0, Math.abs(u) - 0.95) * 0.5;
-      const creaseShadow = Math.exp(-dCrease * dCrease * 260.0);
+        Math.abs(v - creaseCurve) + Math.max(0.0, Math.abs(u) - 0.92) * 0.5;
+      const creaseShadow = Math.exp(-dCrease * dCrease * 280.0);
 
-      const lowerBagCurve = 0.32 * Math.pow(baseArch, 1.2) * (0.4 + 0.6 * blinkOpen) + 0.12;
+      const lowerBagCurve = 0.24 * Math.pow(baseArch, 1.25) * (0.4 + 0.6 * blinkOpen) + 0.14;
       const dBag =
         Math.abs(v - lowerBagCurve) + Math.max(0.0, Math.abs(u) - 0.85) * 0.5;
-      const bagShadow = 0.45 * Math.exp(-dBag * dBag * 220.0);
+      const bagShadow = 0.40 * Math.exp(-dBag * dBag * 240.0);
 
-      const browCurve = -0.62 - 0.12 * Math.cos(clamp(u * 1.8, -1.57, 1.57));
+      const browCurve = -0.65 - 0.10 * Math.cos(clamp(u * 1.6, -1.57, 1.57));
       const dBrow =
-        Math.abs(v - browCurve) + Math.max(0.0, Math.abs(u) - 1.05) * 0.4;
+        Math.abs(v - browCurve) + Math.max(0.0, Math.abs(u) - 1.10) * 0.4;
       const browMask =
-        Math.exp(-dBrow * dBrow * 110.0) * smoothstep(1.18, 0.85, Math.abs(u));
+        Math.exp(-dBrow * dBrow * 120.0) * smoothstep(1.22, 0.85, Math.abs(u));
 
-      const radialVignette = smoothstep(1.65, 0.25, Math.hypot(u * 0.78, v * 1.05));
+      const radialVignette = smoothstep(1.75, 0.30, Math.hypot(u * 0.75, v * 1.0));
       const lidBulge =
-        Math.exp(-dUpper * dUpper * 45.0) * 0.22 +
-        Math.exp(-dLower * dLower * 60.0) * 0.14;
+        Math.exp(-dUpper * dUpper * 50.0) * 0.24 +
+        Math.exp(-dLower * dLower * 65.0) * 0.15;
 
       let skinTone =
-        0.52 * radialVignette +
+        0.54 * radialVignette +
         lidBulge -
-        0.38 * creaseShadow -
-        0.22 * bagShadow -
-        0.45 * browMask;
+        0.36 * creaseShadow -
+        0.20 * bagShadow -
+        0.42 * browMask;
       skinTone = clamp(skinTone, 0.0, 1.0);
 
-      let rr = mix(200, 240, skinTone) * radialVignette;
-      let gg = mix(138, 184, skinTone) * radialVignette;
-      let bb = mix(101, 149, skinTone) * radialVignette;
+      let rr = mix(205, 245, skinTone) * radialVignette;
+      let gg = mix(142, 190, skinTone) * radialVignette;
+      let bb = mix(105, 155, skinTone) * radialVignette;
 
       if (lashLine > 0.05) {
-        const l = clamp(lashLine * 0.92, 0.0, 1.0);
-        rr = mix(rr, 42, l);
-        gg = mix(gg, 22, l);
-        bb = mix(bb, 18, l);
-        skinTone = mix(skinTone, 0.06, l);
+        const l = clamp(lashLine * 0.94, 0.0, 1.0);
+        rr = mix(rr, 38, l);
+        gg = mix(gg, 18, l);
+        bb = mix(bb, 16, l);
+        skinTone = mix(skinTone, 0.05, l);
       }
 
       if (browMask > 0.1) {
         const b = clamp(browMask * 0.65, 0.0, 1.0);
-        rr = mix(rr, 75, b);
-        gg = mix(gg, 45, b);
-        bb = mix(bb, 32, b);
+        rr = mix(rr, 70, b);
+        gg = mix(gg, 42, b);
+        bb = mix(bb, 28, b);
       }
 
-      const lum = clamp(skinTone * 0.78 * radialVignette, 0.02, 0.86);
+      const lum = clamp(skinTone * 0.80 * radialVignette, 0.02, 0.88);
       eyeOut.r = rr;
       eyeOut.g = gg;
       eyeOut.b = bb;
@@ -485,7 +510,7 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
 
       for (let r = 0; r < rows; r++) {
         const v = vCoords[r];
-        const py = r * CELL_H;
+        const py = r * cellH;
 
         for (let c = 0; c < cols; c++) {
           const u = uCoords[c];
@@ -533,7 +558,7 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
             lastColor = colorStr;
           }
 
-          ctx.fillText(ch, c * CELL_W, py);
+          ctx.fillText(ch, c * cellW, py);
         }
       }
 
