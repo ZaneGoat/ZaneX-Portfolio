@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
-import { Track, ZANOPHY_PLAYLIST, extractYouTubeVideoId } from "@/data/playlist";
+import { Track, ZanophyMood, RANDOM_PLAYLIST, JAZZ_PLAYLIST, ZANOPHY_PLAYLIST, extractYouTubeVideoId } from "@/data/playlist";
 import { sound } from "@/lib/sound";
 
 // Extend window for YouTube API
@@ -24,6 +24,11 @@ interface MusicContextType {
   isLoop: boolean;
   isFullPlayerOpen: boolean;
   setIsFullPlayerOpen: (open: boolean) => void;
+  mood: ZanophyMood;
+  setMood: (mood: ZanophyMood) => void;
+  isMoodMenuOpen: boolean;
+  setIsMoodMenuOpen: (open: boolean) => void;
+  openMoodMenu: () => void;
   togglePlay: () => void;
   play: () => void;
   pause: () => void;
@@ -42,19 +47,31 @@ const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
 const STORAGE_PLAYLIST_KEY = "zanophy_custom_tracks";
 const STORAGE_VOLUME_KEY = "zanophy_volume";
+const STORAGE_MOOD_KEY = "zanophy_active_mood";
 
 export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [mood, setMoodState] = useState<ZanophyMood>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_MOOD_KEY);
+      if (saved === "jazz" || saved === "random") return saved;
+    } catch {}
+    return "random";
+  });
+
+  const [isMoodMenuOpen, setIsMoodMenuOpen] = useState<boolean>(false);
+
   const [playlist, setPlaylist] = useState<Track[]>(() => {
+    const baseList = mood === "jazz" ? JAZZ_PLAYLIST : RANDOM_PLAYLIST;
     try {
       const saved = localStorage.getItem(STORAGE_PLAYLIST_KEY);
-      if (saved) {
+      if (saved && mood === "random") {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return [...ZANOPHY_PLAYLIST, ...parsed];
+          return [...baseList, ...parsed];
         }
       }
     } catch {}
-    return ZANOPHY_PLAYLIST;
+    return baseList;
   });
 
   const [currentTrackIndex, setCurrentTrackIndex] = useState<number>(0);
@@ -348,6 +365,34 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return true;
   }, [playlist.length, loadAndPlayTrack]);
 
+  const setMood = useCallback((newMood: ZanophyMood) => {
+    sound.playClick();
+    sound.haptic(30);
+    setMoodState(newMood);
+    try {
+      localStorage.setItem(STORAGE_MOOD_KEY, newMood);
+    } catch {}
+
+    const targetList = newMood === "jazz" ? JAZZ_PLAYLIST : RANDOM_PLAYLIST;
+    setPlaylist(targetList);
+    setCurrentTrackIndex(0);
+    const firstTrack = targetList[0];
+    if (isPlaying) {
+      loadAndPlayTrack(firstTrack);
+    } else if (playerRef.current && typeof playerRef.current.cueVideoById === "function") {
+      try {
+        playerRef.current.cueVideoById(firstTrack.videoId);
+        setCurrentTime(0);
+      } catch {}
+    }
+  }, [isPlaying, loadAndPlayTrack]);
+
+  const openMoodMenu = useCallback(() => {
+    sound.playBoot();
+    sound.haptic(20);
+    setIsMoodMenuOpen(true);
+  }, []);
+
   return (
     <MusicContext.Provider
       value={{
@@ -364,6 +409,11 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         isLoop,
         isFullPlayerOpen,
         setIsFullPlayerOpen,
+        mood,
+        setMood,
+        isMoodMenuOpen,
+        setIsMoodMenuOpen,
+        openMoodMenu,
         togglePlay,
         play,
         pause,

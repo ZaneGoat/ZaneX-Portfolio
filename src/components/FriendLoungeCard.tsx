@@ -33,7 +33,7 @@ const DEFAULT_SHOUTOUTS: Shoutout[] = [
 ];
 
 export const FriendLoungeCard: React.FC = () => {
-  const { currentTrack, isPlaying, togglePlay, setIsFullPlayerOpen } = useMusic();
+  const { currentTrack, isPlaying, togglePlay, setIsFullPlayerOpen, mood, openMoodMenu } = useMusic();
   const [shoutouts, setShoutouts] = useState<Shoutout[]>(DEFAULT_SHOUTOUTS);
   const [authorInput, setAuthorInput] = useState("");
   const [messageInput, setMessageInput] = useState("");
@@ -180,12 +180,16 @@ export const FriendLoungeCard: React.FC = () => {
                   <button
                     onClick={() => {
                       sound.playBoot();
-                      setIsFullPlayerOpen(true);
+                      openMoodMenu();
                     }}
-                    className="px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 rounded-lg text-[10px] font-bold transition-all cursor-pointer"
-                    title="Open Full Spotify Player"
+                    className={`px-2 py-1 border rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                      mood === "jazz"
+                        ? "bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/40 text-amber-300"
+                        : "bg-emerald-500/10 hover:bg-emerald-500/25 border-emerald-500/30 text-emerald-300"
+                    }`}
+                    title="Click to Choose Mood (Random / They are Jazz)"
                   >
-                    ZANOPHY
+                    {mood === "jazz" ? "MOOD: JAZZ 🎷" : "MOOD: RANDOM 🎲"}
                   </button>
                 </div>
               </div>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal as TerminalIcon, X, Maximize2, Minimize2, CornerDownLeft, ExternalLink } from "lucide-react";
 import { systemSpecsByPersona, projectsData, skillsData, terminalCommandsHelp } from "@/data/portfolio";
-import { ZANE_YOUTUBE_PLAYLIST_URL } from "@/data/playlist";
+import { ZANE_YOUTUBE_PLAYLIST_URL, ZANE_JAZZ_PLAYLIST_URL, MOODS, ZanophyMood } from "@/data/playlist";
 import { usePersona } from "@/context/PersonaContext";
 import { useMusic } from "@/context/MusicContext";
 import { useOperatorClearance } from "@/context/OperatorClearanceContext";
@@ -62,6 +62,7 @@ export const DECK_MODULES: DeckModule[] = [
 
   // Tools & Audio
   { id: "music", label: "Zanophy Audio", category: "tool", command: "music", icon: "🎵", badge: "3AM", desc: "Music Player Deck" },
+  { id: "mood", label: "Audio Mood", category: "tool", command: "mood", icon: "🎭", badge: "VIBE", desc: "Random vs They are Jazz Mood Matrix" },
   { id: "playlist", label: "YT Playlist", category: "tool", command: "playlist", icon: "▶️", badge: "YT", desc: "Zane's 3 AM YouTube Playlist" },
   { id: "help", label: "Help", category: "tool", command: "help", icon: "❓", badge: "CLI", desc: "Commands Manual" },
   { id: "clear", label: "Clear", category: "tool", command: "clear", icon: "🧹", badge: "CLS", desc: "Wipe Console History" },
@@ -86,7 +87,7 @@ export const TerminalOverlay = ({
   onOpenMegaCenter
 }: TerminalOverlayProps) => {
   const { persona, setPersona, telemetry, deviceChoice, setDeviceChoice, spoofActive } = usePersona();
-  const { currentTrack, isPlaying, togglePlay, play, pause, nextTrack, prevTrack, playlist, selectTrack, setIsFullPlayerOpen } = useMusic();
+  const { currentTrack, isPlaying, togglePlay, play, pause, nextTrack, prevTrack, playlist, selectTrack, setIsFullPlayerOpen, mood, setMood, openMoodMenu } = useMusic();
   const { clearance, clearanceLevel } = useOperatorClearance();
   const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.operator;
   const shellUser = persona === "friend" ? "homie@zane-lounge" : (clearance.identityUnlocked ? "zane@kali" : "operator@classified");
@@ -326,12 +327,16 @@ export const TerminalOverlay = ({
               type: "output",
               content: `Launching Zanophy Cyberpunk Music Deck... [Now Playing: ${currentTrack?.title || "3 AM Synthetics"} — ${currentTrack?.artist || "Zane"}]`
             });
+          } else if (arg === "mood" || arg === "vibe") {
+            handleCommand("mood");
+            return;
           } else if (arg === "yt" || arg === "youtube" || arg === "playlist") {
             sound.playClick();
-            window.open(ZANE_YOUTUBE_PLAYLIST_URL, "_blank", "noopener,noreferrer");
+            const targetUrl = MOODS[mood].youtubeUrl;
+            window.open(targetUrl, "_blank", "noopener,noreferrer");
             newLogs.push({
               type: "output",
-              content: `Dispatched Zane's 3 AM YouTube Playlist in a new tab: ${ZANE_YOUTUBE_PLAYLIST_URL}`
+              content: `Dispatched ${MOODS[mood].name} YouTube Playlist in a new tab: ${targetUrl}`
             });
           } else {
             newLogs.push({
@@ -341,19 +346,27 @@ export const TerminalOverlay = ({
                   <div className="flex items-center justify-between">
                     <p className="text-emerald-400 font-bold flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                      [ZANOPHY AUDIO DECK] 3 AM CYBERPUNK FREQUENCIES
+                      [ZANOPHY AUDIO DECK] {MOODS[mood].name.toUpperCase()} // {MOODS[mood].tagline}
                     </p>
-                    <button
-                      onClick={() => setIsFullPlayerOpen(true)}
-                      className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded text-[10px] font-bold hover:bg-emerald-500/30"
-                    >
-                      EXPAND GUI
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => openMoodMenu()}
+                        className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded text-[10px] font-bold hover:bg-emerald-500/30"
+                      >
+                        MOOD: {mood.toUpperCase()}
+                      </button>
+                      <button
+                        onClick={() => setIsFullPlayerOpen(true)}
+                        className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded text-[10px] font-bold hover:bg-emerald-500/30"
+                      >
+                        EXPAND GUI
+                      </button>
+                    </div>
                   </div>
                   <div className="p-2 bg-black/60 rounded border border-emerald-500/20 text-[11px] space-y-1">
                     <p className="text-foreground/90 font-bold">Now Playing: <span className="text-emerald-400">{currentTrack?.title || "Nightcall"}</span></p>
                     <p className="text-muted-foreground">Artist: {currentTrack?.artist || "Kavinsky"}</p>
-                    <p className="text-muted-foreground text-[10px]">Status: {isPlaying ? "▶ PLAYING" : "⏸ PAUSED"}</p>
+                    <p className="text-muted-foreground text-[10px]">Status: {isPlaying ? "▶ PLAYING" : "⏸ PAUSED"} · Mood: {MOODS[mood].name} ({playlist.length} tracks)</p>
                   </div>
                   <div className="flex gap-2 pt-1">
                     <button
@@ -369,10 +382,16 @@ export const TerminalOverlay = ({
                       ⏭ NEXT
                     </button>
                     <button
+                      onClick={() => openMoodMenu()}
+                      className="px-2.5 py-1 bg-white/5 text-emerald-300 border border-emerald-500/30 font-bold text-[10px] rounded hover:bg-white/10"
+                    >
+                      🎭 CHOOSE MOOD
+                    </button>
+                    <button
                       onClick={() => handleCommand("music list")}
                       className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400/80 border border-emerald-500/20 font-bold text-[10px] rounded hover:bg-emerald-500/20"
                     >
-                      📜 PLAYLIST
+                      📜 TRACKS
                     </button>
                   </div>
                 </div>
@@ -381,40 +400,147 @@ export const TerminalOverlay = ({
           }
           break;
 
+        case "mood":
+        case "vibes":
+          if (arg === "random") {
+            setMood("random");
+            newLogs.push({
+              type: "output",
+              content: `🎲 Zanophy Mood switched to [RANDOM] — 3 AM Midnight Radio (13 Tracks loaded).`
+            });
+          } else if (arg === "jazz" || arg === "they are jazz" || arg === "theyarejazz") {
+            setMood("jazz");
+            newLogs.push({
+              type: "output",
+              content: `🎷 Zanophy Mood switched to [THEY ARE JAZZ] — Noir Sax & Midnight Smoke (6 Tracks loaded).`
+            });
+          } else if (arg === "gui" || arg === "open" || arg === "menu") {
+            openMoodMenu();
+            newLogs.push({
+              type: "output",
+              content: `Launching Zanophy Mood Selector Matrix...`
+            });
+          } else {
+            openMoodMenu();
+            newLogs.push({
+              type: "output",
+              content: (
+                <div className="bg-black/60 border border-emerald-500/30 p-3.5 rounded-xl my-2 space-y-2 text-xs font-mono">
+                  <pre className="text-[10px] text-emerald-400 font-bold leading-tight">
+{`  ___  __   _  _  __  ____  _  _  _  _ 
+ (__ \\/ _\\ ( \\( )/  \\(  _ \\( \\/ )/ )( \\
+  / _/    \\/ /) (  O )) __/ )  / ) \\/ (
+ (____\\_/\\_/\\_(_/ \\__/(__)  (__/  \\____/`}
+                  </pre>
+                  <p className="text-emerald-300 font-bold">=== ZANOPHY AUDIO FREQUENCY // CHOOSE MOOD ===</p>
+                  <p className="text-muted-foreground text-[11px]">
+                    Current active frequency: <span className="text-primary font-bold">{MOODS[mood].name.toUpperCase()}</span> ({MOODS[mood].tagline})
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    <button
+                      onClick={() => {
+                        setMood("random");
+                        handleCommand("mood random");
+                      }}
+                      className={`p-2.5 rounded-lg border text-left cursor-pointer transition-all ${
+                        mood === "random"
+                          ? "bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_10px_rgba(29,185,84,0.3)]"
+                          : "bg-white/5 border-emerald-500/20 hover:border-emerald-400/50 text-foreground"
+                      }`}
+                    >
+                      <p className="font-bold flex items-center justify-between text-xs">
+                        <span>🎲 1. RANDOM</span>
+                        <span className="text-[10px] text-emerald-400 font-normal">13 Tracks</span>
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">3 AM Midnight Radio (Phonk, Dream Pop, Sufi)</p>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setMood("jazz");
+                        handleCommand("mood jazz");
+                      }}
+                      className={`p-2.5 rounded-lg border text-left cursor-pointer transition-all ${
+                        mood === "jazz"
+                          ? "bg-amber-500/20 border-amber-400 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.3)]"
+                          : "bg-white/5 border-amber-500/20 hover:border-amber-400/50 text-foreground"
+                      }`}
+                    >
+                      <p className="font-bold flex items-center justify-between text-xs">
+                        <span>🎷 2. THEY ARE JAZZ</span>
+                        <span className="text-[10px] text-amber-400 font-normal">6 Tracks</span>
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Noir Sax & Midnight Smoke (We Are Jazz)</p>
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-primary/60 pt-1">
+                    Usage: <span className="text-primary font-bold">mood [random | jazz | gui]</span> to switch audio frequency.
+                  </p>
+                </div>
+              )
+            });
+          }
+          break;
+
         case "playlist":
         case "ytplaylist":
-        case "youtube":
+        case "youtube": {
+          const targetMood = (arg === "jazz" || arg === "they are jazz") ? "jazz" : (arg === "random" ? "random" : mood);
+          const targetUrl = MOODS[targetMood].youtubeUrl;
           sound.playClick();
-          window.open(ZANE_YOUTUBE_PLAYLIST_URL, "_blank", "noopener,noreferrer");
+          window.open(targetUrl, "_blank", "noopener,noreferrer");
           newLogs.push({
             type: "output",
             content: (
-              <div className="bg-red-500/10 border border-red-500/30 p-3.5 rounded-xl my-2 space-y-2 text-xs font-mono">
+              <div className={`border p-3.5 rounded-xl my-2 space-y-2 text-xs font-mono ${
+                targetMood === "jazz" ? "bg-amber-500/10 border-amber-500/30" : "bg-red-500/10 border-red-500/30"
+              }`}>
                 <div className="flex items-center justify-between">
-                  <p className="text-red-400 font-bold flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                    [YOUTUBE PLAYLIST] ZANE'S 3 AM MIDNIGHT RADIO
+                  <p className={`font-bold flex items-center gap-2 ${targetMood === "jazz" ? "text-amber-400" : "text-red-400"}`}>
+                    <span className={`w-2 h-2 rounded-full animate-ping ${targetMood === "jazz" ? "bg-amber-400" : "bg-red-500"}`} />
+                    [{targetMood === "jazz" ? "YOUTUBE MUSIC" : "YOUTUBE PLAYLIST"}] {MOODS[targetMood].name.toUpperCase()} // {MOODS[targetMood].tagline}
                   </p>
                   <a
-                    href={ZANE_YOUTUBE_PLAYLIST_URL}
+                    href={targetUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-2.5 py-1 bg-red-500 hover:bg-red-600 text-white font-bold rounded text-[11px] flex items-center gap-1 transition-colors"
+                    className={`px-2.5 py-1 text-white font-bold rounded text-[11px] flex items-center gap-1 transition-colors ${
+                      targetMood === "jazz" ? "bg-amber-600 hover:bg-amber-500" : "bg-red-500 hover:bg-red-600"
+                    }`}
                   >
-                    <span>OPEN YOUTUBE</span>
+                    <span>OPEN PLAYLIST</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
                 <p className="text-muted-foreground text-[11px]">
-                  Direct stream link dispatched to external browser: <span className="text-red-300 underline">{ZANE_YOUTUBE_PLAYLIST_URL}</span>
+                  Direct stream link dispatched to browser: <span className="underline">{targetUrl}</span>
                 </p>
-                <div className="p-2 bg-black/60 rounded border border-red-500/20 text-[11px] text-foreground/80">
-                  <p>Curated stream of Phonk, Dream Pop, Desert Blues, Neo-Classical & Moroccan Lo-Fi frequencies.</p>
+                <div className="p-2 bg-black/60 rounded border border-white/10 text-[11px] text-foreground/80 flex flex-wrap items-center justify-between gap-2">
+                  <p>{MOODS[targetMood].sub}</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleCommand("playlist random")}
+                      className={`text-[10px] px-2 py-0.5 rounded font-bold border transition-colors ${
+                        targetMood === "random" ? "bg-emerald-500/20 border-emerald-400 text-emerald-300" : "border-white/10 text-muted-foreground hover:text-white"
+                      }`}
+                    >
+                      🎲 Random
+                    </button>
+                    <button
+                      onClick={() => handleCommand("playlist jazz")}
+                      className={`text-[10px] px-2 py-0.5 rounded font-bold border transition-colors ${
+                        targetMood === "jazz" ? "bg-amber-500/20 border-amber-400 text-amber-300" : "border-white/10 text-muted-foreground hover:text-white"
+                      }`}
+                    >
+                      🎷 They are Jazz
+                    </button>
+                  </div>
                 </div>
               </div>
             )
           });
           break;
+        }
 
       case "help":
         newLogs.push({

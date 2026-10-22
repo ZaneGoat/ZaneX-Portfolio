@@ -22,6 +22,7 @@ const CsiRadarModal = lazy(() => import("@/components/CsiRadarModal").then(m => 
 const CtfBountyBoard = lazy(() => import("@/components/CtfBountyBoard").then(m => ({ default: m.CtfBountyBoard })));
 const ZaneMegaCenterModal = lazy(() => import("@/components/ZaneMegaCenterModal").then(m => ({ default: m.ZaneMegaCenterModal })));
 const ZanophyModal = lazy(() => import("@/components/ZanophyModal").then(m => ({ default: m.ZanophyModal })));
+const ZanophyMoodModal = lazy(() => import("@/components/ZanophyMoodModal").then(m => ({ default: m.ZanophyMoodModal })));
 const OperatorInfiltrationModal = lazy(() => import("@/components/OperatorInfiltrationModal").then(m => ({ default: m.OperatorInfiltrationModal })));
 
 import { ZanophyMiniBar } from "@/components/ZanophyMiniBar";
@@ -171,6 +172,7 @@ const Index = () => {
           />
         )}
         <ZanophyModal />
+        <ZanophyMoodModal />
       </Suspense>
 
       {/* Floating Background Music Player (Zanophy) */}

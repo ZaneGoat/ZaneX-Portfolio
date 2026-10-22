@@ -21,7 +21,7 @@ import {
   Check
 } from "lucide-react";
 import { useMusic } from "@/context/MusicContext";
-import { ZANE_YOUTUBE_PLAYLIST_URL } from "@/data/playlist";
+import { ZANE_YOUTUBE_PLAYLIST_URL, MOODS } from "@/data/playlist";
 import { sound } from "@/lib/sound";
 
 export const ZanophyModal: React.FC = () => {
@@ -39,6 +39,8 @@ export const ZanophyModal: React.FC = () => {
     isLoop,
     isFullPlayerOpen,
     setIsFullPlayerOpen,
+    mood,
+    openMoodMenu,
     togglePlay,
     nextTrack,
     prevTrack,
@@ -170,6 +172,25 @@ export const ZanophyModal: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2 sm:gap-3">
+                {/* Mood Selector Button with ASCII/Cyber badge */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    sound.playClick();
+                    openMoodMenu();
+                  }}
+                  className={`text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 ${
+                    mood === "jazz"
+                      ? "bg-amber-500/20 text-amber-300 border-amber-500/50 hover:bg-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+                      : "bg-emerald-500/20 text-emerald-300 border-emerald-500/50 hover:bg-emerald-500/30 shadow-[0_0_15px_rgba(29,185,84,0.2)]"
+                  }`}
+                  title="Switch Mood (Random / They are Jazz)"
+                >
+                  <Disc3 className="w-3.5 h-3.5" />
+                  <span className="hidden xs:inline">MOOD:</span>
+                  <span>{mood === "jazz" ? "JAZZ 🎷" : "RANDOM 🎲"}</span>
+                </button>
+
                 {/* Mobile View Toggle: hidden on desktop, lets phone user switch between Player and Playlist */}
                 <button
                   type="button"
@@ -185,14 +206,14 @@ export const ZanophyModal: React.FC = () => {
                 </button>
 
                 <a
-                  href={ZANE_YOUTUBE_PLAYLIST_URL}
+                  href={MOODS[mood].youtubeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[11px] text-emerald-400/90 hover:text-emerald-300 flex items-center gap-1 border border-emerald-500/30 px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors"
-                  title="Open Zane's 3 AM YouTube Playlist"
+                  title={`Open Original ${MOODS[mood].name} Playlist`}
                 >
                   <ExternalLink className="w-3 h-3" />
-                  <span className="hidden sm:inline">YouTube Playlist</span>
+                  <span className="hidden sm:inline">Playlist ↗</span>
                 </a>
 
                 <button
@@ -413,11 +434,27 @@ export const ZanophyModal: React.FC = () => {
                 <div className="border-b border-emerald-500/20 pb-4 mb-3">
                   <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                     <div>
-                      <h3 className="text-base sm:text-lg font-black text-foreground">
-                        ZANE'S 3 AM MIDNIGHT RADIO
-                      </h3>
-                      <p className="text-[11px] text-muted-foreground">
-                        {playlist.length} Tracks · Phonk, Dream Pop, Desert Blues, Sufi & Lo-Fi
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base sm:text-lg font-black text-foreground">
+                          {MOODS[mood].name.toUpperCase()} // {MOODS[mood].tagline}
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            sound.playClick();
+                            openMoodMenu();
+                          }}
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded border transition-colors cursor-pointer ${
+                            mood === "jazz"
+                              ? "bg-amber-500/20 border-amber-500/40 text-amber-300 hover:bg-amber-500/30"
+                              : "bg-emerald-500/20 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30"
+                          }`}
+                        >
+                          CHANGE MOOD
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {playlist.length} Tracks · {MOODS[mood].sub}
                       </p>
                     </div>
                   </div>

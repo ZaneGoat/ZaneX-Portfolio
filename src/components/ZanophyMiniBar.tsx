@@ -14,15 +14,17 @@ export const ZanophyMiniBar: React.FC = () => {
     prevTrack,
     isMuted,
     toggleMute,
-    setIsFullPlayerOpen
+    setIsFullPlayerOpen,
+    mood,
+    openMoodMenu
   } = useMusic();
 
   const [isMinimized, setIsMinimized] = useState(false);
 
-  const handleOpenFull = () => {
+  const handleShortcutClick = () => {
     sound.playBoot();
     sound.haptic(30);
-    setIsFullPlayerOpen(true);
+    openMoodMenu();
   };
 
   // If minimized into a floating cyber disc
@@ -35,12 +37,15 @@ export const ZanophyMiniBar: React.FC = () => {
         onClick={() => {
           sound.playClick();
           setIsMinimized(false);
+          openMoodMenu();
         }}
         className="fixed bottom-4 left-4 z-40 p-2.5 rounded-full bg-black/90 border-2 border-emerald-500/60 shadow-[0_0_25px_rgba(29,185,84,0.4)] backdrop-blur-xl flex items-center gap-2 group cursor-pointer font-mono"
-        title="Open Zanophy Player"
+        title="Open Zanophy Mood Selector"
       >
-        <Disc3 className={`w-5 h-5 text-emerald-400 ${isPlaying ? "animate-spin" : ""}`} />
-        <span className="text-[10px] font-bold text-emerald-400 pr-1 group-hover:inline hidden">ZANOPHY</span>
+        <Disc3 className={`w-5 h-5 ${mood === "jazz" ? "text-amber-400" : "text-emerald-400"} ${isPlaying ? "animate-spin" : ""}`} />
+        <span className="text-[10px] font-bold text-emerald-400 pr-1 group-hover:inline hidden">
+          {mood === "jazz" ? "JAZZ" : "RANDOM"}
+        </span>
       </motion.button>
     );
   }
@@ -51,12 +56,16 @@ export const ZanophyMiniBar: React.FC = () => {
       animate={{ y: 0, opacity: 1 }}
       className="fixed bottom-4 left-2.5 sm:left-5 z-40 max-w-[calc(100vw-5rem)] sm:max-w-md font-mono select-none"
     >
-      <div className="flex items-center gap-2 sm:gap-2.5 p-1.5 sm:p-2.5 rounded-2xl bg-[#070b0e]/95 border-2 border-emerald-500/50 shadow-[0_0_35px_rgba(29,185,84,0.25)] backdrop-blur-2xl">
-        {/* Album Artwork with Spinning Vinyl Ring */}
+      <div className={`flex items-center gap-2 sm:gap-2.5 p-1.5 sm:p-2.5 rounded-2xl bg-[#070b0e]/95 border-2 shadow-[0_0_35px_rgba(29,185,84,0.25)] backdrop-blur-2xl ${
+        mood === "jazz" ? "border-amber-500/50 shadow-[0_0_35px_rgba(245,158,11,0.25)]" : "border-emerald-500/50"
+      }`}>
+        {/* Album Artwork with Spinning Vinyl Ring - Clicks to open Mood Selector */}
         <div
-          onClick={handleOpenFull}
-          className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-xl overflow-hidden shrink-0 cursor-pointer group border border-emerald-500/40"
-          title="Click to expand Zanophy"
+          onClick={handleShortcutClick}
+          className={`relative w-9 h-9 sm:w-11 sm:h-11 rounded-xl overflow-hidden shrink-0 cursor-pointer group border ${
+            mood === "jazz" ? "border-amber-500/40" : "border-emerald-500/40"
+          }`}
+          title="Click to Choose Mood (Random / They are Jazz)"
         >
           <img
             src={currentTrack.thumbnail}
@@ -68,24 +77,40 @@ export const ZanophyMiniBar: React.FC = () => {
           />
           <div className="absolute inset-0 bg-black/30 group-hover:bg-transparent transition-colors flex items-center justify-center">
             {isBuffering ? (
-              <span className="w-3.5 h-3.5 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
+              <span className={`w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin ${
+                mood === "jazz" ? "border-amber-400" : "border-emerald-400"
+              }`} />
             ) : (
-              <Maximize2 className="w-3.5 h-3.5 text-emerald-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Radio className={`w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity ${
+                mood === "jazz" ? "text-amber-300" : "text-emerald-300"
+              }`} />
             )}
           </div>
         </div>
 
-        {/* Track Title & Artist Marquee */}
+        {/* Track Title & Mood Marquee */}
         <div
-          onClick={handleOpenFull}
+          onClick={handleShortcutClick}
           className="flex-1 min-w-0 pr-1 cursor-pointer overflow-hidden text-left"
-          title="Click to view full playlist"
+          title="Click to Choose Mood (Random / They are Jazz)"
         >
           <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[8px] sm:text-[9px] uppercase tracking-wider text-emerald-400/80 font-bold truncate">
-              ZANOPHY // {currentTrack.genre || "HI-FI"}
-            </span>
+            <span className={`w-1.5 h-1.5 rounded-full ${mood === "jazz" ? "bg-amber-400" : "bg-emerald-400"} animate-pulse`} />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                openMoodMenu();
+              }}
+              className={`text-[8px] sm:text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded border transition-colors cursor-pointer ${
+                mood === "jazz"
+                  ? "bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30"
+                  : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30"
+              }`}
+              title="Click to Choose Mood"
+            >
+              MOOD: {mood === "jazz" ? "JAZZ 🎷" : "RANDOM 🎲"}
+            </button>
           </div>
           <p className="text-xs sm:text-sm font-black text-foreground truncate leading-tight hover:text-emerald-300 transition-colors max-w-[110px] xs:max-w-[150px] sm:max-w-[200px]">
             {currentTrack.title}
@@ -144,8 +169,20 @@ export const ZanophyMiniBar: React.FC = () => {
           </button>
         </div>
 
-        {/* Mute & Minimize */}
+        {/* Expand, Mute & Minimize */}
         <div className="flex items-center gap-0.5 pl-1 border-l border-emerald-500/20 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              sound.playBoot();
+              setIsFullPlayerOpen(true);
+            }}
+            className="p-1.5 text-foreground/60 hover:text-emerald-400 transition-colors cursor-pointer"
+            title="Expand Full Zanophy Deck"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+          </button>
+
           <button
             onClick={toggleMute}
             className="p-1.5 text-foreground/60 hover:text-emerald-400 transition-colors cursor-pointer"
