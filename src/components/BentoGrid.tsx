@@ -55,7 +55,7 @@ export const BentoGrid = ({
 }: BentoGridProps) => {
   const { persona } = usePersona();
   const { clearance, clearanceLevel } = useOperatorClearance();
-  const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.guest;
+  const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.operator;
 
   const isOperator = persona === "operator";
 
@@ -246,9 +246,9 @@ export const BentoGrid = ({
             <span className="flex items-center gap-1"><Keyboard className="w-3.5 h-3.5" />press <kbd className="px-1.5 py-0.5 border border-primary/40 rounded text-primary">`</kbd></span>
           </div>
           <div className="text-xs space-y-1 text-primary/80">
-            <p><span className="text-primary">{persona === "friend" ? "homie@lounge" : persona === "operator" ? (clearance.identityUnlocked ? "zane@kali" : "operator@classified") : "guest@portfolio"}</span>:~$ csi --scan</p>
+            <p><span className="text-primary">{persona === "friend" ? "homie@lounge" : (clearance.identityUnlocked ? "zane@kali" : "operator@classified")}</span>:~$ csi --scan</p>
             <p className="text-muted-foreground">Doppler +3.8Hz · motion detected</p>
-            <p><span className="text-primary">{persona === "friend" ? "homie@lounge" : persona === "operator" ? (clearance.identityUnlocked ? "zane@kali" : "operator@classified") : "guest@portfolio"}</span>:~$ <span className="inline-block w-2 h-3.5 bg-primary align-middle animate-pulse" /></p>
+            <p><span className="text-primary">{persona === "friend" ? "homie@lounge" : (clearance.identityUnlocked ? "zane@kali" : "operator@classified")}</span>:~$ <span className="inline-block w-2 h-3.5 bg-primary align-middle animate-pulse" /></p>
           </div>
           {onOpenCsi && (!isOperator || clearance.projectsUnlocked) && (
             <div
@@ -351,14 +351,12 @@ export const BentoGrid = ({
                         <div className="flex items-center gap-2"><span className="text-primary">▸</span> Status: Production Git Sync Active</div>
                       </div>
                       <a
-                        href="https://github.com/ZaneGoat"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        href="#repositories"
                         onClick={() => sound.playClick()}
                         className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-background rounded-xl font-mono text-xs font-bold transition-transform hover:scale-105 active:scale-95 shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
                       >
                         <Github className="w-4 h-4" />
-                        <span>BROWSE GITHUB PROFILE</span>
+                        <span>EXPLORE LIVE REPOSITORIES</span>
                       </a>
                     </div>
                   </div>

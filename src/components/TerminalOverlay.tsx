@@ -45,8 +45,8 @@ export const TerminalOverlay = ({
   const { persona, setPersona, telemetry, deviceChoice, setDeviceChoice, spoofActive } = usePersona();
   const { currentTrack, isPlaying, togglePlay, play, pause, nextTrack, prevTrack, playlist, selectTrack, setIsFullPlayerOpen } = useMusic();
   const { clearance, clearanceLevel } = useOperatorClearance();
-  const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.guest;
-  const shellUser = persona === "friend" ? "homie@zane-lounge" : persona === "operator" ? (clearance.identityUnlocked ? "zane@kali" : "operator@classified") : "guest@zanex-portfolio";
+  const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.operator;
+  const shellUser = persona === "friend" ? "homie@zane-lounge" : (clearance.identityUnlocked ? "zane@kali" : "operator@classified");
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [input, setInput] = useState("");
@@ -100,7 +100,7 @@ export const TerminalOverlay = ({
     switch (cmd) {
       case "persona":
       case "profile":
-        if (arg === "guest" || arg === "friend" || arg === "operator") {
+        if (arg === "friend" || arg === "operator") {
           setPersona(arg);
           sound.playSuccess();
           newLogs.push({
@@ -110,7 +110,7 @@ export const TerminalOverlay = ({
         } else {
           newLogs.push({
             type: "output",
-            content: `Current persona: [${persona.toUpperCase()}]. Usage: persona [guest | friend | operator]`
+            content: `Current persona: [${persona.toUpperCase()}]. Usage: persona [operator | friend]`
           });
         }
         break;

@@ -8,6 +8,7 @@ import { Navigation } from "@/components/Navigation";
 import { CyberdeckFAB } from "@/components/CyberdeckFAB";
 import { BentoGrid } from "@/components/BentoGrid";
 import { AsciiIntroOverlay } from "@/components/AsciiIntroOverlay";
+import { LiveRepositories } from "@/components/sections/LiveRepositories";
 import { Skills } from "@/components/sections/Skills";
 import { Philosophy } from "@/components/sections/Philosophy";
 import { Games } from "@/components/sections/Games";
@@ -125,9 +126,12 @@ const Index = () => {
           onOpenInfiltration={openInfiltration}
         />
 
-        {/* Technical Showcase: Skills (Guest always; Operator only if Node 03 declassified; hidden for Friends) */}
-        {(persona === "guest" || (persona === "operator" && clearance.projectsUnlocked)) && (
-          <Skills />
+        {/* Technical Showcase: Live Git Repositories & Tech Matrix (Operator mode; hidden for Friends who see the Lounge) */}
+        {persona !== "friend" && (
+          <>
+            <LiveRepositories />
+            <Skills />
+          </>
         )}
 
         {/* Culture, Philosophy, Breach Protocol & Minigames */}

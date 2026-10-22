@@ -3,7 +3,7 @@ import {
   Database, Cpu, Server, Layers, Wrench, Sparkles, Binary, CheckCircle2, Radio, Gamepad2, Wifi
 } from "lucide-react";
 
-export type Persona = "guest" | "friend" | "operator";
+export type Persona = "operator" | "friend";
 
 export interface Project {
   id: string;
@@ -40,20 +40,20 @@ export interface SystemSpecs {
 }
 
 export const systemSpecsByPersona: Record<Persona, SystemSpecs> = {
-  guest: {
-    handle: "Zane Goat",
+  operator: {
+    handle: "ZANE_GOAT",
     realName: "Aziz Maaizate",
-    role: "Full-Stack ERP Architect, AI Specialist & Systems Engineer",
-    location: "Morocco (GMT+1)",
-    status: "Online / Ready for Deployments",
-    os: "Kali Linux / Dual-Boot MSI GF65 Thin",
-    shell: "zsh & bash automated workflows",
-    uptime: "99.98% System Stability",
-    bio: "Engineering enterprise-grade desktop & web ERP systems, developing hardware EC control tools, Wi-Fi CSI sensing radars, and AI-powered OSINT platforms.",
+    role: "Root Clearance Operator // Level 99",
+    location: "Grid Casablanca [33.5731° N, 7.5898° W]",
+    status: "ACTIVE // wlan0mon RF & Tor Proxy Online",
+    os: "Kali Linux x86_64 [Kernel 4.2.0 Hardened]",
+    shell: "zsh /dev/pts/0 (Root Privileges Granted)",
+    uptime: "99.98% Cryptographic Integrity",
+    bio: "Specialized in raw 802.11 Wi-Fi CSI subcarrier phase perturbation, multi-threaded Tor dark-web scraping, and direct MSI Embedded Controller memory I/O.",
     stats: [
-      { value: "10+", label: "Shipped repos" },
-      { value: "19", label: "Core skills" },
-      { value: "5", label: "Domains" }
+      { value: "64", label: "OFDM Carriers" },
+      { value: "3-Hop", label: "Tor Relay" },
+      { value: "0x68", label: "EC Register" }
     ]
   },
   friend: {
@@ -71,26 +71,10 @@ export const systemSpecsByPersona: Record<Persona, SystemSpecs> = {
       { value: "3 AM", label: "Bug hunt hour" },
       { value: "100%", label: "Real code" }
     ]
-  },
-  operator: {
-    handle: "ZANE_GOAT",
-    realName: "Aziz Maaizate",
-    role: "Root Clearance Operator // Level 99",
-    location: "Grid Casablanca [33.5731° N, 7.5898° W]",
-    status: "ACTIVE // wlan0mon RF & Tor Proxy Online",
-    os: "Kali Linux x86_64 [Kernel 4.2.0 Hardened]",
-    shell: "zsh /dev/pts/0 (Root Privileges Granted)",
-    uptime: "99.98% Cryptographic Integrity",
-    bio: "Specialized in raw 802.11 Wi-Fi CSI subcarrier phase perturbation, multi-threaded Tor dark-web scraping, and direct MSI Embedded Controller memory I/O.",
-    stats: [
-      { value: "64", label: "OFDM Carriers" },
-      { value: "3-Hop", label: "Tor Relay" },
-      { value: "0x68", label: "EC Register" }
-    ]
   }
 };
 
-export const systemSpecs = systemSpecsByPersona.guest;
+export const systemSpecs = systemSpecsByPersona.operator;
 
 export const skillsData: SkillCategory[] = [
   {
@@ -186,6 +170,7 @@ export const terminalCommandsHelp = [
 
 export const navLinks = [
   { name: "Overview", href: "#overview" },
+  { name: "Repositories", href: "#repositories" },
   { name: "Tech Matrix", href: "#skills" },
   { name: "Terminal", href: "#terminal" },
   { name: "Minigame", href: "#games" },

@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Briefcase, HeartHandshake, Terminal } from "lucide-react";
+import { HeartHandshake, Terminal } from "lucide-react";
 import { usePersona, Persona } from "@/context/PersonaContext";
 
 interface PersonaSwitcherProps {
@@ -10,22 +10,16 @@ interface PersonaSwitcherProps {
 
 const PERSONAS: { id: Persona; label: string; icon: React.ComponentType<{ className?: string }>; desc: string }[] = [
   {
-    id: "guest",
-    label: "Guest",
-    icon: Briefcase,
-    desc: "Recruiter & Client Mode"
+    id: "operator",
+    label: "Operator",
+    icon: Terminal,
+    desc: "CTF & Red Team Mode"
   },
   {
     id: "friend",
     label: "Friend",
     icon: HeartHandshake,
     desc: "Homie & Insider Mode"
-  },
-  {
-    id: "operator",
-    label: "Operator",
-    icon: Terminal,
-    desc: "CTF & Red Team Mode"
   }
 ];
 
@@ -78,7 +72,7 @@ export const PersonaSwitcher: React.FC<PersonaSwitcherProps> = ({ variant = "her
         </span>
       </div>
 
-      <div className="grid grid-cols-3 gap-1.5">
+      <div className="grid grid-cols-2 gap-2">
         {PERSONAS.map(p => {
           const Icon = p.icon;
           const isActive = persona === p.id;
@@ -87,7 +81,7 @@ export const PersonaSwitcher: React.FC<PersonaSwitcherProps> = ({ variant = "her
             <button
               key={p.id}
               onClick={() => setPersona(p.id)}
-              className={`relative p-2 sm:p-2.5 rounded-xl flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              className={`relative p-2.5 sm:p-3 rounded-xl flex flex-col sm:flex-row items-center justify-center gap-2 transition-all cursor-pointer ${
                 isActive
                   ? "text-background font-black shadow-[0_0_20px_hsl(var(--primary)/0.4)]"
                   : "text-primary/70 hover:text-primary hover:bg-primary/10 border border-primary/15"
@@ -104,7 +98,7 @@ export const PersonaSwitcher: React.FC<PersonaSwitcherProps> = ({ variant = "her
               <div className="text-center sm:text-left">
                 <span className="text-xs sm:text-sm font-bold block leading-none">{p.label}</span>
                 <span className={`text-[9px] hidden sm:block ${isActive ? "text-background/80" : "text-muted-foreground"}`}>
-                  {p.id === "guest" ? "Recruiter" : p.id === "friend" ? "Homie" : "Hacker"}
+                  {p.id === "operator" ? "Hacker / Red Team" : "Homie & Insider"}
                 </span>
               </div>
             </button>

@@ -20,10 +20,8 @@ export const DeviceQuestion: React.FC<DeviceQuestionProps> = ({ className = "" }
         case "friend":
           return `(Wait... why am I even asking? Zane already knows you're on a ${telemetry.os} ${realLabel} at ${telemetry.screenWidth}×${telemetry.screenHeight} with ${telemetry.pointerType} input. Bro's telemetry never sleeps 💀)`;
         case "operator":
-          return `[SIGINT INTERCEPT] Hardware fingerprint intercepted: ${telemetry.os} ${realLabel} (${telemetry.screenWidth}×${telemetry.screenHeight} DPR:${telemetry.dpr}). Spoofing attempts will be logged.`;
-        case "guest":
         default:
-          return `(System Telemetry: Viewport indicates ${telemetry.os} ${realLabel} at ${telemetry.screenWidth}×${telemetry.screenHeight} px. Adaptive layout pre-rendered.)`;
+          return `[SIGINT INTERCEPT] Hardware fingerprint intercepted: ${telemetry.os} ${realLabel} (${telemetry.screenWidth}×${telemetry.screenHeight} DPR:${telemetry.dpr}). Spoofing attempts will be logged.`;
       }
     }
 
@@ -32,10 +30,8 @@ export const DeviceQuestion: React.FC<DeviceQuestionProps> = ({ className = "" }
         case "friend":
           return `Caught in 4K! 💀 You clicked "${deviceChoice.toUpperCase()}", but Zane's telemetry literally caught your real ${telemetry.os} ${realLabel} with ${telemetry.pointerType} input! Cyberdeck emulation forced anyway!`;
         case "operator":
-          return `🚨 SPOOFING DETECTED // Client declared [${deviceChoice.toUpperCase()}], but raw OSI telemetry confirms [${telemetry.os.toUpperCase()} ${realLabel.toUpperCase()}]. Counter-emulation engaged.`;
-        case "guest":
         default:
-          return `Emulation Override: Visitor selected ${deviceChoice.toUpperCase()} mode on physical ${telemetry.os} ${realLabel} hardware.`;
+          return `🚨 SPOOFING DETECTED // Client declared [${deviceChoice.toUpperCase()}], but raw OSI telemetry confirms [${telemetry.os.toUpperCase()} ${realLabel.toUpperCase()}]. Counter-emulation engaged.`;
       }
     }
 
@@ -44,10 +40,8 @@ export const DeviceQuestion: React.FC<DeviceQuestionProps> = ({ className = "" }
       case "friend":
         return `Bro told the truth! 🤝 Telemetry verified: real ${telemetry.os} ${realLabel}. (I already knew 42ms ago, but thanks for keeping it 100% real!)`;
       case "operator":
-        return `[CLEARANCE APPROVED] Client identity matches physical SIGINT telemetry: ${telemetry.os} ${realLabel} verified. Zero spoofing delta.`;
-      case "guest":
       default:
-        return `Hardware profile verified: ${telemetry.os} ${realLabel} (${telemetry.screenWidth}×${telemetry.screenHeight}). Optimized graphics pipeline active.`;
+        return `[CLEARANCE APPROVED] Client identity matches physical SIGINT telemetry: ${telemetry.os} ${realLabel} verified. Zero spoofing delta.`;
     }
   };
 

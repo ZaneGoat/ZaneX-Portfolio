@@ -279,7 +279,7 @@ export const CyberdeckFAB = ({
               <button
                 onClick={cyclePersona}
                 className="w-full flex items-center justify-between py-1.5 px-3 rounded-lg border border-primary/30 bg-primary/10 text-primary text-[10px] font-bold active:scale-95 transition-transform"
-                title="Cycle Visitor Persona (Guest / Friend / Operator)"
+                title="Toggle Visitor Persona (Operator / Friend)"
               >
                 <div className="flex items-center gap-1.5">
                   <UserCheck className="w-3.5 h-3.5 text-primary" />

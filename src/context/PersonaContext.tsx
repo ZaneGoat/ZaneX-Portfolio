@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from "
 import { sound } from "@/lib/sound";
 import { useDeviceTelemetry, DeviceTelemetry } from "@/hooks/useDeviceTelemetry";
 
-export type Persona = "guest" | "friend" | "operator";
+export type Persona = "operator" | "friend";
 export type DeviceChoice = "auto" | "phone" | "desktop";
 
 interface PersonaContextType {
@@ -23,15 +23,18 @@ const PERSONA_STORAGE_KEY = "zanex_visitor_persona";
 const DEVICE_STORAGE_KEY = "zanex_device_choice";
 
 export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [persona, setPersonaState] = useState<Persona>("guest");
+  const [persona, setPersonaState] = useState<Persona>("operator");
   const [deviceChoice, setDeviceChoiceState] = useState<DeviceChoice>("auto");
   const telemetry = useDeviceTelemetry();
 
   useEffect(() => {
     try {
-      const savedPersona = localStorage.getItem(PERSONA_STORAGE_KEY) as Persona | null;
-      if (savedPersona && (savedPersona === "guest" || savedPersona === "friend" || savedPersona === "operator")) {
+      const savedPersona = localStorage.getItem(PERSONA_STORAGE_KEY) as string | null;
+      if (savedPersona === "friend" || savedPersona === "operator") {
         setPersonaState(savedPersona);
+      } else {
+        setPersonaState("operator");
+        localStorage.setItem(PERSONA_STORAGE_KEY, "operator");
       }
 
       const savedDevice = localStorage.getItem(DEVICE_STORAGE_KEY) as DeviceChoice | null;
@@ -47,11 +50,11 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       localStorage.setItem(PERSONA_STORAGE_KEY, next);
     } catch {}
     sound.playClick();
-    sound.haptic(next === "friend" ? [25, 40] : next === "operator" ? [50, 30] : 20);
+    sound.haptic(next === "friend" ? [25, 40] : [50, 30]);
   };
 
   const cyclePersona = () => {
-    const list: Persona[] = ["guest", "friend", "operator"];
+    const list: Persona[] = ["operator", "friend"];
     const idx = list.indexOf(persona);
     const next = list[(idx + 1) % list.length];
     setPersona(next);
