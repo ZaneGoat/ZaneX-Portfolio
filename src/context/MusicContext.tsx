@@ -121,15 +121,33 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const syncPlayerVolume = useCallback((vol: number, muted: boolean) => {
     const p = playerRef.current;
-    if (!p) return;
+    const effectiveVol = muted ? 0 : Math.max(0, Math.min(100, Math.round(vol)));
     try {
-      if (typeof p.setVolume === "function") {
-        p.setVolume(vol);
+      if (p) {
+        if (typeof p.setVolume === "function") {
+          p.setVolume(effectiveVol);
+        }
+        if (muted || effectiveVol === 0) {
+          if (typeof p.mute === "function") p.mute();
+        } else {
+          if (typeof p.unMute === "function") p.unMute();
+          if (typeof p.setVolume === "function") p.setVolume(effectiveVol);
+        }
       }
-      if (muted || vol === 0) {
-        if (typeof p.mute === "function") p.mute();
-      } else {
-        if (typeof p.unMute === "function") p.unMute();
+    } catch {}
+
+    // Direct postMessage fallback to YouTube iframe contentWindow
+    try {
+      const iframe = document.getElementById("zanophy-yt-player-iframe") as HTMLIFrameElement | null;
+      const win = iframe?.contentWindow || p?.getIframe?.()?.contentWindow;
+      if (win) {
+        if (muted || effectiveVol === 0) {
+          win.postMessage(JSON.stringify({ event: "command", func: "mute", args: [] }), "*");
+          win.postMessage(JSON.stringify({ event: "command", func: "setVolume", args: [0] }), "*");
+        } else {
+          win.postMessage(JSON.stringify({ event: "command", func: "unMute", args: [] }), "*");
+          win.postMessage(JSON.stringify({ event: "command", func: "setVolume", args: [effectiveVol] }), "*");
+        }
       }
     } catch {}
   }, []);
@@ -158,13 +176,20 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               modestbranding: 1,
               rel: 0,
               playsinline: 1,
-              enablejsapi: 1
+              enablejsapi: 1,
+              origin: typeof window !== "undefined" ? window.location.origin : undefined
             },
             events: {
-              onReady: () => {
+              onReady: (event: any) => {
+                if (event?.target) {
+                  playerRef.current = event.target;
+                }
                 syncPlayerVolume(volumeRef.current, isMutedRef.current);
               },
               onStateChange: (event: any) => {
+                if (event?.target) {
+                  playerRef.current = event.target;
+                }
                 // 1 = PLAYING, 2 = PAUSED, 3 = BUFFERING, 0 = ENDED
                 if (event.data === 1) {
                   setIsPlaying(true);
@@ -225,6 +250,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           const dur = playerRef.current.getDuration() || 0;
           setCurrentTime(Math.floor(cur));
           if (dur > 0) setDuration(Math.floor(dur));
+          syncPlayerVolume(volumeRef.current, isMutedRef.current);
         }
       }, 500);
     } else {
@@ -234,7 +260,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => {
       if (pollTimerRef.current) clearInterval(pollTimerRef.current);
     };
-  }, [isPlaying]);
+  }, [isPlaying, syncPlayerVolume]);
 
   const play = useCallback(() => {
     if (playerRef.current && typeof playerRef.current.playVideo === "function") {
