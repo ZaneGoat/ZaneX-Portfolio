@@ -30,8 +30,20 @@ export const CyberdeckFAB = ({
   const forceShowOnDesktop = deviceChoice === "phone" && spoofActive;
 
   useEffect(() => {
-    const saved = localStorage.getItem("zanex_theme") || "emerald";
-    setActiveTheme(saved);
+    const syncFromDom = () => {
+      const attr = document.documentElement.getAttribute("data-theme");
+      if (attr === "amber" || attr === "cyan") {
+        setActiveTheme(attr);
+      } else {
+        const saved = localStorage.getItem("zanex_theme");
+        setActiveTheme(saved === "amber" || saved === "cyan" ? saved : "emerald");
+      }
+    };
+    syncFromDom();
+
+    const observer = new MutationObserver(syncFromDom);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
   }, []);
 
   const handleEnableMotionSensors = () => {
@@ -53,7 +65,11 @@ export const CyberdeckFAB = ({
     const nextTheme = themes[nextIdx];
     setActiveTheme(nextTheme);
     localStorage.setItem("zanex_theme", nextTheme);
-    document.documentElement.setAttribute("data-theme", nextTheme);
+    if (nextTheme === "emerald") {
+      document.documentElement.removeAttribute("data-theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", nextTheme);
+    }
     sound.playClick();
     sound.haptic([20, 30]);
   };
