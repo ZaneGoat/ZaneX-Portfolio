@@ -37,26 +37,6 @@
     --cyber-glow: 158 100% 53%;
     --matrix-color: #00ff9e;
   }
-
-  /* Cyberpunk Amber Theme */
-  [data-theme="amber"] {
-    --primary: 42 100% 52%;
-    --primary-foreground: 228 80% 5%;
-    --ring: 42 100% 52%;
-    --cyber-glow: 42 100% 52%;
-    --foreground: 42 100% 90%;
-    --matrix-color: #ffb703;
-  }
-
-  /* Synthwave Neon Cyan Theme */
-  [data-theme="cyan"] {
-    --primary: 185 100% 50%;
-    --primary-foreground: 228 80% 5%;
-    --ring: 185 100% 50%;
-    --cyber-glow: 185 100% 50%;
-    --foreground: 185 100% 90%;
-    --matrix-color: #00f0ff;
-  }
 }
 
 @layer base {

@@ -1,18 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Eye, Smartphone, Palette } from "lucide-react";
+import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Eye, Smartphone } from "lucide-react";
 import { navLinks } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
 import { usePersona } from "@/context/PersonaContext";
-
-type CyberTheme = "emerald" | "amber" | "cyan";
-
-const THEME_OPTIONS: { id: CyberTheme; label: string; dotClass: string }[] = [
-  { id: "emerald", label: "EMERALD", dotClass: "bg-[#00ff9e] shadow-[0_0_8px_#00ff9e]" },
-  { id: "amber", label: "AMBER", dotClass: "bg-[#ffb703] shadow-[0_0_8px_#ffb703]" },
-  { id: "cyan", label: "CYAN", dotClass: "bg-[#00f0ff] shadow-[0_0_8px_#00f0ff]" }
-];
 
 interface NavigationProps {
   onOpenTerminal: () => void;
@@ -30,45 +22,6 @@ export const Navigation = ({
   const { persona } = usePersona();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
-  const [activeTheme, setActiveTheme] = useState<CyberTheme>(() => {
-    if (typeof window === "undefined") return "emerald";
-    const saved = localStorage.getItem("zanex_theme");
-    return saved === "amber" || saved === "cyan" ? saved : "emerald";
-  });
-
-  useEffect(() => {
-    const syncFromDom = () => {
-      const attr = document.documentElement.getAttribute("data-theme");
-      if (attr === "amber" || attr === "cyan") {
-        setActiveTheme(attr);
-      } else {
-        setActiveTheme("emerald");
-      }
-    };
-    syncFromDom();
-
-    const observer = new MutationObserver(syncFromDom);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => observer.disconnect();
-  }, []);
-
-  const applyTheme = (nextTheme: CyberTheme) => {
-    setActiveTheme(nextTheme);
-    localStorage.setItem("zanex_theme", nextTheme);
-    if (nextTheme === "emerald") {
-      document.documentElement.removeAttribute("data-theme");
-    } else {
-      document.documentElement.setAttribute("data-theme", nextTheme);
-    }
-    sound.playClick();
-    sound.haptic([20, 30]);
-  };
-
-  const cycleTheme = () => {
-    const order: CyberTheme[] = ["emerald", "amber", "cyan"];
-    const nextTheme = order[(order.indexOf(activeTheme) + 1) % order.length];
-    applyTheme(nextTheme);
-  };
 
   const activeNavLinks = persona === "friend"
     ? [
@@ -142,23 +95,6 @@ export const Navigation = ({
                 <span className="hidden xl:inline">ASCII INTRO</span>
               </button>
             )}
-
-            {/* Theme Changer Button in Top Bar */}
-            <button
-              type="button"
-              onClick={cycleTheme}
-              className="relative p-1.5 sm:p-2 bg-primary/10 border border-primary/35 text-primary hover:bg-primary/20 rounded-lg transition-all flex items-center gap-1.5 font-mono text-xs font-bold cursor-pointer active:scale-90"
-              title={`Switch Theme (Current: ${activeTheme.toUpperCase()})`}
-              aria-label={`Switch Theme (Current: ${activeTheme})`}
-            >
-              <Palette className="w-4 h-4 text-primary" />
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  THEME_OPTIONS.find(t => t.id === activeTheme)?.dotClass || "bg-[#00ff9e]"
-                }`}
-              />
-              <span className="hidden xl:inline uppercase text-[11px]">{activeTheme}</span>
-            </button>
 
             {/* Audio Toggle */}
             <button
@@ -238,37 +174,6 @@ export const Navigation = ({
               {/* Persona Switcher in Mobile Drawer */}
               <div className="py-2 border-y border-primary/15 flex justify-center">
                 <PersonaSwitcher variant="compact" />
-              </div>
-
-              {/* Cyber Theme Picker in Mobile Drawer */}
-              <div className="p-2.5 rounded-xl bg-primary/5 border border-primary/20 space-y-2">
-                <div className="flex items-center justify-between text-[10px] text-primary/80 font-bold tracking-wider px-0.5">
-                  <span className="flex items-center gap-1.5">
-                    <Palette className="w-3.5 h-3.5 text-primary" />
-                    CYBER THEME
-                  </span>
-                  <span className="uppercase text-primary">{activeTheme}</span>
-                </div>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {THEME_OPTIONS.map(opt => {
-                    const isSelected = activeTheme === opt.id;
-                    return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => applyTheme(opt.id)}
-                        className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg border text-[11px] font-bold transition-all active:scale-95 cursor-pointer ${
-                          isSelected
-                            ? "border-primary bg-primary/20 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.35)]"
-                            : "border-primary/20 bg-black/50 text-foreground/60 hover:text-foreground"
-                        }`}
-                      >
-                        <span className={`w-2 h-2 rounded-full ${opt.dotClass}`} />
-                        <span>{opt.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
               </div>
 
               {/* Page Links */}

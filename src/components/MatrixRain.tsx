@@ -20,18 +20,8 @@ export const MatrixRain = () => {
     let columns = Math.floor(window.innerWidth / fontSize);
     let drops: number[] = [];
 
-    // Zero-overhead theme color caching (Eliminates getComputedStyle per-frame layout recalculations)
-    let themeColor = "#00ff9e";
-    const updateThemeColor = () => {
-      const theme = document.documentElement.getAttribute("data-theme");
-      if (theme === "amber") themeColor = "#ffb703";
-      else if (theme === "cyan") themeColor = "#00f0ff";
-      else themeColor = "#00ff9e";
-    };
-    updateThemeColor();
-
-    const observer = new MutationObserver(updateThemeColor);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    // Canonical Matrix Emerald color
+    const themeColor = "#00ff9e";
 
     const initDrops = () => {
       columns = Math.floor(canvas.width / fontSize);
@@ -112,7 +102,6 @@ export const MatrixRain = () => {
 
     return () => {
       cancelAnimationFrame(animationFrameId);
-      observer.disconnect();
       window.removeEventListener("resize", resize);
       window.removeEventListener("orientationchange", resize);
       window.removeEventListener("deviceorientation", handleOrientation);

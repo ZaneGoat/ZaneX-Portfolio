@@ -65,8 +65,9 @@ const Index = () => {
   useEffect(() => {
     const savedTheme = localStorage.getItem("zanex_theme");
     if (savedTheme === "amber" || savedTheme === "cyan") {
-      document.documentElement.setAttribute("data-theme", savedTheme);
+      localStorage.setItem("zanex_theme", "emerald");
     }
+    document.documentElement.removeAttribute("data-theme");
   }, []);
 
   // ` (backtick) toggles the terminal from anywhere, like a game console.

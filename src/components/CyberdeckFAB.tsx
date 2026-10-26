@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Zap, Radio, Palette, Volume2, VolumeX, X, Cpu, Globe, ShieldAlert, Wind, UserCheck, Smartphone, Eye } from "lucide-react";
+import { Terminal, Zap, Radio, Volume2, VolumeX, X, Cpu, ShieldAlert, Wind, UserCheck, Smartphone, Eye } from "lucide-react";
 import { sound } from "@/lib/sound";
 import { usePersona } from "@/context/PersonaContext";
 
@@ -24,27 +24,9 @@ export const CyberdeckFAB = ({
   const { persona, cyclePersona, deviceChoice, spoofActive } = usePersona();
   const [isOpen, setIsOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
-  const [activeTheme, setActiveTheme] = useState<string>("emerald");
   const [sensorsEnabled, setSensorsEnabled] = useState(false);
 
   const forceShowOnDesktop = deviceChoice === "phone" && spoofActive;
-
-  useEffect(() => {
-    const syncFromDom = () => {
-      const attr = document.documentElement.getAttribute("data-theme");
-      if (attr === "amber" || attr === "cyan") {
-        setActiveTheme(attr);
-      } else {
-        const saved = localStorage.getItem("zanex_theme");
-        setActiveTheme(saved === "amber" || saved === "cyan" ? saved : "emerald");
-      }
-    };
-    syncFromDom();
-
-    const observer = new MutationObserver(syncFromDom);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => observer.disconnect();
-  }, []);
 
   const handleEnableMotionSensors = () => {
     sound.playClick();
@@ -57,21 +39,6 @@ export const CyberdeckFAB = ({
     sound.playClick();
     sound.haptic(35);
     setIsOpen(prev => !prev);
-  };
-
-  const cycleTheme = () => {
-    const themes = ["emerald", "amber", "cyan"];
-    const nextIdx = (themes.indexOf(activeTheme) + 1) % themes.length;
-    const nextTheme = themes[nextIdx];
-    setActiveTheme(nextTheme);
-    localStorage.setItem("zanex_theme", nextTheme);
-    if (nextTheme === "emerald") {
-      document.documentElement.removeAttribute("data-theme");
-    } else {
-      document.documentElement.setAttribute("data-theme", nextTheme);
-    }
-    sound.playClick();
-    sound.haptic([20, 30]);
   };
 
   const toggleAudio = () => {
@@ -245,20 +212,11 @@ export const CyberdeckFAB = ({
               </button>
             </div>
 
-            {/* Quick Controls: Theme & Audio */}
-            <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-primary/20">
-              <button
-                onClick={cycleTheme}
-                className="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border border-primary/30 bg-primary/5 text-primary text-[10px] font-bold active:scale-95 transition-transform"
-                title="Cycle Cyber Theme"
-              >
-                <Palette className="w-3 h-3" />
-                <span className="capitalize">{activeTheme}</span>
-              </button>
-
+            {/* Quick Controls: Audio */}
+            <div className="pt-1 border-t border-primary/20">
               <button
                 onClick={toggleAudio}
-                className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border text-[10px] font-bold active:scale-95 transition-transform ${
+                className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border text-[10px] font-bold active:scale-95 transition-transform ${
                   isMuted
                     ? "border-primary/20 text-primary/40 bg-transparent"
                     : "border-primary text-primary bg-primary/10 shadow-[0_0_10px_hsl(var(--primary)/0.3)]"

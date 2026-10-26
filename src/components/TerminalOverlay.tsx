@@ -1077,19 +1077,10 @@ Allow: /
         break;
 
       case "theme":
-        if (arg === "amber" || arg === "cyan") {
-          document.documentElement.setAttribute("data-theme", arg);
-          localStorage.setItem("zanex_theme", arg);
-          sound.playSuccess();
-          newLogs.push({ type: "output", content: `Theme updated to Cyberpunk ${arg.toUpperCase()}.` });
-        } else if (arg === "emerald" || arg === "matrix" || arg === "default") {
-          document.documentElement.removeAttribute("data-theme");
-          localStorage.setItem("zanex_theme", "emerald");
-          sound.playSuccess();
-          newLogs.push({ type: "output", content: `Theme updated to Matrix EMERALD.` });
-        } else {
-          newLogs.push({ type: "error", content: "Usage: theme [emerald | amber | cyan]" });
-        }
+        document.documentElement.removeAttribute("data-theme");
+        localStorage.setItem("zanex_theme", "emerald");
+        sound.playSuccess();
+        newLogs.push({ type: "output", content: "Active theme: Matrix EMERALD (Canonical Green Baseline)." });
         break;
 
       case "breach":

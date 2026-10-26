@@ -157,7 +157,7 @@ export const terminalCommandsHelp = [
   { cmd: "curl [url]", desc: "Simulate HTTP request (e.g. curl /robots.txt)" },
   { cmd: "repo [id]", desc: "Open the GitHub repository for any project" },
   { cmd: "skills", desc: "Inspect categorized technical proficiencies" },
-  { cmd: "theme [theme]", desc: "Switch HUD color scheme: emerald, amber, or cyan" },
+  { cmd: "theme", desc: "Display active HUD theme status (Matrix Emerald)" },
   { cmd: "matrix", desc: "Unleash full-screen Matrix Construct Takeover" },
   { cmd: "breach", desc: "Launch Cyberpunk Breach Protocol hacking minigame" },
   { cmd: "fortune", desc: "Display a random hacker/dev quote" },
