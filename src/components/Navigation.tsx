@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Eye, Smartphone, Code2, Moon } from "lucide-react";
+import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Eye, Smartphone, Code2 } from "lucide-react";
+import { CelestialZenLogo } from "@/components/CelestialZenLogo";
 import { navLinks } from "@/data/portfolio";
 import { sound, AUDIO_MUTE_EVENT } from "@/lib/sound";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
@@ -216,10 +217,10 @@ export const Navigation = ({
             {onOpenCelestial && (
               <button
                 onClick={() => onOpenCelestial()}
-                className="hidden sm:flex p-2 bg-blue-400/10 border border-blue-300/30 text-blue-100 hover:bg-blue-400/20 rounded-lg transition-all"
+                className="hidden sm:flex p-2 bg-blue-400/10 border border-blue-300/30 text-white hover:bg-blue-400/20 rounded-lg transition-all"
                 title="Launch Celestial Zen Night Arcade"
               >
-                <Moon className="w-4 h-4 text-amber-200" />
+                <CelestialZenLogo className="w-4 h-4 fill-white" />
               </button>
             )}
 
@@ -346,7 +347,7 @@ export const Navigation = ({
                     }}
                     className="flex items-center justify-center gap-1.5 p-3 rounded-xl border border-blue-300/35 bg-blue-400/15 text-blue-100 font-bold text-xs"
                   >
-                    <Moon className="w-4 h-4 text-amber-200" />
+                    <CelestialZenLogo className="w-4 h-4 fill-white shrink-0" />
                     <span>CELESTIAL ZEN</span>
                   </button>
                 )}

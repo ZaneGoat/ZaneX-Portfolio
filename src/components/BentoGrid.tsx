@@ -2,8 +2,9 @@ import { memo, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Terminal, Cpu, ExternalLink, Zap, Clock, MapPin, Monitor, Play, Github, Keyboard,
-  Radio, ShieldAlert, Lock, Key, Moon
+  Radio, ShieldAlert, Lock, Key
 } from "lucide-react";
+import { CelestialZenLogo } from "@/components/CelestialZenLogo";
 import { systemSpecsByPersona } from "@/data/portfolio";
 import { usePersona } from "@/context/PersonaContext";
 import { useOperatorClearance } from "@/context/OperatorClearanceContext";
@@ -178,7 +179,7 @@ export const BentoGrid = ({
                       onClick={() => onOpenCelestial()}
                       className="flex items-center justify-center gap-1.5 border border-blue-300/35 bg-blue-400/10 text-blue-100 font-mono font-bold px-3.5 py-2.5 sm:py-3 rounded-lg hover:bg-blue-400/20 active:scale-[0.98] transition-all cursor-pointer text-xs"
                     >
-                      <Moon className="w-3.5 h-3.5 text-amber-200" />
+                      <CelestialZenLogo className="w-3.5 h-3.5 fill-white shrink-0" />
                       <span>CELESTIAL ZEN</span>
                     </button>
                   )}
@@ -342,7 +343,7 @@ export const BentoGrid = ({
                 onClick={() => onOpenCelestial()}
                 className="flex items-center justify-center gap-1.5 bg-blue-400/10 hover:bg-blue-400/20 border border-blue-300/35 text-blue-100 font-mono font-bold py-2.5 px-2 rounded-lg text-[11px] active:scale-[0.98] transition-all cursor-pointer"
               >
-                <Moon className="w-3 h-3 text-amber-200 shrink-0" />
+                <CelestialZenLogo className="w-3.5 h-3.5 fill-white shrink-0" />
                 <span className="truncate">CELESTIAL ZEN</span>
               </button>
             )}

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Volume2, VolumeX, X } from "lucide-react";
+import { CelestialZenLogo, MEDITATING_LOGO_SVG_PATH } from "@/components/CelestialZenLogo";
 
 interface CelestialZenModalProps {
   isOpen: boolean;
@@ -90,55 +91,6 @@ interface Brick {
   row: number;
   style: BrickStyle;
 }
-
-// Exact custom meditating figure SVG path from Celestial Zen Night Arcade
-export const MEDITATING_LOGO_SVG_PATH = `
-  M 0,-75
-  C 16,-75 18,-62 16,-47
-  C 14,-35 6,-32 6,-27
-  C 6,-21 15,-22 24,-29
-  C 33,-36 44,-26 42,-14
-  C 40,-3 36,3 42,12
-  C 48,21 52,24 62,31
-  C 72,38 88,37 92,50
-  C 96,63 82,70 78,78
-  C 74,86 64,89 52,82
-  C 40,75 32,76 23,87
-  C 14,98 2,94 -1,84
-  C -4,74 3,66 12,62
-  C 21,58 34,66 38,60
-  C 42,54 27,48 16,44
-  C 8,40 4,32 0,32
-  C -4,32 -8,40 -16,44
-  C -27,48 -42,54 -38,60
-  C -34,66 -21,58 -12,62
-  C -3,66 4,74 1,84
-  C -2,94 -14,98 -23,87
-  C -32,76 -40,75 -52,82
-  C -64,89 -74,86 -78,78
-  C -82,70 -96,63 -92,50
-  C -88,37 -72,38 -62,31
-  C -52,24 -48,21 -42,12
-  C -36,3 -40,-3 -42,-14
-  C -44,-26 -33,-36 -24,-29
-  C -15,-22 -6,-21 -6,-27
-  C -6,-32 -14,-35 -16,-47
-  C -18,-62 -16,-75 0,-75 Z
-  M 7,-8
-  C 7,-17 19,-18 25,-8
-  C 31,2 25,15 28,24
-  C 31,33 48,37 56,44
-  C 64,51 62,61 52,58
-  C 42,55 31,46 21,37
-  C 11,28 7,17 7,-8 Z
-  M -7,-8
-  C -7,-17 -19,-18 -25,-8
-  C -31,2 -25,15 -28,24
-  C -31,33 -48,37 -56,44
-  C -64,51 -62,61 -52,58
-  C -42,55 -31,46 -21,37
-  C -11,28 -7,17 -7,-8 Z
-`;
 
 // Dreamy Celestial Lydian / Pentatonic Night-Sky Scale (D4 -> D6)
 const CELESTIAL_SCALE = [293.66, 369.99, 440.0, 493.88, 554.37, 587.33, 739.99, 880.0, 987.77];
@@ -1539,9 +1491,7 @@ export const CelestialZenModal: React.FC<CelestialZenModalProps> = ({ isOpen, on
         <div className="w-full max-w-lg rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-2 pointer-events-auto bg-[#080d20]/75 backdrop-blur-xl border border-white/15 shadow-[0_10px_30px_rgba(0,0,0,0.6)]">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-full bg-black/90 border border-white/30 flex items-center justify-center shadow-[0_0_10px_rgba(255,255,255,0.35)] shrink-0">
-              <svg viewBox="-100 -100 200 200" className="w-5 h-5 fill-white">
-                <path fillRule="evenodd" d={MEDITATING_LOGO_SVG_PATH} />
-              </svg>
+              <CelestialZenLogo className="w-5 h-5 fill-white" />
             </div>
             <div className="min-w-0">
               <h2 className="font-bold text-xs sm:text-sm tracking-wider uppercase text-white truncate">
@@ -1658,9 +1608,7 @@ export const CelestialZenModal: React.FC<CelestialZenModalProps> = ({ isOpen, on
         <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
           <div className="rounded-3xl p-6 sm:p-8 max-w-xs sm:max-w-sm w-full text-center bg-[#080d20]/88 border border-white/20 shadow-[0_0_60px_rgba(255,255,255,0.18)]">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-black border border-white/30 flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.5)]">
-              <svg viewBox="-100 -100 200 200" className="w-11 h-11 fill-white">
-                <path fillRule="evenodd" d={MEDITATING_LOGO_SVG_PATH} />
-              </svg>
+              <CelestialZenLogo className="w-11 h-11 fill-white" />
             </div>
             <h3 className="text-xl sm:text-2xl font-bold mb-1 text-white">
               {gameOverInfo.title}
