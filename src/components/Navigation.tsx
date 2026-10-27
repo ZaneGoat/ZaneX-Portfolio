@@ -301,7 +301,7 @@ export const Navigation = ({
             </div>
 
             {/* Split-Wing Cyber-Visor: Equal-Width 3-Bay Enforced Architecture */}
-            <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-4 w-full">
+            <div className="relative z-10 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-4 w-full">
               {/* LEFT WING: Clean Picture Logo + Left Sector Nodes (01, 02, 03) */}
               <div className="flex items-center justify-start gap-1.5 sm:gap-2.5 min-w-0">
                 <a
@@ -351,7 +351,7 @@ export const Navigation = ({
                 <span className="hidden lg:block h-3.5 w-px bg-primary/25 shrink-0 mx-0.5" />
 
                 {/* Unified Tactical Command Capsule (Tablet & Desktop) */}
-                <div className="hidden sm:inline-flex items-center gap-0.5 p-0.5 rounded-xl bg-black/65 border border-white/12 shrink-0">
+                <div className="relative z-20 pointer-events-auto hidden sm:inline-flex items-center gap-0.5 p-0.5 rounded-xl bg-black/65 border border-white/12 shrink-0">
                   <button
                     type="button"
                     onClick={() => {
@@ -412,7 +412,7 @@ export const Navigation = ({
                 <button
                   type="button"
                   onClick={handleToggleUniverse}
-                  className="px-2 sm:px-2.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/40 text-white rounded-lg font-mono text-[10px] sm:text-xs font-bold flex items-center gap-1 cursor-pointer active:scale-95 transition-all shrink-0 ml-0.5"
+                  className="relative z-20 pointer-events-auto px-2 sm:px-2.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/40 text-white rounded-lg font-mono text-[10px] sm:text-xs font-bold flex items-center gap-1 cursor-pointer active:scale-95 transition-all shrink-0 ml-0.5"
                   title="Transform Entire Site into EXISTENCE Monochrome ASCII Universe"
                   aria-label="Toggle Total-Conversion Universe Theme"
                 >
@@ -428,7 +428,7 @@ export const Navigation = ({
                     sound.playClick();
                     setIsMenuOpen(prev => !prev);
                   }}
-                  className="lg:hidden p-1.5 text-foreground border border-primary/30 bg-primary/10 rounded-lg hover:bg-primary/20 active:scale-95 cursor-pointer shrink-0 ml-0.5"
+                  className="relative z-20 pointer-events-auto lg:hidden p-1.5 text-foreground border border-primary/30 bg-primary/10 rounded-lg hover:bg-primary/20 active:scale-95 cursor-pointer shrink-0 ml-0.5"
                   title="Toggle Visor Command Matrix"
                   aria-label="Toggle Visor Command Matrix"
                 >
