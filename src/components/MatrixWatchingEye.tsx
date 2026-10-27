@@ -67,18 +67,21 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
     const resizePod = () => {
       const vw = window.innerWidth;
       if (vw < 640) {
-        cssW = 92;
-        cssH = 34;
+        cssW = 84;
+        cssH = 30;
       } else if (vw < 1024) {
-        cssW = 132;
-        cssH = 42;
+        cssW = 108;
+        cssH = 34;
+      } else if (vw < 1536) {
+        cssW = 120;
+        cssH = 36;
       } else {
-        cssW = 168;
-        cssH = 50;
+        cssW = 144;
+        cssH = 40;
       }
 
       dpr = Math.min(2, window.devicePixelRatio || 1);
-      const fontSize = vw < 640 ? 5.6 : vw < 1024 ? 6.4 : 7.0;
+      const fontSize = vw < 640 ? 5.2 : vw < 1024 ? 6.0 : vw < 1536 ? 6.2 : 6.8;
       fontSpec = `bold ${fontSize}px 'Consolas', 'Courier New', monospace`;
 
       canvas.width = Math.round(cssW * dpr);
@@ -573,9 +576,9 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
         }`}
       />
 
-      <div className="relative m-px oculus-chamfer bg-[#03060e] flex items-center gap-1.5 px-1.5 sm:px-2 py-1">
-        {/* Left telemetry column (xl only, keeps phones/tablets compact) */}
-        <div className="hidden xl:flex flex-col items-end gap-0.5 w-[38px] text-[8px] leading-none tabular-nums font-mono text-primary/75">
+      <div className="relative m-px oculus-chamfer bg-[#03060e] flex items-center gap-1.5 px-1.5 sm:px-2 py-0.5 sm:py-1">
+        {/* Left telemetry column (2xl only, keeps laptops & tablets compact) */}
+        <div className="hidden 2xl:flex flex-col items-end gap-0.5 w-[36px] text-[8px] leading-none tabular-nums font-mono text-primary/75">
           <span ref={azRef}>AZ+00°</span>
           <span ref={elRef}>EL+00°</span>
           <span className="text-primary/40">FOV·90</span>
@@ -584,7 +587,7 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
         <canvas ref={canvasRef} className="block pointer-events-none" />
 
         {/* Right telemetry column */}
-        <div className="hidden xl:flex flex-col items-start gap-0.5 w-[38px] text-[8px] leading-none font-mono">
+        <div className="hidden 2xl:flex flex-col items-start gap-0.5 w-[36px] text-[8px] leading-none font-mono">
           <span className="text-primary/40">OPTIC</span>
           <span
             ref={statusRef}

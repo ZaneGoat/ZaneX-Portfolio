@@ -253,6 +253,7 @@ export const terminalCommandsHelp = [
 export const navLinks = [
   { name: "Overview", href: "#overview" },
   { name: "Repositories", href: "#repositories" },
+  { name: "Principles", href: "#philosophy" },
   { name: "Pricing", href: "#pricing" },
   { name: "Arena", href: "#games" },
   { name: "Contact", href: "#contact" }

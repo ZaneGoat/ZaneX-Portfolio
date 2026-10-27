@@ -30,13 +30,14 @@ interface NavigationProps {
 }
 
 const SHORT_LABELS: Record<string, string> = {
-  Repositories: "Repos",
   Overview: "Overview",
+  Repositories: "Repos",
+  Principles: "Principles",
+  Lounge: "Lounge",
+  Notes: "Notes",
   Pricing: "Plans",
   Arena: "Arena",
   Contact: "Contact",
-  Lounge: "Lounge",
-  Notes: "Notes",
 };
 
 export const Navigation = ({
@@ -48,7 +49,7 @@ export const Navigation = ({
 }: NavigationProps) => {
   const { persona } = usePersona();
   const { clearanceLevel } = useOperatorClearance();
-  const { isExistence, setTheme, triggerLogoThemeShift } = useUniverseTheme();
+  const { isExistence, setTheme } = useUniverseTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [activeHref, setActiveHref] = useState<string>("#overview");
@@ -63,35 +64,58 @@ export const Navigation = ({
     return () => window.removeEventListener(AUDIO_MUTE_EVENT, syncMute);
   }, []);
 
+  // Strict physical top-to-bottom DOM section order matching Index.tsx
   const activeNavLinks =
     persona === "friend"
       ? [
           { name: "Overview", href: "#overview" },
           { name: "Lounge", href: "#friend-lounge" },
+          { name: "Notes", href: "#philosophy" },
           { name: "Pricing", href: "#pricing" },
           { name: "Arena", href: "#games" },
-          { name: "Notes", href: "#philosophy" },
           { name: "Contact", href: "#contact" },
         ]
-      : navLinks;
+      : [
+          { name: "Overview", href: "#overview" },
+          { name: "Repositories", href: "#repositories" },
+          { name: "Principles", href: "#philosophy" },
+          { name: "Pricing", href: "#pricing" },
+          { name: "Arena", href: "#games" },
+          { name: "Contact", href: "#contact" },
+        ];
 
-  // Scroll-progress laser & active section spy
+  // Robust scroll spy: selects section closest to probe line, never falsely overridden
   useEffect(() => {
     const updateScroll = () => {
       const docH = document.documentElement.scrollHeight - window.innerHeight;
-      const pct = docH > 10 ? Math.min(1, Math.max(0, window.scrollY / docH)) : 0;
+      const scrollY = window.scrollY;
+      const pct = docH > 10 ? Math.min(1, Math.max(0, scrollY / docH)) : 0;
       setScrollProgress(pct);
 
-      const probeY = window.scrollY + window.innerHeight * 0.28;
-      let current = activeNavLinks[0]?.href || "#overview";
+      // Bottom-of-page snap for Contact
+      if (window.innerHeight + scrollY >= document.documentElement.scrollHeight - 70) {
+        setActiveHref(activeNavLinks[activeNavLinks.length - 1].href);
+        return;
+      }
+
+      // Probe Y line positioned around 30% of viewport (capped for large monitors)
+      const probeY = scrollY + Math.min(window.innerHeight * 0.3, 260);
+      let bestLink = activeNavLinks[0]?.href || "#overview";
+      let bestOffset = -Infinity;
+
       for (const link of activeNavLinks) {
         const id = link.href.replace("#", "");
         const el = document.getElementById(id);
-        if (el && el.offsetTop <= probeY) {
-          current = link.href;
+        if (el) {
+          const top = el.offsetTop;
+          if (top <= probeY && top > bestOffset) {
+            bestOffset = top;
+            bestLink = link.href;
+          }
         }
       }
-      setActiveHref(current);
+
+      setActiveHref(bestLink);
     };
 
     updateScroll();
@@ -106,6 +130,12 @@ export const Navigation = ({
   const handleToggleSound = () => {
     const newState = sound.toggleMute();
     setIsMuted(newState);
+  };
+
+  const handleToggleUniverse = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    sound.playClick();
+    setTheme(isExistence ? "matrix" : "existence");
   };
 
   const leftWingLinks = activeNavLinks.slice(0, 3);
@@ -126,7 +156,7 @@ export const Navigation = ({
             window.dispatchEvent(new CustomEvent("zanex:expand-repos"));
           }
         }}
-        className={`relative px-2 xl:px-2.5 py-1 rounded-md font-mono text-[11px] xl:text-xs font-bold tracking-tight transition-all whitespace-nowrap group ${
+        className={`relative px-2 xl:px-2.5 py-1 rounded-md font-mono text-[11px] xl:text-xs font-bold tracking-tight transition-all whitespace-nowrap shrink-0 group ${
           isActive
             ? "text-primary drop-shadow-[0_0_8px_rgba(0,255,158,0.45)]"
             : "text-foreground/70 hover:text-foreground hover:bg-white/[0.04]"
@@ -223,7 +253,7 @@ export const Navigation = ({
         className="fixed top-1 sm:top-2.5 inset-x-2 sm:inset-x-4 lg:inset-x-6 z-50 max-w-7xl mx-auto pointer-events-none font-mono"
       >
         <div className="pointer-events-auto relative visor-chamfer visor-hull-border shadow-[0_16px_45px_rgba(0,0,0,0.88),0_0_24px_rgba(0,255,158,0.08)]">
-          <div className="relative visor-chamfer visor-hull backdrop-blur-xl px-2.5 sm:px-4 py-1.5 sm:py-2">
+          <div className="relative visor-chamfer visor-hull backdrop-blur-xl px-3 sm:px-5 xl:px-6 py-1.5 sm:py-2">
             {/* Top Scanning Visor Laser Beam */}
             <div
               aria-hidden="true"
@@ -253,7 +283,7 @@ export const Navigation = ({
             {/* Bidirectional Scroll-Progress Laser Filaments Radiating Outward from the Center Eye */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute bottom-0 left-3 right-1/2 mr-14 sm:mr-24 h-[1.5px] overflow-hidden"
+              className="pointer-events-none absolute bottom-0 left-3 right-1/2 mr-10 sm:mr-18 h-[1.5px] overflow-hidden"
             >
               <div
                 style={{ width: `${Math.round(scrollProgress * 100)}%` }}
@@ -262,7 +292,7 @@ export const Navigation = ({
             </div>
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute bottom-0 left-1/2 right-3 ml-14 sm:ml-24 h-[1.5px] overflow-hidden"
+              className="pointer-events-none absolute bottom-0 left-1/2 right-3 ml-10 sm:mr-18 h-[1.5px] overflow-hidden"
             >
               <div
                 style={{ width: `${Math.round(scrollProgress * 100)}%` }}
@@ -271,9 +301,9 @@ export const Navigation = ({
             </div>
 
             {/* 3-Zone Symmetric Visor Grid: [Left Wing 1fr] — [Center Eye Keystone auto] — [Right Wing 1fr] */}
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5 sm:gap-3">
-              {/* LEFT WING: Clean Picture Logo + Left Sector Nodes */}
-              <div className="flex items-center justify-start gap-2 xl:gap-3 min-w-0">
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5 sm:gap-2.5">
+              {/* LEFT WING: Clean Picture Logo + Left Sector Nodes (01, 02, 03) */}
+              <div className="flex items-center justify-start gap-1.5 sm:gap-2.5 min-w-0">
                 <a
                   href="#overview"
                   onClick={() => sound.playClick()}
@@ -285,133 +315,130 @@ export const Navigation = ({
                     alt="ZaneX Emblem"
                     className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-white/30 group-hover:border-primary/85 shadow-[0_0_12px_rgba(255,255,255,0.2)] group-hover:scale-105 transition-all shrink-0 object-contain bg-[#050816]"
                   />
-                  <span className="text-sm sm:text-lg xl:text-xl font-black text-primary tracking-tighter group-hover:scale-105 transition-transform">
+                  <span className="text-sm sm:text-base xl:text-lg font-black text-primary tracking-tighter group-hover:scale-105 transition-transform">
                     ZANE<span className="text-secondary">X</span>
                   </span>
                 </a>
 
-                <span className="hidden lg:block h-4 w-px bg-primary/20 shrink-0" />
+                <span className="hidden lg:block h-3.5 w-px bg-primary/25 shrink-0 mx-0.5" />
 
                 <nav
                   aria-label="Primary Left Sectors"
-                  className="hidden lg:flex items-center gap-0.5 xl:gap-1 min-w-0"
+                  className="hidden lg:flex items-center gap-0.5 xl:gap-1 shrink-0"
                 >
                   {leftWingLinks.map((link, idx) => renderVisorSectorLink(link, idx + 1))}
                 </nav>
               </div>
 
               {/* CENTER KEYSTONE: Cybernetic Overwatch Oculus Pod */}
-              <div className="relative flex items-center justify-center -my-1 z-10">
+              <div className="relative flex items-center justify-center -my-1 z-10 shrink-0">
                 <div className="relative p-0.5 rounded-xl visor-cradle">
                   <MatrixWatchingEye />
                 </div>
               </div>
 
-              {/* RIGHT WING: Right Sector Nodes + Unified Tactical Instrument Dock + Existence Shift */}
-              <div className="flex items-center justify-end gap-1.5 sm:gap-2 min-w-0">
+              {/* RIGHT WING: Right Sector Nodes (04, 05, 06) + Tactical Instruments + Existence Switch */}
+              <div className="flex items-center justify-end gap-1 sm:gap-2 min-w-0">
                 <nav
                   aria-label="Primary Right Sectors"
-                  className="hidden lg:flex items-center gap-0.5 xl:gap-1 min-w-0"
+                  className="hidden lg:flex items-center gap-0.5 xl:gap-1 shrink-0"
                 >
                   {rightWingLinks.map((link, idx) =>
                     renderVisorSectorLink(link, leftWingLinks.length + idx + 1)
                   )}
                 </nav>
 
-                <span className="hidden lg:block h-4 w-px bg-primary/20 shrink-0" />
+                <span className="hidden lg:block h-3.5 w-px bg-primary/25 shrink-0 mx-0.5" />
 
-              {/* Unified Tactical Command Capsule (Tablet & Desktop) */}
-              <div className="hidden sm:inline-flex items-center gap-0.5 p-0.5 rounded-xl bg-black/65 border border-white/12 shrink-0">
+                {/* Unified Tactical Command Capsule (Tablet & Desktop) */}
+                <div className="hidden sm:inline-flex items-center gap-0.5 p-0.5 rounded-xl bg-black/65 border border-white/12 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playBoot();
+                      onOpenTerminal();
+                    }}
+                    className="px-2 py-1 rounded-lg text-primary hover:bg-primary/15 transition-colors flex items-center gap-1 text-[11px] font-bold cursor-pointer active:scale-95"
+                    title="Launch ZaneOS Shell (`)"
+                  >
+                    <Terminal className="w-3.5 h-3.5 shrink-0" />
+                    <span className="hidden 2xl:inline">CLI</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleToggleSound}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer active:scale-95 shrink-0 ${
+                      isMuted
+                        ? "text-muted-foreground hover:text-foreground"
+                        : "text-primary bg-primary/10"
+                    }`}
+                    title={isMuted ? "Enable Sound FX" : "Mute Sound FX"}
+                  >
+                    {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                  </button>
+
+                  {onOpenCtf && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playBoot();
+                        onOpenCtf();
+                      }}
+                      className="hidden 2xl:flex px-2 py-1 rounded-lg text-amber-300 hover:bg-amber-500/15 transition-colors items-center gap-1 text-[11px] font-bold cursor-pointer active:scale-95 shrink-0"
+                      title="Open Security CTF Board"
+                    >
+                      <ShieldAlert className="w-3.5 h-3.5" />
+                      <span>{clearanceLevel}/3</span>
+                    </button>
+                  )}
+
+                  {onReplayIntro && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sound.playBoot();
+                        onReplayIntro();
+                      }}
+                      className="hidden 2xl:flex p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/15 transition-colors cursor-pointer active:scale-95 shrink-0"
+                      title="Replay Procedural RGB ASCII Art Intro"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Total-Conversion Universe Theme Button (Instant & 100% Functional) */}
+                <button
+                  type="button"
+                  onClick={handleToggleUniverse}
+                  className="px-2 sm:px-2.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/40 text-white rounded-lg font-mono text-[10px] sm:text-xs font-bold flex items-center gap-1 cursor-pointer active:scale-95 transition-all shrink-0 ml-0.5"
+                  title="Transform Entire Site into EXISTENCE Monochrome ASCII Universe"
+                  aria-label="Toggle Total-Conversion Universe Theme"
+                >
+                  <Code2 className="w-3.5 h-3.5 text-white shrink-0" />
+                  <span className="sm:hidden">ASCII</span>
+                  <span className="hidden sm:inline">EXISTENCE</span>
+                </button>
+
+                {/* Mobile / Tablet Visor Drawer Trigger */}
                 <button
                   type="button"
                   onClick={() => {
-                    sound.playBoot();
-                    onOpenTerminal();
+                    sound.playClick();
+                    setIsMenuOpen(prev => !prev);
                   }}
-                  className="px-2 py-1 rounded-lg text-primary hover:bg-primary/15 transition-colors flex items-center gap-1 text-[11px] font-bold cursor-pointer active:scale-95"
-                  title="Launch ZaneOS Shell (`)"
+                  className="lg:hidden p-1.5 text-foreground border border-primary/30 bg-primary/10 rounded-lg hover:bg-primary/20 active:scale-95 cursor-pointer shrink-0 ml-0.5"
+                  title="Toggle Visor Command Matrix"
+                  aria-label="Toggle Visor Command Matrix"
                 >
-                  <Terminal className="w-3.5 h-3.5" />
-                  <span className="hidden xl:inline">CLI</span>
+                  {isMenuOpen ? <X className="w-4 h-4 text-primary" /> : <Menu className="w-4 h-4 text-primary" />}
                 </button>
-
-                {onOpenCtf && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      sound.playBoot();
-                      onOpenCtf();
-                    }}
-                    className="hidden xl:flex px-2 py-1 rounded-lg text-amber-300 hover:bg-amber-500/15 transition-colors items-center gap-1 text-[11px] font-bold cursor-pointer active:scale-95"
-                    title="Open Security CTF Board"
-                  >
-                    <ShieldAlert className="w-3.5 h-3.5" />
-                    <span>{clearanceLevel}/3</span>
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  onClick={handleToggleSound}
-                  className={`p-1.5 rounded-lg transition-colors cursor-pointer active:scale-95 ${
-                    isMuted
-                      ? "text-muted-foreground hover:text-foreground"
-                      : "text-primary bg-primary/10"
-                  }`}
-                  title={isMuted ? "Enable Sound FX" : "Mute Sound FX"}
-                >
-                  {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                </button>
-
-                {onReplayIntro && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      sound.playBoot();
-                      onReplayIntro();
-                    }}
-                    className="hidden xl:flex p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/15 transition-colors cursor-pointer active:scale-95"
-                    title="Replay Procedural RGB ASCII Art Intro"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                  </button>
-                )}
               </div>
-
-              {/* Total-Conversion Universe Theme Button (Triggers Fullscreen ASCII ONLY when entering EXISTENCE) */}
-              <button
-                type="button"
-                onClick={e => {
-                  e.stopPropagation();
-                  triggerLogoThemeShift("existence");
-                }}
-                className="px-2 sm:px-2.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/40 text-white rounded-lg font-mono text-[10px] sm:text-xs font-bold flex items-center gap-1 cursor-pointer active:scale-95 transition-all shrink-0"
-                title="Transform Entire Site into EXISTENCE Monochrome ASCII Universe"
-                aria-label="Toggle Total-Conversion Universe Theme"
-              >
-                <Code2 className="w-3.5 h-3.5 text-white shrink-0" />
-                <span className="sm:hidden">ASCII</span>
-                <span className="hidden sm:inline">EXISTENCE</span>
-              </button>
-
-              {/* Mobile / Tablet Visor Drawer Trigger */}
-              <button
-                type="button"
-                onClick={() => {
-                  sound.playClick();
-                  setIsMenuOpen(prev => !prev);
-                }}
-                className="lg:hidden p-1.5 text-foreground border border-primary/30 bg-primary/10 rounded-lg hover:bg-primary/20 active:scale-95 cursor-pointer shrink-0"
-                title="Toggle Visor Command Matrix"
-                aria-label="Toggle Visor Command Matrix"
-              >
-                {isMenuOpen ? <X className="w-4 h-4 text-primary" /> : <Menu className="w-4 h-4 text-primary" />}
-              </button>
             </div>
           </div>
         </div>
-      </div>
-    </motion.header>
+      </motion.header>
 
       {/* Floating Tactical Visor Drawer (Mobile & Tablet < lg) */}
       <AnimatePresence>
@@ -424,10 +451,19 @@ export const Navigation = ({
             className="fixed inset-x-2 sm:inset-x-4 top-[60px] sm:top-[68px] z-40 rounded-2xl border border-primary/35 bg-[#050914]/96 backdrop-blur-2xl p-4 lg:hidden font-mono shadow-[0_24px_60px_rgba(0,0,0,0.9)] max-h-[calc(100vh-76px)] overflow-y-auto"
           >
             <div className="flex flex-col gap-3">
-              {/* Top Quick Utility Strip (Persona + Audio + Replay Intro) */}
+              {/* Top Quick Utility Strip (Persona + Audio + Theme + Replay Intro) */}
               <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-primary/15">
                 <PersonaSwitcher variant="compact" />
                 <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleToggleUniverse}
+                    className="px-2.5 py-1.5 rounded-lg border border-white/30 bg-white/10 text-white text-[11px] font-bold flex items-center gap-1 cursor-pointer active:scale-95"
+                    title="Toggle Interface Mode"
+                  >
+                    <Code2 className="w-3.5 h-3.5 text-white" />
+                    <span>{isExistence ? "MATRIX" : "EXISTENCE"}</span>
+                  </button>
                   <button
                     type="button"
                     onClick={handleToggleSound}
