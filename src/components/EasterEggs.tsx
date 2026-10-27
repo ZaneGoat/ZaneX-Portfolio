@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldAlert, Zap, CheckCircle2, Smartphone, Sparkles, Eye } from "lucide-react";
+import { ShieldAlert, Zap, CheckCircle2, Smartphone, Terminal, Eye } from "lucide-react";
 import { sound } from "@/lib/sound";
 import { RyukAsciiOverlay } from "@/components/RyukAsciiOverlay";
 
@@ -489,7 +489,7 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
                     }}
                     className="w-full py-2.5 border border-primary/50 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+                    <Terminal className="w-3.5 h-3.5 text-primary" />
                     <span>LAUNCH MATRIX OVERRIDE NOW</span>
                   </button>
 

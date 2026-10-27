@@ -1,10 +1,10 @@
 import { memo, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Terminal, Cpu, Database, ExternalLink, Zap, Clock, MapPin, Monitor, Play, Github, Keyboard,
-  Radio, Globe, Wind, ShieldAlert, Lock, Unlock, Sparkles, Key, Compass
+  Terminal, Cpu, ExternalLink, Zap, Clock, MapPin, Monitor, Play, Github, Keyboard,
+  Radio, ShieldAlert, Lock, Key
 } from "lucide-react";
-import { systemSpecsByPersona, projectsData, skillsData } from "@/data/portfolio";
+import { systemSpecsByPersona } from "@/data/portfolio";
 import { usePersona } from "@/context/PersonaContext";
 import { useOperatorClearance } from "@/context/OperatorClearanceContext";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
@@ -38,9 +38,9 @@ const LiveClock = memo(() => {
 LiveClock.displayName = "LiveClock";
 
 const fadeUp = (delay: number) => ({
-  initial: { opacity: 0, y: 16 },
+  initial: { opacity: 0, y: 14 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.45, delay },
+  transition: { duration: 0.4, delay },
 });
 
 export const BentoGrid = ({
@@ -60,128 +60,123 @@ export const BentoGrid = ({
   // Operator Redactions based on clearance
   const displayName = isOperator && !clearance.identityUnlocked ? "████████ ████████" : activeSpecs.realName;
   const displayHandle = isOperator && !clearance.identityUnlocked ? "OPERATOR_UNKNOWN" : activeSpecs.handle;
-  const displayRole = isOperator && !clearance.identityUnlocked ? "CLASSIFIED AGENT // CLEARANCE REQUIRED" : activeSpecs.role;
+  const displayRole = isOperator && !clearance.identityUnlocked ? "RESTRICTED PROFILE // CLEARANCE REQUIRED" : activeSpecs.role;
   const displayBio = isOperator && !clearance.identityUnlocked
-    ? "[SECURITY AUDIT LOG: ACCESS RESTRICTED. Operative background & identity are encrypted behind Node 01. Infiltrate security nodes to declassify this dossier.]"
+    ? "[RESTRICTED PROFILE: Identity and engineering background are locked behind Node 01. Complete the security challenges below or unlock via ZaneOS to view full profile.]"
     : activeSpecs.bio;
   const displayStatus = isOperator && !clearance.identityUnlocked
-    ? `[CLASSIFIED BLACK-SITE // LEVEL ${clearanceLevel}/3]`
+    ? `RESTRICTED // CLEARANCE ${clearanceLevel}/3`
     : activeSpecs.status;
-  const displayLocation = isOperator && !clearance.hardwareUnlocked ? "GPS MASKED // TOR-HOP" : activeSpecs.location;
-  const displayRig = isOperator && !clearance.hardwareUnlocked ? "[EC MEMORY LOCKED]" : activeSpecs.os;
+  const displayLocation = isOperator && !clearance.hardwareUnlocked ? "Casablanca (Redacted)" : activeSpecs.location;
+  const displayRig = isOperator && !clearance.hardwareUnlocked ? "Linux x86_64 (Locked)" : activeSpecs.os;
   const displayStats = isOperator && !clearance.identityUnlocked
     ? [
-        { value: "██", label: "OFDM CARRIERS" },
-        { value: "██", label: "TOR ROUTING" },
-        { value: "0x??", label: "EC REGISTER" }
+        { value: "--", label: "Subcarriers" },
+        { value: "--", label: "Linux Systems" },
+        { value: "0x??", label: "EC Control" }
       ]
     : activeSpecs.stats;
 
   return (
-    <section id="overview" className="relative z-10 px-4 md:px-8 pt-6 pb-20 max-w-7xl mx-auto">
-      {/* Visitor Onboarding HUD: Persona & Hardware Telemetry Check */}
-      <motion.div {...fadeUp(0)} className="mb-6 flex flex-col items-center gap-3">
+    <section id="overview" className="relative z-10 px-3.5 sm:px-6 md:px-8 pt-3 sm:pt-6 pb-12 sm:pb-20 max-w-7xl mx-auto">
+      {/* Compact Visitor Bar: Mode & Hardware Check */}
+      <motion.div {...fadeUp(0)} className="mb-4 sm:mb-6 flex flex-col items-center gap-2">
         <PersonaSwitcher variant="hero" />
         <DeviceQuestion />
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
 
-        {/* 1 — Identity (hero) */}
-        <motion.div {...fadeUp(0.04)} className="hud-card md:col-span-2 lg:row-span-2 p-7 md:p-10 relative overflow-hidden flex flex-col justify-between">
-          <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-
+        {/* 1 — Identity (Hero) */}
+        <motion.div {...fadeUp(0.04)} className="hud-card md:col-span-2 lg:row-span-2 p-5 sm:p-8 md:p-10 relative overflow-hidden flex flex-col justify-between">
           <div>
-            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono mb-6 border ${
+            <div className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-[11px] font-mono mb-4 sm:mb-6 border ${
               isOperator && !clearance.identityUnlocked
                 ? "bg-red-500/10 border-red-500/30 text-red-400"
-                : "bg-primary/10 border-primary/30 text-primary"
+                : "bg-primary/10 border-primary/25 text-primary"
             }`}>
-              <span className="relative flex w-2 h-2">
-                <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${
-                  isOperator && !clearance.identityUnlocked ? "bg-red-400" : "bg-primary"
-                }`} />
-                <span className={`relative inline-flex rounded-full w-2 h-2 ${
-                  isOperator && !clearance.identityUnlocked ? "bg-red-500" : "bg-primary"
-                }`} />
-              </span>
-              {displayStatus}
+              <span className={`inline-flex rounded-full w-1.5 h-1.5 ${
+                isOperator && !clearance.identityUnlocked ? "bg-red-500" : "bg-primary"
+              }`} />
+              <span className="truncate">{displayStatus}</span>
             </div>
 
-            <p className="font-mono text-sm text-primary/60 mb-2">&gt; whoami</p>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-primary tracking-tight leading-[0.95] uppercase glow-text select-none">
-              {displayName.split(" ")[0]}
+            <p className="font-mono text-xs text-muted-foreground mb-1.5">$ whoami</p>
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[0.98] uppercase select-none">
+              <span className="text-primary">{displayName.split(" ")[0]}</span>
               <br />
-              <span className="text-foreground/90">{displayName.split(" ").slice(1).join(" ")}</span>
+              <span className="text-foreground">{displayName.split(" ").slice(1).join(" ")}</span>
             </h1>
-            <p className="mt-4 font-mono text-sm md:text-base text-primary/80">
-              aka <span className="text-primary font-bold">{displayHandle}</span> — {displayRole}
+            <p className="mt-3 sm:mt-4 font-mono text-xs sm:text-sm md:text-base text-foreground/85">
+              <span className="text-primary font-bold">{displayHandle}</span> — {displayRole}
             </p>
-            <p className="mt-4 text-muted-foreground text-sm md:text-base leading-relaxed max-w-xl">
+            <p className="mt-3 text-muted-foreground text-xs sm:text-sm md:text-base leading-relaxed max-w-xl">
               {displayBio}
             </p>
           </div>
 
           <div>
-            {/* Dynamic Stats strip */}
-            <div className="grid grid-cols-3 gap-3 my-8 max-w-md">
+            {/* Compact Stats Strip */}
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-4 my-5 sm:my-7 max-w-md pt-4 border-t border-white/[0.07]">
               {displayStats.map(s => (
-                <div key={s.label} className="border-l-2 border-primary/40 pl-3">
-                  <div className="text-2xl md:text-3xl font-black text-primary font-mono">{s.value}</div>
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-mono">{s.label}</div>
+                <div key={s.label} className="border-l-2 border-primary/40 pl-2.5 sm:pl-3">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-foreground font-mono leading-tight">{s.value}</div>
+                  <div className="text-[10px] sm:text-[11px] uppercase tracking-wider text-muted-foreground font-mono mt-0.5">{s.label}</div>
                 </div>
               ))}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-2.5">
+            {/* Action Buttons: Clean 2-col grid on phones, inline flex on desktop */}
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
               <button
                 onClick={() => { sound.playBoot(); onOpenTerminal(); }}
-                className="flex items-center justify-center gap-2 bg-primary text-background font-mono font-bold px-4 sm:px-5 py-3 rounded-xl hover:scale-105 active:scale-95 transition-transform shadow-[0_0_25px_hsl(var(--primary)/0.4)] text-xs sm:text-sm"
+                className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 bg-primary text-background font-mono font-bold px-4 sm:px-5 py-2.5 sm:py-3 rounded-lg hover:bg-primary/90 active:scale-[0.98] transition-all text-xs cursor-pointer"
               >
                 <Terminal className="w-4 h-4" />
-                LAUNCH ZANE_OS
+                OPEN TERMINAL
               </button>
 
-              {/* Infiltration trigger in Operator mode */}
               {isOperator && (
                 <button
                   onClick={() => { sound.playBoot(); onOpenInfiltration?.(); }}
-                  className={`flex items-center justify-center gap-2 font-mono font-bold px-4 py-3 rounded-xl text-xs transition-all ${
+                  className={`flex items-center justify-center gap-1.5 font-mono font-bold px-3.5 py-2.5 sm:py-3 rounded-lg text-xs transition-all cursor-pointer ${
                     clearance.identityUnlocked
-                      ? "border border-emerald-500/50 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
-                      : "border border-red-500/60 bg-red-500/15 text-red-400 hover:bg-red-500/25 animate-pulse"
+                      ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                      : "border border-red-500/50 bg-red-500/10 text-red-400 hover:bg-red-500/20"
                   }`}
                 >
-                  <ShieldAlert className="w-4 h-4" />
-                  {clearance.identityUnlocked ? `CLEARANCE LVL ${clearanceLevel}/3` : `DECLASSIFY DOSSIER (${clearanceLevel}/3)`}
+                  <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">
+                    {clearance.identityUnlocked ? `LVL ${clearanceLevel}/3` : `UNLOCK (${clearanceLevel}/3)`}
+                  </span>
                 </button>
               )}
 
               {onOpenCtf && (
                 <button
                   onClick={() => { sound.playBoot(); onOpenCtf(); }}
-                  className="flex items-center justify-center gap-1.5 border border-yellow-500/50 bg-yellow-500/10 text-yellow-400 font-mono font-bold px-4 py-3 rounded-xl hover:bg-yellow-500/20 active:scale-95 transition-all text-xs"
+                  className="flex items-center justify-center gap-1.5 border border-amber-500/40 bg-amber-500/10 text-amber-300 font-mono font-bold px-3.5 py-2.5 sm:py-3 rounded-lg hover:bg-amber-500/20 active:scale-[0.98] transition-all text-xs cursor-pointer"
                 >
-                  <ShieldAlert className="w-4 h-4 animate-pulse" />
-                  CTF QUEST
+                  <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                  <span>CTF BOARD</span>
                 </button>
               )}
 
               {persona === "friend" ? (
                 <button
                   onClick={() => { sound.playBoot(); onOpenBreach(); }}
-                  className="flex items-center justify-center gap-2 border border-secondary/50 bg-secondary/15 text-secondary font-mono font-bold px-4 sm:px-5 py-3 rounded-xl hover:bg-secondary/25 active:scale-95 transition-all shadow-[0_0_20px_hsl(var(--secondary)/0.3)] cursor-pointer text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1.5 border border-secondary/40 bg-secondary/10 text-secondary font-mono font-bold px-3.5 py-2.5 sm:py-3 rounded-lg hover:bg-secondary/20 active:scale-[0.98] transition-all cursor-pointer text-xs"
                 >
-                  <Zap className="w-4 h-4 fill-current" />
-                  PLAY BREACH
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>PLAY BREACH</span>
                 </button>
               ) : (
                 <a
-                  href="#skills"
+                  href="#pricing"
                   onClick={() => sound.playClick()}
-                  className="flex items-center justify-center gap-2 border border-primary/40 text-primary font-mono font-bold px-4 sm:px-5 py-3 rounded-xl hover:bg-primary/10 transition-colors text-xs sm:text-sm"
+                  className="flex items-center justify-center gap-1.5 border border-white/15 bg-white/[0.03] text-foreground font-mono font-bold px-3.5 py-2.5 sm:py-3 rounded-lg hover:border-primary/40 hover:text-primary transition-colors text-xs"
                 >
-                  TECH MATRIX
+                  <span>PLANS</span>
                 </a>
               )}
 
@@ -190,25 +185,40 @@ export const BentoGrid = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => sound.playClick()}
-                className="flex items-center justify-center gap-2 text-primary/80 hover:text-primary font-mono font-bold px-3 py-3 transition-colors text-xs sm:text-sm"
+                className="flex items-center justify-center gap-1.5 border border-white/10 sm:border-transparent text-muted-foreground hover:text-foreground font-mono font-bold px-3 py-2.5 sm:py-3 rounded-lg transition-colors text-xs"
               >
-                <Github className="w-4 h-4" />
-                GitHub
+                <Github className="w-3.5 h-3.5" />
+                <span>GitHub</span>
               </a>
             </div>
           </div>
         </motion.div>
 
-        {/* 2 — Live status strip */}
-        <motion.div {...fadeUp(0.08)} className="hud-card md:col-span-2 p-6 grid grid-cols-3 gap-4 font-mono">
-          <div>
-            <div className="flex items-center gap-1.5 text-[11px] text-primary/60 uppercase mb-1"><Clock className="w-3.5 h-3.5" />Local time</div>
-            <div className="text-lg md:text-xl font-bold text-primary"><LiveClock /></div>
+        {/* 2 — Live Status Strip (Clean stacked rows on phone, 3 columns on tablet/desktop) */}
+        <motion.div
+          {...fadeUp(0.08)}
+          className="hud-card md:col-span-2 p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4 divide-y sm:divide-y-0 divide-white/[0.07] font-mono"
+        >
+          <div className="flex items-center justify-between sm:block">
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase sm:mb-1">
+              <Clock className="w-3.5 h-3.5 text-primary/70" />
+              <span>Local time</span>
+            </div>
+            <div className="text-sm sm:text-lg md:text-xl font-bold text-foreground">
+              <LiveClock />
+            </div>
           </div>
-          <div>
-            <div className="flex items-center gap-1.5 text-[11px] text-primary/60 uppercase mb-1"><MapPin className="w-3.5 h-3.5" />Base</div>
-            <div className="text-sm md:text-base font-bold text-primary">{displayLocation}</div>
+
+          <div className="flex items-center justify-between gap-3 pt-2.5 sm:pt-0 sm:block">
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase shrink-0 sm:mb-1">
+              <MapPin className="w-3.5 h-3.5 text-primary/70" />
+              <span>Base</span>
+            </div>
+            <div className="text-xs sm:text-sm md:text-base font-bold text-foreground text-right sm:text-left truncate">
+              {displayLocation}
+            </div>
           </div>
+
           <div
             onClick={() => {
               if (onOpenMegaCenter && (!isOperator || clearance.hardwareUnlocked)) {
@@ -219,34 +229,52 @@ export const BentoGrid = ({
                 onOpenInfiltration();
               }
             }}
-            className="cursor-pointer group"
+            className="flex items-center justify-between gap-3 pt-2.5 sm:pt-0 sm:block cursor-pointer group"
           >
-            <div className="flex items-center gap-1.5 text-[11px] text-primary/60 uppercase mb-1">
-              <Monitor className="w-3.5 h-3.5" />Rig
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase shrink-0 sm:mb-1">
+              <Monitor className="w-3.5 h-3.5 text-primary/70" />
+              <span>System</span>
               {onOpenMegaCenter && (!isOperator || clearance.hardwareUnlocked) && (
-                <span className="text-[9px] text-primary/70 group-hover:text-primary font-bold ml-1 border border-primary/30 px-1 rounded">
-                  EC GUI
+                <span className="text-[9px] text-primary border border-primary/30 px-1 py-0.2 rounded font-bold">
+                  EC
                 </span>
               )}
             </div>
-            <div className="text-sm md:text-base font-bold text-primary group-hover:underline">{displayRig}</div>
+            <div className="text-xs sm:text-sm md:text-base font-bold text-foreground group-hover:text-primary transition-colors text-right sm:text-left truncate">
+              {displayRig}
+            </div>
           </div>
         </motion.div>
 
-        {/* 3 — Terminal peek */}
+        {/* 3 — Terminal Peek */}
         <motion.button
           {...fadeUp(0.14)}
           onClick={() => { sound.playBoot(); onOpenTerminal(); }}
-          className="hud-card p-6 text-left font-mono group"
+          className="hud-card p-5 sm:p-6 text-left font-mono group cursor-pointer"
         >
-          <div className="flex items-center justify-between text-xs text-primary/60 mb-4">
-            <span className="flex items-center gap-1.5 font-bold uppercase tracking-widest"><Terminal className="w-4 h-4" />Shell</span>
-            <span className="flex items-center gap-1"><Keyboard className="w-3.5 h-3.5" />press <kbd className="px-1.5 py-0.5 border border-primary/40 rounded text-primary">`</kbd></span>
+          <div className="flex items-center justify-between text-xs text-muted-foreground mb-3.5">
+            <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-primary">
+              <Terminal className="w-4 h-4" /> Shell
+            </span>
+            <span className="hidden sm:flex items-center gap-1 text-[11px]">
+              <Keyboard className="w-3.5 h-3.5" /> press{" "}
+              <kbd className="px-1.5 py-0.5 border border-white/20 rounded text-foreground">`</kbd>
+            </span>
           </div>
-          <div className="text-xs space-y-1 text-primary/80">
-            <p><span className="text-primary">{persona === "friend" ? "homie@lounge" : (clearance.identityUnlocked ? "zane@kali" : "operator@classified")}</span>:~$ csi --scan</p>
-            <p className="text-muted-foreground">Doppler +3.8Hz · motion detected</p>
-            <p><span className="text-primary">{persona === "friend" ? "homie@lounge" : (clearance.identityUnlocked ? "zane@kali" : "operator@classified")}</span>:~$ <span className="inline-block w-2 h-3.5 bg-primary align-middle animate-pulse" /></p>
+          <div className="text-xs space-y-1 text-foreground/85 bg-black/50 border border-white/[0.06] rounded-lg p-3">
+            <p>
+              <span className="text-primary">
+                {persona === "friend" ? "friend@zane" : clearance.identityUnlocked ? "zane@kali" : "guest@node"}
+              </span>
+              :~$ csi --scan
+            </p>
+            <p className="text-muted-foreground">Doppler +3.8Hz · 64 subcarriers</p>
+            <p>
+              <span className="text-primary">
+                {persona === "friend" ? "friend@zane" : clearance.identityUnlocked ? "zane@kali" : "guest@node"}
+              </span>
+              :~$ <span className="inline-block w-1.5 h-3.5 bg-primary align-middle animate-pulse" />
+            </p>
           </div>
           {onOpenCsi && (!isOperator || clearance.projectsUnlocked) && (
             <div
@@ -255,124 +283,129 @@ export const BentoGrid = ({
                 sound.playBoot();
                 onOpenCsi();
               }}
-              className="mt-3 py-1.5 px-2 bg-primary/10 hover:bg-primary/25 border border-primary/30 rounded-lg text-[10px] text-primary font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="mt-3 py-1.5 px-2.5 bg-primary/10 hover:bg-primary/20 border border-primary/25 rounded-lg text-[10px] text-primary font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
-              <Radio className="w-3 h-3 text-primary animate-pulse" />
-              <span>LAUNCH CSI RADAR (GUI)</span>
+              <Radio className="w-3 h-3 text-primary" />
+              <span>OPEN CSI RADAR</span>
             </div>
           )}
-          <p className="mt-3 text-[11px] text-primary/50 group-hover:text-primary transition-colors">Click to open ZaneOS →</p>
+          <p className="mt-2.5 text-[11px] text-muted-foreground group-hover:text-primary transition-colors">
+            Launch interactive CLI →
+          </p>
         </motion.button>
 
         {/* 4 — Breach Protocol */}
-        <motion.div {...fadeUp(0.2)} className="hud-card p-6 flex flex-col justify-between" style={{ borderColor: "hsl(var(--secondary) / 0.35)" }}>
+        <motion.div {...fadeUp(0.2)} className="hud-card p-5 sm:p-6 flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-1.5 text-secondary font-mono text-xs font-bold uppercase tracking-widest mb-3">
-              <Zap className="w-4 h-4" /> Cyber Arena
+            <div className="flex items-center gap-1.5 text-secondary font-mono text-xs font-bold uppercase tracking-wider mb-2.5">
+              <Zap className="w-4 h-4" /> Minigame
             </div>
-            <h3 className="text-xl font-black text-secondary uppercase mb-1">Breach Protocol</h3>
-            <p className="text-muted-foreground text-xs leading-relaxed">Hex-matrix intrusion puzzle. 35 seconds on the clock.</p>
+            <h3 className="text-lg sm:text-xl font-black text-foreground uppercase mb-1">Breach Protocol</h3>
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              Hex-buffer sequence puzzle with a 35-second timer.
+            </p>
           </div>
           <button
             onClick={() => { sound.playBoot(); onOpenBreach(); }}
-            className="mt-4 w-full flex items-center justify-center gap-2 bg-secondary text-background font-mono font-bold py-2.5 rounded-xl hover:scale-[1.03] active:scale-95 transition-transform"
+            className="mt-4 w-full flex items-center justify-center gap-2 bg-secondary/15 hover:bg-secondary/25 border border-secondary/40 text-secondary font-mono font-bold py-2.5 rounded-lg text-xs active:scale-[0.98] transition-all cursor-pointer"
           >
-            <Play className="w-4 h-4 fill-current" /> START
+            <Play className="w-3.5 h-3.5 fill-current" /> PLAY PUZZLE
           </button>
         </motion.div>
 
-        {/* Exclusive Friend Lounge Card (Unlocks when Friend persona is active) */}
+        {/* Exclusive Friend Lounge Card */}
         <AnimatePresence>
           {persona === "friend" && <FriendLoungeCard />}
         </AnimatePresence>
 
-        {/* 5 & 6 — Flagship architectures & AI Stack (Guest & Operator only) */}
+        {/* 5 & 6 — Repositories & Systems Stack (Operator mode) */}
         {persona !== "friend" && (
           <>
             {isOperator && !clearance.projectsUnlocked ? (
-              /* Classified Vault Placeholder in Operator Mode */
-              <motion.div {...fadeUp(0.26)} className="hud-card md:col-span-2 lg:col-span-4 p-7 md:p-9 border-2 border-red-500/40 bg-gradient-to-br from-[#13060a]/90 via-[#0a0712]/90 to-[#13060a]/90">
-                <div className="flex items-center gap-3 text-red-400 font-mono text-xs font-bold uppercase tracking-widest mb-3">
-                  <Lock className="w-4 h-4 animate-pulse" />
-                  <span>Node 03: Black-Ops Project Archives [CLASSIFIED LEVEL 99]</span>
+              <motion.div
+                {...fadeUp(0.26)}
+                className="hud-card md:col-span-2 lg:col-span-4 p-5 sm:p-8 border border-red-500/35 bg-[#0d070b]/95"
+              >
+                <div className="flex items-center gap-2 text-red-400 font-mono text-xs font-bold uppercase tracking-wider mb-2">
+                  <Lock className="w-4 h-4" />
+                  <span>Node 03 // Repository Index Locked</span>
                 </div>
-                <h3 className="text-2xl sm:text-3xl font-black text-red-400 uppercase font-mono mb-2">
-                  Access Denied // Classified Weaponry Vault
+                <h3 className="text-xl sm:text-2xl font-black text-foreground uppercase font-mono mb-2">
+                  Project Archives Restricted
                 </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed max-w-2xl mb-6 font-mono">
-                  All enterprise full-stack ERP architectures, Wi-Fi CSI Doppler subcarrier radars, DualSense HID governors, and MSI EC fan governors are encrypted.
-                  Solve the <strong className="text-primary">Infiltration Challenges</strong> or evoke cipher <strong>'OPERATOR'</strong> to decrypt.
+                <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed max-w-2xl mb-5 font-mono">
+                  Production ERP modules, 802.11 Wi-Fi CSI radar tools, DualSense HID drivers, and MSI EC fan controllers are locked in Operator mode. Complete the security challenges to unlock.
                 </p>
-                <div className="flex flex-wrap gap-3">
-                  {onOpenInfiltration && (
-                    <button
-                      onClick={() => { sound.playBoot(); onOpenInfiltration(); }}
-                      className="flex items-center gap-2 border border-primary/50 bg-primary/20 text-primary font-mono font-bold px-5 py-3 rounded-xl hover:bg-primary/30 active:scale-95 transition-all text-xs cursor-pointer shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
-                    >
-                      <Key className="w-4 h-4" />
-                      INFILTRATION CHALLENGES
-                    </button>
-                  )}
-                </div>
+                {onOpenInfiltration && (
+                  <button
+                    onClick={() => { sound.playBoot(); onOpenInfiltration(); }}
+                    className="inline-flex items-center gap-2 border border-primary/40 bg-primary/15 text-primary font-mono font-bold px-4 py-2.5 rounded-lg hover:bg-primary/25 active:scale-[0.98] transition-all text-xs cursor-pointer"
+                  >
+                    <Key className="w-4 h-4" />
+                    UNLOCK CHALLENGES
+                  </button>
+                )}
               </motion.div>
             ) : (
               <>
-                <motion.div {...fadeUp(0.26)} className="hud-card md:col-span-2 lg:col-span-3 p-6 md:p-8 flex flex-col justify-between">
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/15 pb-4 mb-5">
-                    <div className="flex items-center gap-2 text-primary font-mono text-xs font-bold uppercase tracking-widest">
-                      <Github className="w-4 h-4" /> Production Repositories on Git
+                <motion.div {...fadeUp(0.26)} className="hud-card md:col-span-2 lg:col-span-3 p-5 sm:p-7 flex flex-col justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.08] pb-3.5 mb-4">
+                    <div className="flex items-center gap-2 text-primary font-mono text-xs font-bold uppercase tracking-wider">
+                      <Github className="w-4 h-4" /> Source Code & Flagships
                     </div>
                     <a
                       href="https://github.com/ZaneGoat"
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => sound.playClick()}
-                      className="px-3 py-1 rounded-lg text-[11px] font-mono font-bold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-all flex items-center gap-1.5"
+                      className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-white/[0.04] text-foreground/85 hover:text-primary border border-white/10 transition-colors flex items-center gap-1.5"
                     >
                       <span>github.com/ZaneGoat</span>
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
 
-                  <div className="grid md:grid-cols-5 gap-6">
+                  <div className="grid md:grid-cols-5 gap-5">
                     <div className="md:col-span-3">
-                      <h3 className="text-2xl font-bold text-primary mb-1">Git-First Engineering Stack</h3>
-                      <p className="text-primary/70 text-xs font-mono mb-3">Enterprise ERPs, Wi-Fi CSI Radars, OSINT scrapers & EC firmware tools</p>
-                      <p className="text-muted-foreground text-sm leading-relaxed">
-                        Legacy client/guest showcase modules have been decommissioned. All production systems are version-controlled, audited, and maintained directly across active Git repositories.
+                      <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-1">Open-Source & Production Work</h3>
+                      <p className="text-primary text-xs font-mono mb-2.5">
+                        ZaneMegaCenter · csi_project · Controler-space
+                      </p>
+                      <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
+                        From Linux Embedded Controller (EC) thermal governors and 802.11 Wi-Fi CSI motion sensing to low-latency USB HID calibration and custom business ERP software.
                       </p>
                     </div>
                     <div className="md:col-span-2 flex flex-col justify-between gap-4">
-                      <div className="space-y-2 text-xs font-mono text-muted-foreground">
-                        <div className="flex items-center gap-2"><span className="text-primary">▸</span> Organization: @ZaneGoat</div>
-                        <div className="flex items-center gap-2"><span className="text-primary">▸</span> Deployment: Automated CI / Microservices</div>
-                        <div className="flex items-center gap-2"><span className="text-primary">▸</span> Status: Production Git Sync Active</div>
+                      <div className="space-y-1.5 text-xs font-mono text-muted-foreground">
+                        <div className="flex items-center gap-2"><span className="text-primary">▸</span> GitHub: @ZaneGoat</div>
+                        <div className="flex items-center gap-2"><span className="text-primary">▸</span> Focus: Python, TypeScript, C, Linux</div>
+                        <div className="flex items-center gap-2"><span className="text-primary">▸</span> Live API repository index below</div>
                       </div>
                       <a
                         href="#repositories"
                         onClick={() => sound.playClick()}
-                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-background rounded-xl font-mono text-xs font-bold transition-transform hover:scale-105 active:scale-95 shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-background rounded-lg font-mono text-xs font-bold transition-colors hover:bg-primary/90 active:scale-[0.98]"
                       >
                         <Github className="w-4 h-4" />
-                        <span>EXPLORE LIVE REPOSITORIES</span>
+                        <span>BROWSE REPOSITORIES</span>
                       </a>
                     </div>
                   </div>
                 </motion.div>
 
-                {/* 6 — AI hub */}
-                <motion.div {...fadeUp(0.32)} className="hud-card md:col-span-2 lg:col-span-1 p-6 font-mono">
-                  <div className="flex items-center gap-1.5 text-primary text-xs font-bold uppercase tracking-widest mb-4">
-                    <Cpu className="w-4 h-4" /> AI stack
+                {/* 6 — Low-Level Systems Stack (Replaces generic AI tool list) */}
+                <motion.div {...fadeUp(0.32)} className="hud-card md:col-span-2 lg:col-span-1 p-5 sm:p-6 font-mono">
+                  <div className="flex items-center gap-1.5 text-primary text-xs font-bold uppercase tracking-wider mb-4">
+                    <Cpu className="w-4 h-4" /> Systems Focus
                   </div>
                   <ul className="space-y-3 text-xs">
                     {[
-                      ["DeepSeek CLI", "Local code audits"],
-                      ["Ollama", "Offline inference agents"],
-                      ["Gemini API", "High-context pipelines"],
+                      ["Linux EC / Kernel", "Register & fan curve control"],
+                      ["802.11 Wi-Fi CSI", "64-subcarrier Doppler radar"],
+                      ["USB HID / Evdev", "1000Hz gamepad calibration"],
                     ].map(([name, desc]) => (
                       <li key={name} className="border-l-2 border-primary/40 pl-3">
-                        <span className="block text-primary font-bold">{name}</span>
+                        <span className="block text-foreground font-bold">{name}</span>
                         <span className="text-muted-foreground text-[11px]">{desc}</span>
                       </li>
                     ))}

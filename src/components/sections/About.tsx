@@ -22,7 +22,7 @@ export const About = () => {
             className="space-y-4 text-lg text-muted-foreground"
           >
             <p>
-              I am a versatile Full-Stack Developer & AI Specialist based in Morocco. My passion lies in engineering end-to-end software solutions—ranging from complex desktop & web ERP systems (OptiGest, AyaResto, IPIRNET) to automated AI workflows using Ollama, DeepSeek CLI, and Google Gemini API.
+              I am a Full-Stack &amp; Systems Engineer based in Casablanca, Morocco, building end-to-end software—from desktop and web ERP platforms (OptiGest, AyaResto, IPIRNET) to Linux hardware telemetry utilities and data automation pipelines.
             </p>
             <p>
               Whether it's designing clean ERD database schemas, writing Python backend services, or building responsive UIs, I focus on code quality, performance, and real-world business value.

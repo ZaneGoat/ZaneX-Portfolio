@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Github, ExternalLink, Star, GitFork, Search, RefreshCw, 
-  Terminal, Code2, Sparkles, Check, Copy, AlertCircle, Database, Pin
+import {
+  Github, ExternalLink, Star, GitFork, Search, RefreshCw,
+  Terminal, Code2, Check, Copy, AlertCircle, Pin
 } from "lucide-react";
 import { useGitHubRepos, GitHubRepo } from "@/services/github";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -22,24 +22,23 @@ const formatRelativeTime = (isoString: string): string => {
   try {
     const diffMs = Date.now() - new Date(isoString).getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return "Updated today";
-    if (diffDays === 1) return "Updated yesterday";
-    if (diffDays < 30) return `Updated ${diffDays}d ago`;
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 30) return `${diffDays}d ago`;
     const diffMonths = Math.floor(diffDays / 30);
-    if (diffMonths < 12) return `Updated ${diffMonths}mo ago`;
-    return `Updated ${Math.floor(diffMonths / 12)}y ago`;
+    if (diffMonths < 12) return `${diffMonths}mo ago`;
+    return `${Math.floor(diffMonths / 12)}y ago`;
   } catch {
     return "Recent";
   }
 };
 
 export const LiveRepositories: React.FC = () => {
-  const { repos, loading, error, isCached, refresh } = useGitHubRepos();
+  const { repos, loading, isCached, refresh } = useGitHubRepos();
   const [search, setSearch] = useState("");
   const [selectedLang, setSelectedLang] = useState<string>("ALL");
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
-  // Available unique languages
   const languages = useMemo(() => {
     const langs = new Set<string>();
     repos.forEach(r => {
@@ -48,7 +47,6 @@ export const LiveRepositories: React.FC = () => {
     return ["ALL", ...Array.from(langs).sort()];
   }, [repos]);
 
-  // Filtered list
   const filteredRepos = useMemo(() => {
     const query = search.trim().toLowerCase();
     return repos.filter(repo => {
@@ -75,155 +73,153 @@ export const LiveRepositories: React.FC = () => {
   };
 
   return (
-    <section id="repositories" className="py-24 relative z-10 font-mono">
-      <div className="container mx-auto px-4 md:px-6 max-w-7xl">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <SectionHeader
-            index="01"
-            kicker="Live Code Telemetry"
-            title="Production Git Repositories"
-            subtitle="Autonomous sync with github.com/ZaneGoat. Filter by language or keyword to inspect open-source architectures."
-          />
+    <section id="repositories" className="py-12 sm:py-16 md:py-24 relative z-10 font-mono">
+      <div className="container mx-auto px-3.5 sm:px-6 max-w-7xl">
+        <SectionHeader
+          index="01"
+          kicker="Open Source"
+          title="GitHub Repositories"
+          subtitle="Synced directly from github.com/ZaneGoat, with flagship hardware and radar projects pinned first."
+        />
 
-          <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
-            <button
-              onClick={() => {
-                sound.playBoot();
-                refresh();
-              }}
-              disabled={loading}
-              className="inline-flex items-center gap-2 px-3 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary rounded-xl text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-[0_0_15px_hsl(var(--primary)/0.2)]"
-              title="Force re-fetch from GitHub API"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-              <span>{loading ? "SYNCING..." : isCached ? "LIVE CACHED" : "REFRESH"}</span>
-            </button>
-
-            <a
-              href="https://github.com/ZaneGoat"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => sound.playClick()}
-              className="inline-flex items-center gap-2 px-3.5 py-2 bg-primary text-background rounded-xl text-xs font-bold transition-transform hover:scale-105 active:scale-95 shadow-[0_0_20px_hsl(var(--primary)/0.4)]"
-            >
-              <Github className="w-4 h-4" />
-              <span>GITHUB PROFILE</span>
-              <ExternalLink className="w-3 h-3 opacity-70" />
-            </a>
-          </div>
-        </div>
-
-        {/* Search & Language Filter HUD */}
-        <div className="bg-[#050816]/90 border border-primary/25 rounded-2xl p-4 md:p-5 backdrop-blur-xl mb-8 shadow-[0_0_30px_hsl(var(--primary)/0.1)]">
-          <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+        {/* Search, Filter & Sync Toolbar */}
+        <div className="hud-card p-3.5 sm:p-4 mb-5 sm:mb-7 space-y-3">
+          <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between">
             {/* Search Input */}
             <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-primary/60" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Search repos, tags, or architectures (e.g. csi, radar, erp, pos)..."
-                className="w-full pl-10 pr-4 py-2.5 bg-black/60 border border-primary/25 rounded-xl text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary focus:shadow-[0_0_15px_hsl(var(--primary)/0.3)] transition-all font-mono"
+                placeholder="Filter repositories by name or topic..."
+                className="w-full pl-9 pr-14 py-2 bg-black/50 border border-white/10 rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/60 transition-colors font-mono"
               />
               {search && (
                 <button
                   onClick={() => setSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-primary/60 hover:text-primary px-1.5 py-0.5 rounded bg-primary/10"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded bg-white/5"
                 >
                   CLEAR
                 </button>
               )}
             </div>
 
-            {/* Language Filter Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full pb-1 md:pb-0">
-              {languages.map(lang => {
-                const count = lang === "ALL" 
-                  ? repos.length 
-                  : repos.filter(r => r.language && r.language.toUpperCase() === lang.toUpperCase()).length;
-                const isActive = selectedLang.toUpperCase() === lang.toUpperCase();
+            {/* Sync & Profile Actions (Equal 2-col on mobile) */}
+            <div className="grid grid-cols-2 sm:flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => {
+                  sound.playBoot();
+                  refresh();
+                }}
+                disabled={loading}
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-foreground/85 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+                title="Refresh from GitHub API"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-primary ${loading ? "animate-spin" : ""}`} />
+                <span>{loading ? "Syncing..." : isCached ? "Cached" : "Sync"}</span>
+              </button>
 
-                return (
-                  <button
-                    key={lang}
-                    onClick={() => {
-                      sound.playClick();
-                      setSelectedLang(lang);
-                    }}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                      isActive
-                        ? "bg-primary text-background shadow-[0_0_15px_hsl(var(--primary)/0.5)]"
-                        : "bg-primary/10 text-primary/70 hover:text-primary border border-primary/20 hover:bg-primary/15"
-                    }`}
-                  >
-                    {lang} <span className="opacity-60 text-[10px]">({count})</span>
-                  </button>
-                );
-              })}
+              <a
+                href="https://github.com/ZaneGoat"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => sound.playClick()}
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-primary text-background rounded-lg text-xs font-bold transition-colors hover:bg-primary/90"
+              >
+                <Github className="w-3.5 h-3.5" />
+                <span>@ZaneGoat</span>
+                <ExternalLink className="w-3 h-3 opacity-75" />
+              </a>
             </div>
+          </div>
+
+          {/* Language Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full pt-1">
+            {languages.map(lang => {
+              const count =
+                lang === "ALL"
+                  ? repos.length
+                  : repos.filter(r => r.language && r.language.toUpperCase() === lang.toUpperCase()).length;
+              const isActive = selectedLang.toUpperCase() === lang.toUpperCase();
+
+              return (
+                <button
+                  key={lang}
+                  onClick={() => {
+                    sound.playClick();
+                    setSelectedLang(lang);
+                  }}
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors shrink-0 cursor-pointer ${
+                    isActive
+                      ? "bg-primary text-background"
+                      : "bg-white/[0.03] text-muted-foreground hover:text-foreground border border-white/10"
+                  }`}
+                >
+                  {lang} <span className="opacity-65 text-[10px]">({count})</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Repos Grid */}
         {filteredRepos.length === 0 ? (
-          <div className="text-center py-16 border border-primary/20 rounded-2xl bg-[#050816]/60 p-8">
-            <AlertCircle className="w-8 h-8 text-primary/60 mx-auto mb-3 animate-pulse" />
-            <p className="text-primary font-bold text-base mb-1">NO MATCHING REPOSITORIES FOUND</p>
+          <div className="hud-card text-center py-12 p-6">
+            <AlertCircle className="w-7 h-7 text-muted-foreground mx-auto mb-2.5" />
+            <p className="text-foreground font-bold text-sm mb-1">No matching repositories</p>
             <p className="text-muted-foreground text-xs max-w-md mx-auto mb-4">
-              Zero repos matched keyword <span className="text-primary">"{search}"</span> under language filter <span className="text-primary">{selectedLang}</span>.
+              Nothing matched "{search}" under {selectedLang}.
             </p>
             <button
               onClick={() => {
                 setSearch("");
                 setSelectedLang("ALL");
               }}
-              className="px-4 py-2 bg-primary/10 border border-primary/30 text-primary rounded-xl text-xs font-bold hover:bg-primary/20 transition-all"
+              className="px-3.5 py-1.5 bg-primary/10 border border-primary/30 text-primary rounded-lg text-xs font-bold hover:bg-primary/20 transition-colors cursor-pointer"
             >
-              RESET FILTERS
+              Reset Filters
             </button>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             <AnimatePresence>
               {filteredRepos.map((repo, i) => {
-                const langStyle = repo.language && LANGUAGE_COLORS[repo.language]
-                  ? LANGUAGE_COLORS[repo.language]
-                  : { bg: "bg-primary/10", text: "text-primary", dot: "bg-primary", border: "border-primary/20" };
+                const langStyle =
+                  repo.language && LANGUAGE_COLORS[repo.language]
+                    ? LANGUAGE_COLORS[repo.language]
+                    : { bg: "bg-primary/10", text: "text-primary", dot: "bg-primary", border: "border-primary/20" };
 
                 return (
                   <motion.div
                     key={repo.id}
-                    initial={{ opacity: 0, y: 15 }}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ delay: Math.min(i * 0.04, 0.3) }}
-                    className={`bg-[#050816]/90 rounded-2xl p-6 backdrop-blur-xl flex flex-col justify-between transition-all duration-300 hover:shadow-[0_0_35px_hsl(var(--primary)/0.2)] group border ${
-                      repo.isPinned
-                        ? "border-primary/50 bg-gradient-to-br from-[#071318]/90 via-[#050816]/90 to-[#0c0818]/90 shadow-[0_0_25px_hsl(var(--primary)/0.15)] ring-1 ring-primary/30"
-                        : "border-primary/20 hover:border-primary/50"
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    transition={{ delay: Math.min(i * 0.03, 0.25) }}
+                    className={`hud-card p-4 sm:p-6 flex flex-col justify-between group ${
+                      repo.isPinned ? "border-primary/45 ring-1 ring-primary/15" : ""
                     }`}
                   >
                     <div>
-                      {/* Card Header: Language, Pinned Badge & Activity */}
-                      <div className="flex items-center justify-between gap-2 mb-3.5">
+                      <div className="flex items-center justify-between gap-2 mb-3">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {repo.isPinned && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 border border-amber-500/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 border border-amber-500/35 text-amber-300">
                               <Pin className="w-2.5 h-2.5 fill-amber-400 text-amber-400 rotate-45" />
                               <span>PINNED</span>
                             </span>
                           )}
 
                           {repo.language ? (
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold border ${langStyle.bg} ${langStyle.text} ${langStyle.border}`}>
+                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold border ${langStyle.bg} ${langStyle.text} ${langStyle.border}`}>
                               <span className={`w-1.5 h-1.5 rounded-full ${langStyle.dot}`} />
                               {repo.language}
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-primary/10 text-primary/70 border border-primary/20">
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold bg-white/[0.04] text-muted-foreground border border-white/10">
                               <Code2 className="w-3 h-3" />
-                              Multi-Stack
+                              Multi
                             </span>
                           )}
                         </div>
@@ -233,23 +229,20 @@ export const LiveRepositories: React.FC = () => {
                         </span>
                       </div>
 
-                      {/* Title */}
-                      <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors mb-2 break-all">
+                      <h3 className="text-base sm:text-lg font-bold text-foreground group-hover:text-primary transition-colors mb-1.5 break-words">
                         {repo.name}
                       </h3>
 
-                      {/* Description */}
-                      <p className="text-muted-foreground text-xs leading-relaxed mb-4 min-h-[3rem] line-clamp-3">
-                        {repo.description || "Production repository with specialized architecture, automated pipelines, and zero-compromise engineering."}
+                      <p className="text-muted-foreground text-xs leading-relaxed mb-3.5 line-clamp-3">
+                        {repo.description || "Source repository maintained on GitHub."}
                       </p>
 
-                      {/* Topics / Tags */}
                       {repo.topics && repo.topics.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-5">
+                        <div className="flex flex-wrap gap-1.5 mb-4">
                           {repo.topics.slice(0, 4).map(topic => (
                             <span
                               key={topic}
-                              className="px-2 py-0.5 bg-primary/5 border border-primary/15 text-primary/80 rounded text-[10px]"
+                              className="px-2 py-0.5 bg-white/[0.03] border border-white/10 text-muted-foreground rounded text-[10px]"
                             >
                               #{topic}
                             </span>
@@ -259,15 +252,14 @@ export const LiveRepositories: React.FC = () => {
                     </div>
 
                     <div>
-                      {/* Clone command snippet */}
-                      <div className="bg-black/70 border border-primary/15 rounded-xl p-2.5 mb-4 flex items-center justify-between gap-2 text-[11px]">
+                      <div className="bg-black/60 border border-white/[0.07] rounded-lg px-2.5 py-2 mb-3.5 flex items-center justify-between gap-2 text-[11px]">
                         <div className="flex items-center gap-2 overflow-hidden text-muted-foreground">
                           <Terminal className="w-3.5 h-3.5 text-primary shrink-0" />
                           <span className="truncate">git clone {repo.name}.git</span>
                         </div>
                         <button
                           onClick={() => handleCopyClone(repo)}
-                          className="shrink-0 p-1 hover:bg-primary/15 rounded text-primary/70 hover:text-primary transition-colors cursor-pointer"
+                          className="shrink-0 p-1 hover:bg-white/10 rounded text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                           title="Copy clone command"
                         >
                           {copiedId === repo.id ? (
@@ -280,15 +272,14 @@ export const LiveRepositories: React.FC = () => {
                         </button>
                       </div>
 
-                      {/* Telemetry & Links */}
-                      <div className="flex items-center justify-between pt-2 border-t border-primary/10">
+                      <div className="flex items-center justify-between pt-2.5 border-t border-white/[0.07]">
                         <div className="flex items-center gap-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1" title="Stars">
                             <Star className="w-3.5 h-3.5 text-amber-400" />
                             <span>{repo.stargazers_count}</span>
                           </span>
                           <span className="flex items-center gap-1" title="Forks">
-                            <GitFork className="w-3.5 h-3.5 text-primary/70" />
+                            <GitFork className="w-3.5 h-3.5 text-muted-foreground" />
                             <span>{repo.forks_count}</span>
                           </span>
                         </div>
@@ -300,7 +291,7 @@ export const LiveRepositories: React.FC = () => {
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={() => sound.playClick()}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-400 rounded-lg text-xs font-bold transition-all"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/35 text-emerald-400 rounded-md text-xs font-bold transition-colors"
                             >
                               <ExternalLink className="w-3 h-3" />
                               <span>LIVE</span>
@@ -312,11 +303,10 @@ export const LiveRepositories: React.FC = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={() => sound.playClick()}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/15 hover:bg-primary/25 border border-primary/40 text-primary rounded-lg text-xs font-bold transition-all hover:scale-105 active:scale-95"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/[0.05] hover:bg-primary/15 border border-white/10 hover:border-primary/40 text-foreground hover:text-primary rounded-md text-xs font-bold transition-colors"
                           >
                             <Github className="w-3.5 h-3.5" />
-                            <span>VIEW CODE</span>
-                            <ExternalLink className="w-3 h-3 opacity-60" />
+                            <span>SOURCE</span>
                           </a>
                         </div>
                       </div>

@@ -10,181 +10,170 @@ interface DeviceQuestionProps {
 
 export const DeviceQuestion: React.FC<DeviceQuestionProps> = ({ className = "" }) => {
   const { persona, telemetry, deviceChoice, setDeviceChoice, spoofActive, isHonest } = usePersona();
-  const [showRawDetails, setShowRawDetails] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
-  const realLabel = telemetry.deviceCategory === "desktop" ? "Desktop Rig" : telemetry.deviceCategory === "tablet" ? "Tablet" : "Phone";
+  const realLabel =
+    telemetry.deviceCategory === "desktop"
+      ? "Desktop"
+      : telemetry.deviceCategory === "tablet"
+      ? "Tablet"
+      : "Phone";
 
-  const getPersonaHumor = () => {
+  const getStatusMessage = () => {
     if (deviceChoice === "auto") {
-      switch (persona) {
-        case "friend":
-          return `(Wait... why am I even asking? Zane already knows you're on a ${telemetry.os} ${realLabel} at ${telemetry.screenWidth}×${telemetry.screenHeight} with ${telemetry.pointerType} input. Bro's telemetry never sleeps 💀)`;
-        case "operator":
-        default:
-          return `[SIGINT INTERCEPT] Hardware fingerprint intercepted: ${telemetry.os} ${realLabel} (${telemetry.screenWidth}×${telemetry.screenHeight} DPR:${telemetry.dpr}). Spoofing attempts will be logged.`;
-      }
+      return persona === "friend"
+        ? `Detected ${telemetry.os} ${realLabel} (${telemetry.screenWidth}×${telemetry.screenHeight}, ${telemetry.pointerType} input).`
+        : `Client detected: ${telemetry.os} ${realLabel} (${telemetry.screenWidth}×${telemetry.screenHeight}, ${telemetry.dpr}x DPR).`;
     }
 
     if (spoofActive) {
-      switch (persona) {
-        case "friend":
-          return `Caught in 4K! 💀 You clicked "${deviceChoice.toUpperCase()}", but Zane's telemetry literally caught your real ${telemetry.os} ${realLabel} with ${telemetry.pointerType} input! Cyberdeck emulation forced anyway!`;
-        case "operator":
-        default:
-          return `🚨 SPOOFING DETECTED // Client declared [${deviceChoice.toUpperCase()}], but raw OSI telemetry confirms [${telemetry.os.toUpperCase()} ${realLabel.toUpperCase()}]. Counter-emulation engaged.`;
-      }
+      return persona === "friend"
+        ? `Override active: forcing ${deviceChoice} layout on a ${telemetry.os} ${realLabel}.`
+        : `Layout override: [${deviceChoice.toUpperCase()}] selected on physical ${telemetry.os} ${realLabel}. Emulation active.`;
     }
 
-    // Honest match
-    switch (persona) {
-      case "friend":
-        return `Bro told the truth! 🤝 Telemetry verified: real ${telemetry.os} ${realLabel}. (I already knew 42ms ago, but thanks for keeping it 100% real!)`;
-      case "operator":
-      default:
-        return `[CLEARANCE APPROVED] Client identity matches physical SIGINT telemetry: ${telemetry.os} ${realLabel} verified. Zero spoofing delta.`;
-    }
+    return persona === "friend"
+      ? `Confirmed ${telemetry.os} ${realLabel} layout.`
+      : `Client profile verified: ${telemetry.os} ${realLabel} matches hardware telemetry.`;
   };
 
   return (
     <div
-      className={`w-full max-w-xl p-3 sm:p-4 rounded-2xl bg-black/70 border border-primary/25 shadow-[0_0_25px_hsl(var(--primary)/0.1)] backdrop-blur-xl font-mono text-xs ${className}`}
+      className={`w-full max-w-xl rounded-xl bg-[#070b14]/90 border border-white/10 font-mono text-xs overflow-hidden ${className}`}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-primary/15 mb-3">
-        <div className="flex items-center gap-2">
-          <Cpu className="w-3.5 h-3.5 text-primary animate-pulse" />
-          <span className="font-bold tracking-wider text-[11px] text-primary uppercase">
-            HARDWARE RECON // PHONE OR DESKTOP?
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          {deviceChoice !== "auto" && (
-            <button
-              onClick={() => {
-                sound.playClick();
-                setDeviceChoice("auto");
-              }}
-              className="text-[10px] text-primary/60 hover:text-primary flex items-center gap-1 cursor-pointer transition-colors"
-              title="Reset to Auto Telemetry"
-            >
-              <RotateCcw className="w-2.5 h-2.5" />
-              <span>Auto</span>
-            </button>
-          )}
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 border border-primary/20 text-primary/80">
-            {telemetry.os}
-          </span>
-        </div>
-      </div>
-
-      {/* The 'I Already Know' commentary banner */}
-      <div
-        className={`p-2.5 rounded-xl mb-3 text-[11px] leading-relaxed transition-colors border ${
-          spoofActive
-            ? "bg-red-500/10 border-red-500/30 text-red-300"
-            : deviceChoice !== "auto" && isHonest
-            ? "bg-primary/15 border-primary/40 text-primary"
-            : "bg-primary/5 border-primary/20 text-primary/80"
-        }`}
+      {/* Compact 1-Line Hardware Status Header (keeps mobile Hero immediately visible) */}
+      <button
+        type="button"
+        onClick={() => {
+          sound.playClick();
+          setExpanded(prev => !prev);
+        }}
+        className="w-full px-3 py-2 flex items-center justify-between gap-2 text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
       >
-        <div className="flex items-start gap-2">
-          {spoofActive ? (
-            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5 animate-bounce" />
-          ) : deviceChoice !== "auto" && isHonest ? (
-            <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-          ) : (
-            <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5 animate-ping" />
-          )}
-          <div className="flex-1">
-            <p className="font-medium">{getPersonaHumor()}</p>
-          </div>
+        <div className="flex items-center gap-2 min-w-0">
+          <Cpu className="w-3.5 h-3.5 text-primary shrink-0" />
+          <span className="text-[11px] text-muted-foreground truncate">
+            Client: <span className="text-foreground font-semibold">{telemetry.os}</span> ·{" "}
+            <span>{telemetry.screenWidth}×{telemetry.screenHeight}</span> ·{" "}
+            <span className={spoofActive ? "text-amber-400 font-semibold" : "text-primary font-semibold"}>
+              {spoofActive ? `${deviceChoice.toUpperCase()} (Override)` : realLabel}
+            </span>
+          </span>
         </div>
-      </div>
+        <span className="flex items-center gap-1 text-[10px] text-muted-foreground shrink-0">
+          <span className="hidden sm:inline">{expanded ? "Hide" : "Configure"}</span>
+          {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        </span>
+      </button>
 
-      {/* Two Interactive Choice Buttons */}
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          onClick={() => setDeviceChoice("phone")}
-          className={`relative p-2.5 rounded-xl border flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95 ${
-            deviceChoice === "phone"
-              ? "bg-primary text-background font-bold border-primary shadow-[0_0_15px_hsl(var(--primary)/0.5)]"
-              : "bg-black/40 text-primary/80 hover:text-primary hover:bg-primary/10 border-primary/20"
-          }`}
-        >
-          <Smartphone className={`w-4 h-4 ${deviceChoice === "phone" ? "text-background" : "text-primary"}`} />
-          <div className="text-left">
-            <span className="text-xs font-bold block leading-none">📱 Phone</span>
-            <span className={`text-[9px] ${deviceChoice === "phone" ? "text-background/80" : "text-primary/50"}`}>
-              Cyberdeck Mode
-            </span>
-          </div>
-        </button>
+      {/* Expandable Device Override & Raw Telemetry */}
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden border-t border-white/[0.08]"
+          >
+            <div className="p-3 space-y-2.5">
+              {/* Status Line */}
+              <div
+                className={`p-2.5 rounded-lg text-[11px] leading-relaxed border flex items-start justify-between gap-2 ${
+                  spoofActive
+                    ? "bg-amber-500/10 border-amber-500/30 text-amber-200"
+                    : deviceChoice !== "auto" && isHonest
+                    ? "bg-primary/10 border-primary/30 text-primary"
+                    : "bg-white/[0.02] border-white/10 text-muted-foreground"
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  {spoofActive ? (
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                  ) : (
+                    <ShieldCheck className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                  )}
+                  <p>{getStatusMessage()}</p>
+                </div>
 
-        <button
-          onClick={() => setDeviceChoice("desktop")}
-          className={`relative p-2.5 rounded-xl border flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95 ${
-            deviceChoice === "desktop"
-              ? "bg-primary text-background font-bold border-primary shadow-[0_0_15px_hsl(var(--primary)/0.5)]"
-              : "bg-black/40 text-primary/80 hover:text-primary hover:bg-primary/10 border-primary/20"
-          }`}
-        >
-          <Monitor className={`w-4 h-4 ${deviceChoice === "desktop" ? "text-background" : "text-primary"}`} />
-          <div className="text-left">
-            <span className="text-xs font-bold block leading-none">💻 Desktop</span>
-            <span className={`text-[9px] ${deviceChoice === "desktop" ? "text-background/80" : "text-primary/50"}`}>
-              Terminal Rig
-            </span>
-          </div>
-        </button>
-      </div>
+                {deviceChoice !== "auto" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      setDeviceChoice("auto");
+                    }}
+                    className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 shrink-0 cursor-pointer"
+                    title="Reset to Auto Detection"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Auto</span>
+                  </button>
+                )}
+              </div>
 
-      {/* Expandable Raw Telemetry Inspector */}
-      <div className="mt-2.5 pt-2 border-t border-primary/10 flex flex-col">
-        <button
-          onClick={() => {
-            sound.playClick();
-            setShowRawDetails(prev => !prev);
-          }}
-          className="flex items-center justify-between text-[10px] text-primary/50 hover:text-primary transition-colors cursor-pointer"
-        >
-          <span>Raw Client Telemetry ({telemetry.screenWidth}×{telemetry.screenHeight} px)</span>
-          {showRawDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-        </button>
+              {/* Phone / Desktop Override Buttons (No emojis) */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDeviceChoice("phone")}
+                  className={`p-2 rounded-lg border flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95 ${
+                    deviceChoice === "phone"
+                      ? "bg-primary text-background font-bold border-primary"
+                      : "bg-black/40 text-foreground/80 hover:text-foreground hover:bg-white/[0.04] border-white/10"
+                  }`}
+                >
+                  <Smartphone className={`w-3.5 h-3.5 ${deviceChoice === "phone" ? "text-background" : "text-primary"}`} />
+                  <div className="text-left">
+                    <span className="text-xs font-bold block leading-none">Phone</span>
+                    <span className={`text-[9px] ${deviceChoice === "phone" ? "text-background/75" : "text-muted-foreground"}`}>
+                      Handheld UI
+                    </span>
+                  </div>
+                </button>
 
-        <AnimatePresence>
-          {showRawDetails && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden mt-2 p-2 rounded-lg bg-black/80 border border-primary/15 text-[10px] text-primary/70 space-y-1 font-mono"
-            >
-              <div className="flex justify-between">
-                <span>OS Platform:</span>
-                <span className="text-primary font-bold">{telemetry.os}</span>
+                <button
+                  type="button"
+                  onClick={() => setDeviceChoice("desktop")}
+                  className={`p-2 rounded-lg border flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95 ${
+                    deviceChoice === "desktop"
+                      ? "bg-primary text-background font-bold border-primary"
+                      : "bg-black/40 text-foreground/80 hover:text-foreground hover:bg-white/[0.04] border-white/10"
+                  }`}
+                >
+                  <Monitor className={`w-3.5 h-3.5 ${deviceChoice === "desktop" ? "text-background" : "text-primary"}`} />
+                  <div className="text-left">
+                    <span className="text-xs font-bold block leading-none">Desktop</span>
+                    <span className={`text-[9px] ${deviceChoice === "desktop" ? "text-background/75" : "text-muted-foreground"}`}>
+                      Workstation UI
+                    </span>
+                  </div>
+                </button>
               </div>
-              <div className="flex justify-between">
-                <span>Viewport Matrix:</span>
-                <span className="text-primary font-bold">{telemetry.screenWidth}×{telemetry.screenHeight} ({telemetry.orientation})</span>
+
+              {/* Compact Raw Client Specs */}
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-2 border-t border-white/[0.06] text-[10px] text-muted-foreground">
+                <div className="flex justify-between">
+                  <span>Display:</span>
+                  <span className="text-foreground font-semibold">{telemetry.screenWidth}×{telemetry.screenHeight}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>DPR:</span>
+                  <span className="text-foreground font-semibold">{telemetry.dpr}x</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Input:</span>
+                  <span className="text-foreground font-semibold">{telemetry.pointerType}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Touch:</span>
+                  <span className="text-foreground font-semibold">{telemetry.touchCapable ? "Yes" : "No"}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span>Pixel Ratio (DPR):</span>
-                <span className="text-primary font-bold">{telemetry.dpr}x</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Input Modality:</span>
-                <span className="text-primary font-bold">{telemetry.pointerType} {telemetry.touchCapable ? "(Touch enabled)" : "(Pointer only)"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Telemetry Status:</span>
-                <span className={spoofActive ? "text-red-400 font-bold" : "text-primary font-bold"}>
-                  {spoofActive ? "SPOOFED (Emulation Active)" : "HONEST (100% Match)"}
-                </span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -29,7 +29,7 @@ export const Hero = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            Full-Stack Web & AI Developer | ERP Architect
+            Full-Stack &amp; Systems Engineer | ERP Architect
           </motion.h2>
 
           <motion.p
@@ -38,7 +38,7 @@ export const Hero = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            Building custom ERP platforms, local AI automation engines (Ollama, DeepSeek, Gemini API), and high-performance web applications. Known as <span className="text-primary font-semibold">Zane Goat</span> in the dev ecosystem.
+            Building custom ERP platforms, Linux hardware telemetry utilities, and reliable web applications. Known as <span className="text-primary font-semibold">Zane Goat</span> in the dev community.
           </motion.p>
 
           <motion.div

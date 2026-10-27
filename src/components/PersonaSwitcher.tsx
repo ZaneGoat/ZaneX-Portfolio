@@ -59,20 +59,15 @@ export const PersonaSwitcher: React.FC<PersonaSwitcherProps> = ({ variant = "her
     );
   }
 
-  // Hero Segmented HUD Banner
+  // Hero Segmented Banner (Compact & sleek on phone screens)
   return (
-    <div className={`w-full max-w-xl p-2 rounded-2xl bg-black/60 border border-primary/30 shadow-[0_0_30px_hsl(var(--primary)/0.15)] backdrop-blur-xl font-mono ${className}`}>
-      <div className="flex items-center justify-between px-2 pb-1.5 text-[10px] uppercase tracking-wider text-primary/70 border-b border-primary/15 mb-1.5">
-        <span className="flex items-center gap-1.5 font-bold">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          STEP 1 // VISITOR PROFILE:
-        </span>
-        <span className="text-primary/50 hidden sm:inline">
-          {PERSONAS.find(p => p.id === persona)?.desc}
-        </span>
+    <div className={`w-full max-w-xl p-1.5 sm:p-2 rounded-xl bg-[#070b14]/90 border border-white/10 font-mono ${className}`}>
+      <div className="hidden sm:flex items-center justify-between px-2 pb-1.5 text-[10px] uppercase tracking-wider text-muted-foreground border-b border-white/[0.06] mb-1.5">
+        <span className="font-semibold text-foreground/80">View Mode</span>
+        <span>{PERSONAS.find(p => p.id === persona)?.desc}</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-1.5">
         {PERSONAS.map(p => {
           const Icon = p.icon;
           const isActive = persona === p.id;
@@ -81,24 +76,24 @@ export const PersonaSwitcher: React.FC<PersonaSwitcherProps> = ({ variant = "her
             <button
               key={p.id}
               onClick={() => setPersona(p.id)}
-              className={`relative p-2.5 sm:p-3 rounded-xl flex flex-col sm:flex-row items-center justify-center gap-2 transition-all cursor-pointer ${
+              className={`relative py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition-all cursor-pointer ${
                 isActive
-                  ? "text-background font-black shadow-[0_0_20px_hsl(var(--primary)/0.4)]"
-                  : "text-primary/70 hover:text-primary hover:bg-primary/10 border border-primary/15"
+                  ? "text-background font-bold"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
               }`}
             >
               {isActive && (
                 <motion.div
                   layoutId="activePersonaHero"
-                  className="absolute inset-0 bg-primary rounded-xl -z-10"
+                  className="absolute inset-0 bg-primary rounded-lg -z-10"
                   transition={{ type: "spring", stiffness: 400, damping: 28 }}
                 />
               )}
-              <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-background" : "text-primary"}`} />
-              <div className="text-center sm:text-left">
-                <span className="text-xs sm:text-sm font-bold block leading-none">{p.label}</span>
-                <span className={`text-[9px] hidden sm:block ${isActive ? "text-background/80" : "text-muted-foreground"}`}>
-                  {p.id === "operator" ? "Hacker / Red Team" : "Homie & Insider"}
+              <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-background" : "text-primary"}`} />
+              <div className="text-left flex items-baseline gap-1.5">
+                <span className="text-xs font-bold leading-none">{p.label}</span>
+                <span className={`text-[10px] hidden sm:inline ${isActive ? "text-background/75" : "text-muted-foreground/70"}`}>
+                  {p.id === "operator" ? "Technical" : "Casual"}
                 </span>
               </div>
             </button>

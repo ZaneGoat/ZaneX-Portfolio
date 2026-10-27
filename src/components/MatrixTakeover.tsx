@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Radio, X, Zap, Sparkles } from "lucide-react";
+import { Radio, X, Zap, Terminal } from "lucide-react";
 import { sound } from "@/lib/sound";
 
 interface MatrixTakeoverProps {
@@ -452,8 +452,8 @@ export const MatrixTakeover = ({ isOpen, onClose }: MatrixTakeoverProps) => {
               style={{ borderColor: `${themeColor}80`, color: themeColor }}
               title="Spawn Matrix Glyph Cascade"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>RUNE BURST</span>
+              <Terminal className="w-3.5 h-3.5" />
+              <span>GLYPH BURST</span>
             </button>
 
             {/* Hint Chip for desktop or tablet */}

@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   HeartHandshake,
   Gamepad2,
   Coffee,
   Music,
   Send,
-  Sparkles,
+  Zap,
   CheckCircle2,
-  Trash2,
   Play,
   Pause
 } from "lucide-react";
@@ -27,13 +26,13 @@ const DEFAULT_SHOUTOUTS: Shoutout[] = [
   {
     id: "init-1",
     author: "Zane Goat",
-    message: "Welcome to the homie lounge! Grab some mint tea and enjoy the builds.",
+    message: "Welcome to the lounge! Grab some mint tea and check out the builds.",
     timestamp: "Pinned"
   }
 ];
 
 export const FriendLoungeCard: React.FC = () => {
-  const { currentTrack, isPlaying, togglePlay, setIsFullPlayerOpen, mood, openMoodMenu } = useMusic();
+  const { currentTrack, isPlaying, togglePlay, mood, openMoodMenu } = useMusic();
   const [shoutouts, setShoutouts] = useState<Shoutout[]>(DEFAULT_SHOUTOUTS);
   const [authorInput, setAuthorInput] = useState("");
   const [messageInput, setMessageInput] = useState("");
@@ -62,7 +61,7 @@ export const FriendLoungeCard: React.FC = () => {
 
     const newShoutout: Shoutout = {
       id: Date.now().toString(),
-      author: authorInput.trim() || "Homie",
+      author: authorInput.trim() || "Friend",
       message: cleanMsg,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     };
@@ -78,10 +77,9 @@ export const FriendLoungeCard: React.FC = () => {
     setTimeout(() => setIsSent(false), 3000);
   };
 
-  const triggerFriendConfetti = () => {
+  const triggerFriendPulse = () => {
     sound.playEmpPulse();
     sound.haptic([80, 40, 120]);
-    // Small celebration visual
     const root = document.documentElement;
     root.classList.add("scanlines-fast");
     setTimeout(() => root.classList.remove("scanlines-fast"), 600);
@@ -90,75 +88,73 @@ export const FriendLoungeCard: React.FC = () => {
   return (
     <motion.div
       id="friend-lounge"
-      initial={{ opacity: 0, scale: 0.96 }}
+      initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="hud-card md:col-span-2 lg:col-span-4 p-6 md:p-8 relative overflow-hidden font-mono border-2 border-emerald-500/50 shadow-[0_0_50px_rgba(0,255,102,0.15)] bg-gradient-to-br from-[#040a08]/95 via-[#030611]/95 to-[#040a08]/95"
+      className="hud-card md:col-span-2 lg:col-span-4 p-5 sm:p-7 relative overflow-hidden font-mono border border-emerald-500/35"
     >
-      <div className="absolute -top-16 -right-16 w-52 h-52 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-emerald-500/20 pb-4 mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-4 mb-5">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 bg-emerald-500/15 border border-emerald-500/30 rounded-xl text-emerald-400">
-            <HeartHandshake className="w-5 h-5 animate-pulse" />
+          <div className="p-2 bg-emerald-500/10 border border-emerald-500/25 rounded-lg text-emerald-400">
+            <HeartHandshake className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-xl md:text-2xl font-black text-emerald-400 tracking-tight uppercase">
-                FRIEND LOUNGE // INNER CIRCLE
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-lg sm:text-xl font-bold text-foreground tracking-tight uppercase">
+                Friend Lounge
               </h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                UNLOCKED
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                ACTIVE
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Authentic behind-the-scenes vibes, real gamer specs, and homie guestbook.
+              Off-duty setup, Zanophy soundtrack, and local guestbook.
             </p>
           </div>
         </div>
 
         <button
-          onClick={triggerFriendConfetti}
-          className="px-3 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 rounded-xl text-xs font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
+          onClick={triggerFriendPulse}
+          className="px-3 py-1.5 bg-white/[0.04] hover:bg-emerald-500/15 border border-white/10 hover:border-emerald-500/35 text-emerald-300 rounded-lg text-xs font-bold transition-colors active:scale-95 flex items-center gap-1.5 cursor-pointer"
         >
-          <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-spin" />
-          <span>CYBER PULSE FX</span>
+          <Zap className="w-3.5 h-3.5 text-emerald-400" />
+          <span>SCANLINE PULSE</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Left Column: Zane's Real Telemetry (6 cols) */}
-        <div className="md:col-span-6 space-y-4">
-          <div className="bg-black/50 border border-emerald-500/20 rounded-xl p-4 space-y-3">
-            <span className="text-[10px] text-emerald-400/80 uppercase font-bold tracking-wider block">
-              ★ REAL HARDWARE &amp; GAMER SPEC SHEET:
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
+        {/* Left Column */}
+        <div className="md:col-span-6 space-y-3">
+          <div className="bg-black/50 border border-white/[0.08] rounded-xl p-3.5 sm:p-4 space-y-3">
+            <span className="text-[10px] text-emerald-400 uppercase font-bold tracking-wider block">
+              Off-Duty Setup
             </span>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <div className="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-500/20 flex items-start gap-2">
+              <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.07] flex items-start gap-2">
                 <Gamepad2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                 <div>
-                  <span className="text-emerald-400/60 block text-[10px]">FAVORITE GAMES</span>
+                  <span className="text-muted-foreground block text-[10px]">ROTATION</span>
                   <span className="font-bold text-foreground">Cyberpunk 2077, CS2, Elden Ring</span>
                 </div>
               </div>
 
-              <div className="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-500/20 flex items-start gap-2">
+              <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.07] flex items-start gap-2">
                 <Coffee className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                 <div>
-                  <span className="text-emerald-400/60 block text-[10px]">DAILY FUEL</span>
+                  <span className="text-muted-foreground block text-[10px]">DAILY FUEL</span>
                   <span className="font-bold text-foreground">{friendLoungeData.teaIntake}</span>
                 </div>
               </div>
 
-              <div className="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-500/20 flex items-center justify-between gap-2 sm:col-span-2">
+              <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.07] flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:col-span-2">
                 <div className="flex items-start gap-2 min-w-0">
-                  <div className="p-1.5 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-emerald-400 shrink-0 mt-0.5">
-                    <Music className="w-4 h-4" />
+                  <div className="p-1.5 bg-emerald-500/15 border border-emerald-500/25 rounded-md text-emerald-400 shrink-0 mt-0.5">
+                    <Music className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-emerald-400/80 block text-[10px] font-bold">
-                      ZANOPHY // CODING SOUNDTRACK {isPlaying ? "· PLAYING" : ""}
+                    <span className="text-emerald-400 block text-[10px] font-bold">
+                      ZANOPHY {isPlaying ? "· PLAYING" : "· READY"}
                     </span>
                     <span className="font-bold text-foreground truncate block">
                       {currentTrack.title} — {currentTrack.artist}
@@ -172,7 +168,7 @@ export const FriendLoungeCard: React.FC = () => {
                       sound.playClick();
                       togglePlay();
                     }}
-                    className="p-1.5 bg-emerald-500 text-background rounded-lg font-bold hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                    className="p-1.5 bg-emerald-500 text-background rounded-md font-bold active:scale-95 transition-transform cursor-pointer"
                     title={isPlaying ? "Pause Track" : "Play Track"}
                   >
                     {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current ml-0.5" />}
@@ -182,83 +178,83 @@ export const FriendLoungeCard: React.FC = () => {
                       sound.playBoot();
                       openMoodMenu();
                     }}
-                    className={`px-2 py-1 border rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                    className={`px-2 py-1 border rounded-md text-[10px] font-bold transition-colors cursor-pointer ${
                       mood === "jazz"
-                        ? "bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/40 text-amber-300"
-                        : "bg-emerald-500/10 hover:bg-emerald-500/25 border-emerald-500/30 text-emerald-300"
+                        ? "bg-amber-500/15 border-amber-500/35 text-amber-300"
+                        : "bg-emerald-500/10 border-emerald-500/25 text-emerald-300"
                     }`}
-                    title="Click to Choose Mood (Random / They are Jazz)"
                   >
-                    {mood === "jazz" ? "MOOD: JAZZ 🎷" : "MOOD: RANDOM 🎲"}
+                    {mood === "jazz" ? "MOOD: JAZZ" : "MOOD: MIX"}
                   </button>
                 </div>
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-black/60 border border-emerald-500/20 text-xs text-muted-foreground leading-relaxed">
-              <p className="text-emerald-300 font-bold mb-1">Zane's Note to Friends:</p>
+            <div className="p-3 rounded-lg bg-black/60 border border-white/[0.07] text-xs text-muted-foreground leading-relaxed">
+              <p className="text-emerald-400 font-bold mb-1">Note:</p>
               <p>{friendLoungeData.homieNote}</p>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Homie Scratchpad / Guestbook (6 cols) */}
-        <div className="md:col-span-6 flex flex-col justify-between space-y-4">
-          <div className="bg-black/50 border border-emerald-500/20 rounded-xl p-4 space-y-3 flex-1 flex flex-col">
-            <div className="flex items-center justify-between border-b border-emerald-500/15 pb-2">
+        {/* Right Column: Guestbook */}
+        <div className="md:col-span-6 flex flex-col justify-between">
+          <div className="bg-black/50 border border-white/[0.08] rounded-xl p-3.5 sm:p-4 space-y-3 flex-1 flex flex-col">
+            <div className="flex items-center justify-between border-b border-white/[0.07] pb-2">
               <span className="text-xs text-emerald-400 font-bold uppercase flex items-center gap-1.5">
-                <Send className="w-3.5 h-3.5" /> Homie Shoutout Scratchpad
+                <Send className="w-3.5 h-3.5" /> Guestbook Scratchpad
               </span>
-              <span className="text-[10px] text-muted-foreground font-mono">LOCAL STORAGE ONLY</span>
+              <span className="text-[10px] text-muted-foreground font-mono">LOCAL SESSION</span>
             </div>
 
-            {/* Shoutout List */}
-            <div className="space-y-2 flex-1 max-h-40 overflow-y-auto custom-scrollbar pr-1">
+            <div className="space-y-2 flex-1 max-h-40 overflow-y-auto pr-1">
               {shoutouts.map(s => (
                 <div
                   key={s.id}
-                  className="p-2 rounded-lg bg-emerald-950/20 border border-emerald-500/20 text-xs space-y-0.5"
+                  className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.07] text-xs space-y-0.5"
                 >
                   <div className="flex items-center justify-between text-[10px]">
                     <span className="font-bold text-emerald-400">@{s.author}</span>
                     <span className="text-muted-foreground">{s.timestamp}</span>
                   </div>
-                  <p className="text-foreground/90">{s.message}</p>
+                  <p className="text-foreground/90 break-words">{s.message}</p>
                 </div>
               ))}
             </div>
 
-            {/* Shoutout Form */}
-            <form onSubmit={handlePostShoutout} className="pt-2 space-y-2 border-t border-emerald-500/15">
-              <div className="flex gap-2">
+            {/* Responsive Mobile Form */}
+            <form onSubmit={handlePostShoutout} className="pt-2 space-y-2 border-t border-white/[0.07]">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   value={authorInput}
                   onChange={e => setAuthorInput(e.target.value)}
-                  placeholder="Your nickname"
-                  className="w-1/3 bg-black/60 border border-emerald-500/30 rounded-lg px-2.5 py-1.5 text-xs text-emerald-300 outline-none placeholder:text-muted-foreground/50"
+                  placeholder="Name"
+                  className="sm:w-28 bg-black/60 border border-white/15 focus:border-emerald-500/50 rounded-lg px-2.5 py-2 sm:py-1.5 text-xs text-foreground outline-none placeholder:text-muted-foreground/60"
                   maxLength={15}
                 />
-                <input
-                  type="text"
-                  value={messageInput}
-                  onChange={e => setMessageInput(e.target.value)}
-                  placeholder="Leave a message or quote..."
-                  className="flex-1 bg-black/60 border border-emerald-500/30 rounded-lg px-2.5 py-1.5 text-xs text-emerald-300 outline-none placeholder:text-muted-foreground/50"
-                  maxLength={120}
-                />
-                <button
-                  type="submit"
-                  className="px-3 py-1.5 bg-emerald-500 text-black font-bold text-xs rounded-lg hover:scale-105 active:scale-95 transition-transform flex items-center gap-1 shrink-0"
-                >
-                  <Send className="w-3 h-3" />
-                  POST
-                </button>
+                <div className="flex gap-2 flex-1">
+                  <input
+                    type="text"
+                    value={messageInput}
+                    onChange={e => setMessageInput(e.target.value)}
+                    placeholder="Write a note..."
+                    className="flex-1 min-w-0 bg-black/60 border border-white/15 focus:border-emerald-500/50 rounded-lg px-2.5 py-2 sm:py-1.5 text-xs text-foreground outline-none placeholder:text-muted-foreground/60"
+                    maxLength={120}
+                  />
+                  <button
+                    type="submit"
+                    className="px-3 py-2 sm:py-1.5 bg-emerald-500 text-black font-bold text-xs rounded-lg active:scale-95 transition-transform flex items-center gap-1 shrink-0 cursor-pointer"
+                  >
+                    <Send className="w-3 h-3" />
+                    <span>POST</span>
+                  </button>
+                </div>
               </div>
 
               {isSent && (
                 <div className="text-[10px] text-emerald-400 flex items-center gap-1 font-bold">
-                  <CheckCircle2 className="w-3 h-3" /> Shoutout saved to your browser session!
+                  <CheckCircle2 className="w-3 h-3" /> Saved to your browser session.
                 </div>
               )}
             </form>

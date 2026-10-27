@@ -118,7 +118,7 @@ const Index = () => {
         onOpenMegaCenter={openMegaCenter}
       />
 
-      <main className={isExistence ? "relative z-10 pt-20 sm:pt-28" : "relative z-10 pt-16"}>
+      <main className={isExistence ? "relative z-10 pt-16 sm:pt-24" : "relative z-10 pt-14 sm:pt-16"}>
         {isExistence ? (
           /* ASCII universe: a completely different, game-style layout */
           <ExistenceWorld
@@ -200,36 +200,36 @@ const Index = () => {
       {/* Floating Background Music Player (Zanophy) */}
       <ZanophyMiniBar />
 
-      <footer className="py-10 border-t border-primary/20 relative z-10 bg-black/60 font-mono text-xs">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-muted-foreground">
+      <footer className="pt-8 pb-24 sm:py-10 border-t border-white/10 relative z-10 bg-black/70 font-mono text-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-muted-foreground">
           <div>
-            <p className="text-primary font-bold">
-              {isExistence ? "[ ZANEX :: Ω-EXISTENCE // SINGULARITY ARCHIVE ]" : "ZANEX // ROOT CLEARANCE LEVEL 99"}
+            <p className="text-foreground font-bold">
+              {isExistence ? "[ ZANEX :: ASCII WORLD ]" : "ZANEX v6.0"}
             </p>
             <p>&copy; {new Date().getFullYear()} Aziz Maaizate (Zane Goat)</p>
           </div>
-          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 text-primary/70">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-3 gap-y-1.5 text-muted-foreground">
             <button
               onClick={replayIntro}
-              className="text-rose-400 hover:text-rose-300 underline decoration-rose-400/40 hover:decoration-rose-400 underline-offset-4 cursor-pointer transition-colors"
-              title="Replay Procedural RGB ASCII Art Intro"
+              className="text-foreground/80 hover:text-primary underline decoration-white/25 hover:decoration-primary underline-offset-4 cursor-pointer transition-colors"
+              title="Replay ASCII Boot Sequence"
             >
-              ◉ Replay ASCII Intro
+              Replay Intro
             </button>
             <span>·</span>
             <button
               onClick={openCtf}
-              className="text-yellow-400 hover:text-yellow-300 underline decoration-yellow-400/40 hover:decoration-yellow-400 underline-offset-4 cursor-pointer transition-colors"
+              className="text-amber-300/90 hover:text-amber-300 underline decoration-amber-400/30 hover:decoration-amber-400 underline-offset-4 cursor-pointer transition-colors"
               title="Open CTF Bounty Board"
             >
-              ★ CTF: 3 Flags Hidden
+              CTF (3 Flags)
             </button>
-            <span>·</span>
-            <p>
-              Try{" "}
+            <span className="hidden sm:inline">·</span>
+            <p className="hidden sm:block">
+              Press{" "}
               <kbd
                 onClick={openTerminal}
-                className="px-1.5 py-0.5 border border-primary/40 rounded text-primary hover:border-primary hover:bg-primary/10 cursor-pointer transition-colors"
+                className="px-1.5 py-0.5 border border-white/20 rounded text-foreground hover:border-primary hover:text-primary cursor-pointer transition-colors"
                 title="Launch ZaneOS Shell"
               >
                 `
@@ -239,10 +239,10 @@ const Index = () => {
             <span>·</span>
             <button
               onClick={openMatrix}
-              className="text-primary/70 hover:text-primary underline decoration-primary/40 hover:decoration-primary underline-offset-4 cursor-pointer transition-colors"
-              title="Unleash Matrix Construct"
+              className="text-foreground/80 hover:text-primary underline decoration-white/25 hover:decoration-primary underline-offset-4 cursor-pointer transition-colors"
+              title="Launch Matrix Rain Canvas"
             >
-              Matrix (or Shake)
+              Matrix Rain
             </button>
           </div>
         </div>

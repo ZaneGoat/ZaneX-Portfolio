@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Eye, Smartphone, Sparkles } from "lucide-react";
+import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Eye, Smartphone, Code2 } from "lucide-react";
 import { navLinks } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
@@ -28,10 +28,10 @@ export const Navigation = ({
   const activeNavLinks = persona === "friend"
     ? [
         { name: "Overview", href: "#overview" },
-        { name: "Homie Lounge", href: "#friend-lounge" },
-        { name: "Contracts", href: "#pricing" },
-        { name: "Breach Protocol", href: "#games" },
-        { name: "Philosophy", href: "#philosophy" },
+        { name: "Lounge", href: "#friend-lounge" },
+        { name: "Pricing", href: "#pricing" },
+        { name: "Arena", href: "#games" },
+        { name: "Notes", href: "#philosophy" },
         { name: "Contact", href: "#contact" }
       ]
     : navLinks;
@@ -107,7 +107,7 @@ export const Navigation = ({
           </div>
 
           {/* Header Controls: Clean & uncluttered on mobile */}
-          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Total-Conversion Universe Theme Button (Phone & Desktop Top Bar) */}
             <button
               type="button"
@@ -115,31 +115,31 @@ export const Navigation = ({
               className={
                 isExistence
                   ? "px-2 sm:px-2.5 py-1.5 bg-white text-black hover:bg-white/85 border border-white font-mono text-[10px] sm:text-xs font-bold flex items-center gap-1 cursor-pointer active:scale-95 transition-all"
-                  : "px-2 sm:px-2.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/40 text-white rounded-lg font-mono text-[10px] sm:text-xs font-bold flex items-center gap-1 cursor-pointer active:scale-95 transition-all shadow-[0_0_15px_rgba(255,255,255,0.12)]"
+                  : "px-2 sm:px-2.5 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] border border-white/20 text-foreground rounded-lg font-mono text-[10px] sm:text-xs font-bold flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
               }
               title={
                 isExistence
-                  ? "Return to Matrix Emerald Cyber-HUD"
-                  : "Transform Entire Site into EXISTENCE Monochrome ASCII Universe"
+                  ? "Return to Standard Interface"
+                  : "Switch to ASCII World Map Mode"
               }
-              aria-label="Toggle Total-Conversion Universe Theme"
+              aria-label="Toggle ASCII Mode"
             >
               {isExistence ? (
                 <>
-                  <span>◈</span>
-                  <span className="sm:hidden">GREEN</span>
-                  <span className="hidden sm:inline">MATRIX HUD</span>
+                  <span>[01]</span>
+                  <span className="sm:hidden">STD</span>
+                  <span className="hidden sm:inline">STANDARD UI</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-3.5 h-3.5 text-white shrink-0" />
+                  <Code2 className="w-3.5 h-3.5 text-primary shrink-0" />
                   <span className="sm:hidden">ASCII</span>
-                  <span className="hidden sm:inline">EXISTENCE</span>
+                  <span className="hidden sm:inline">ASCII MODE</span>
                 </>
               )}
             </button>
 
-            {/* Replay Procedural ASCII Intro Button */}
+            {/* Replay Procedural ASCII Intro Button (Desktop/Tablet so phone topbar stays clean) */}
             {onReplayIntro && (
               <button
                 onClick={() => {
@@ -148,10 +148,10 @@ export const Navigation = ({
                 }}
                 className={
                   isExistence
-                    ? "p-1.5 sm:p-2 bg-black border border-white/35 text-white hover:bg-white hover:text-black transition-all flex items-center gap-1.5 font-mono text-xs font-bold cursor-pointer active:scale-95"
-                    : "p-1.5 sm:p-2 bg-rose-500/15 border border-rose-500/40 text-rose-400 hover:bg-rose-500/25 rounded-lg transition-all flex items-center gap-1.5 font-mono text-xs font-bold cursor-pointer active:scale-95"
+                    ? "hidden sm:flex p-1.5 sm:p-2 bg-black border border-white/35 text-white hover:bg-white hover:text-black transition-all items-center gap-1.5 font-mono text-xs font-bold cursor-pointer active:scale-95"
+                    : "hidden sm:flex p-1.5 sm:p-2 bg-white/[0.04] border border-white/15 text-foreground/80 hover:text-foreground hover:border-white/30 rounded-lg transition-all items-center gap-1.5 font-mono text-xs font-bold cursor-pointer active:scale-95"
                 }
-                title="Replay Procedural RGB ASCII Art Intro"
+                title="Replay ASCII Boot Sequence"
               >
                 <Eye className="w-4 h-4" />
                 <span className="hidden xl:inline">INTRO</span>
@@ -163,12 +163,12 @@ export const Navigation = ({
               onClick={handleToggleSound}
               className={`p-1.5 sm:p-2 rounded-lg border font-mono text-xs flex items-center gap-1.5 transition-all active:scale-95 ${
                 isMuted
-                  ? "border-primary/25 text-primary/45 hover:text-primary"
-                  : "border-primary bg-primary/10 text-primary shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
+                  ? "border-white/15 text-muted-foreground hover:text-foreground"
+                  : "border-primary/40 bg-primary/10 text-primary"
               }`}
-              title={isMuted ? "Enable Cyber Sound FX" : "Mute Sound FX"}
+              title={isMuted ? "Enable Sound FX" : "Mute Sound FX"}
             >
-              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-primary animate-pulse" />}
+              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-primary" />}
               <span className="hidden xl:inline text-[11px] font-bold">{isMuted ? "MUTED" : "AUDIO"}</span>
             </button>
 
@@ -178,7 +178,7 @@ export const Navigation = ({
                 sound.playBoot();
                 onOpenTerminal();
               }}
-              className="p-1.5 sm:p-2 bg-primary/10 border border-primary/35 text-primary hover:bg-primary/20 rounded-lg transition-all active:scale-95"
+              className="p-1.5 sm:p-2 bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 rounded-lg transition-all active:scale-95"
               title="Launch ZaneOS Shell"
             >
               <Terminal className="w-4 h-4" />
@@ -190,7 +190,7 @@ export const Navigation = ({
                 sound.playBoot();
                 onOpenBreach();
               }}
-              className="hidden sm:flex p-2 bg-secondary/10 border border-secondary/30 text-secondary hover:bg-secondary/20 rounded-lg transition-all"
+              className="hidden sm:flex p-2 bg-secondary/10 border border-secondary/25 text-secondary hover:bg-secondary/20 rounded-lg transition-all"
               title="Launch Breach Protocol Minigame"
             >
               <Zap className="w-4 h-4" />
@@ -203,10 +203,10 @@ export const Navigation = ({
                   sound.playBoot();
                   onOpenCtf();
                 }}
-                className="hidden sm:flex px-2.5 py-1.5 bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 rounded-lg transition-all font-mono text-xs font-bold items-center gap-1.5"
-                title="Open Hack My Portfolio CTF Bounty Board"
+                className="hidden sm:flex px-2.5 py-1.5 bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 rounded-lg transition-all font-mono text-xs font-bold items-center gap-1.5"
+                title="Open Security CTF Board"
               >
-                <ShieldAlert className="w-3.5 h-3.5 text-primary animate-pulse" />
+                <ShieldAlert className="w-3.5 h-3.5 text-primary" />
                 <span>CTF</span>
               </button>
             )}
@@ -214,7 +214,7 @@ export const Navigation = ({
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-1.5 sm:p-2 text-primary border border-primary/35 rounded-lg hover:bg-primary/10 active:scale-95"
+              className="md:hidden p-1.5 sm:p-2 text-foreground border border-white/20 rounded-lg hover:bg-white/5 active:scale-95"
               title="Toggle Mobile Menu"
             >
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -238,10 +238,10 @@ export const Navigation = ({
           >
             <div className="flex flex-col gap-3">
               {/* Total-Conversion Universe Switcher in Mobile Drawer */}
-              <div className="p-2.5 rounded-xl bg-primary/5 border border-primary/25 space-y-2">
-                <div className="flex items-center justify-between text-[10px] text-primary/80 font-bold tracking-wider px-0.5">
-                  <span>UNIVERSE ARCHITECTURE</span>
-                  <span>{isExistence ? "Ω-EXISTENCE" : "MATRIX GREEN"}</span>
+              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 space-y-2">
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground font-bold tracking-wider px-0.5">
+                  <span>INTERFACE MODE</span>
+                  <span className="text-primary">{isExistence ? "ASCII MAP" : "STANDARD"}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -249,12 +249,12 @@ export const Navigation = ({
                     onClick={() => setTheme("matrix")}
                     className={`py-2 px-2.5 rounded-lg border text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                       !isExistence
-                        ? "border-[#00ff9e] bg-[#00ff9e]/20 text-[#00ff9e]"
+                        ? "border-primary/60 bg-primary/15 text-primary"
                         : "border-white/20 bg-black text-white/60 hover:text-white"
                     }`}
                   >
-                    <span>◈</span>
-                    <span>MATRIX GREEN</span>
+                    <span>[01]</span>
+                    <span>STANDARD</span>
                   </button>
                   <button
                     type="button"
@@ -262,11 +262,11 @@ export const Navigation = ({
                     className={`py-2 px-2.5 rounded-lg border text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                       isExistence
                         ? "border-white bg-white text-black"
-                        : "border-white/30 bg-white/5 text-white/80 hover:bg-white/15"
+                        : "border-white/20 bg-white/5 text-white/80 hover:bg-white/10"
                     }`}
                   >
-                    <span>✦</span>
-                    <span>EXISTENCE ASCII</span>
+                    <span>[02]</span>
+                    <span>ASCII MAP</span>
                   </button>
                 </div>
               </div>

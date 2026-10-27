@@ -11,7 +11,6 @@ import {
   HelpCircle,
   Copy,
   Zap,
-  Sparkles,
   RotateCcw
 } from "lucide-react";
 import { sound } from "@/lib/sound";
@@ -26,7 +25,7 @@ interface CtfBountyBoardProps {
 export interface CtfFlagInfo {
   id: string;
   name: string;
-  category: "RECON" | "OSINT" | "INTRUSION";
+  category: "RECON" | "OSINT" | "INTRUSION" | "SIGNALS";
   difficulty: "EASY" | "MEDIUM" | "HARD";
   points: number;
   hint: string;
@@ -224,9 +223,9 @@ export const CtfBountyBoard = ({
                   className="p-4 rounded-xl bg-gradient-to-r from-yellow-500/15 via-primary/20 to-yellow-500/15 border-2 border-yellow-400/60 text-center space-y-2 shadow-[0_0_40px_rgba(234,179,8,0.25)]"
                 >
                   <div className="inline-flex items-center gap-2 text-yellow-400 font-black text-sm uppercase">
-                    <Sparkles className="w-4 h-4 animate-spin" />
+                    <Award className="w-4 h-4" />
                     PORTFOLIO 100% OWNED // MASTER OPERATOR CERTIFIED
-                    <Sparkles className="w-4 h-4 animate-spin" />
+                    <Award className="w-4 h-4" />
                   </div>
                   <p className="text-xs text-muted-foreground max-w-lg mx-auto">
                     You have extracted all 3 security tokens (DOM Recon, OSINT Dark Web Harvester, and ICE Memory Buffer).

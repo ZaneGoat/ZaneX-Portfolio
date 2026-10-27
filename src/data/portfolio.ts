@@ -1,6 +1,6 @@
-import { 
-  Shield, Code, Lock, Terminal, Mail, Github, Globe, FileText, 
-  Database, Cpu, Server, Layers, Wrench, Sparkles, Binary, CheckCircle2, Radio, Gamepad2, Wifi
+import {
+  Shield, Mail, Github, Globe,
+  Database, Cpu, Server
 } from "lucide-react";
 
 export type Persona = "operator" | "friend";
@@ -8,7 +8,7 @@ export type Persona = "operator" | "friend";
 export interface Project {
   id: string;
   title: string;
-  category: "ERP" | "AI" | "Security" | "Systems" | "Web";
+  category: "ERP" | "Automation" | "Security" | "Systems" | "Web";
   subtitle: string;
   description: string;
   highlights: string[];
@@ -43,13 +43,13 @@ export const systemSpecsByPersona: Record<Persona, SystemSpecs> = {
   operator: {
     handle: "ZANE_GOAT",
     realName: "Aziz Maaizate",
-    role: "Root Clearance Operator // Level 99",
-    location: "Grid Casablanca [33.5731° N, 7.5898° W]",
-    status: "ACTIVE // wlan0mon RF & Tor Proxy Online",
-    os: "Kali Linux x86_64 [Kernel 4.2.0 Hardened]",
-    shell: "zsh /dev/pts/0 (Root Privileges Granted)",
-    uptime: "99.98% Cryptographic Integrity",
-    bio: "Specialized in raw 802.11 Wi-Fi CSI subcarrier phase perturbation, multi-threaded Tor dark-web scraping, and direct MSI Embedded Controller memory I/O.",
+    role: "Systems & Security Engineer",
+    location: "Casablanca [33.5731° N, 7.5898° W]",
+    status: "ONLINE · Available for Q4 Contracts",
+    os: "Kali Linux x86_64 [Kernel 6.8]",
+    shell: "zsh /dev/pts/0",
+    uptime: "99.98% Uptime",
+    bio: "Software & systems engineer building custom desktop/web ERPs, Linux hardware daemons, 802.11 Wi-Fi CSI motion sensors, and automated data pipelines.",
     stats: [
       { value: "64", label: "OFDM Carriers" },
       { value: "3-Hop", label: "Tor Relay" },
@@ -59,17 +59,17 @@ export const systemSpecsByPersona: Record<Persona, SystemSpecs> = {
   friend: {
     handle: "Zane Goat (Aziz)",
     realName: "Aziz Maaizate",
-    role: "The Guy Who Breaks Things & Fixes Them at 3 AM",
-    location: "Casablanca, Morocco 🇲🇦",
-    status: "ONLINE // Sipping mint tea & writing code",
-    os: "Beast MSI GF65 (Cooled with custom EC governor)",
-    shell: "zsh (with 50 open terminal tabs)",
-    uptime: "100% Homemade Caffeine & Code",
-    bio: "Welcome to my lab! If you're a friend, you already know I spend way too much time in Linux terminals, hacking laptop fan curves, building ERPs from scratch, and gaming. Grab some tea and check out what I've been building below!",
+    role: "Breaks Things & Fixes Them at 3 AM",
+    location: "Casablanca, Morocco",
+    status: "ONLINE · Brewing mint tea & shipping code",
+    os: "MSI GF65 (Custom EC fan governor)",
+    shell: "zsh (too many open tabs)",
+    uptime: "Powered by Mint Tea",
+    bio: "Welcome to the lab. If you know me, you know I live in Linux terminals—tuning laptop fan curves, writing ERPs from scratch, calibrating gamepads, and gaming late.",
     stats: [
-      { value: "∞", label: "Terminal tabs" },
-      { value: "3 AM", label: "Bug hunt hour" },
-      { value: "100%", label: "Real code" }
+      { value: "50+", label: "Open tabs" },
+      { value: "3 AM", label: "Peak hours" },
+      { value: "100%", label: "Handwritten" }
     ]
   }
 };
@@ -78,50 +78,50 @@ export const systemSpecs = systemSpecsByPersona.operator;
 
 export const skillsData: SkillCategory[] = [
   {
-    title: "Full-Stack & ERP Engineering",
+    title: "Full-Stack & Custom ERP",
     icon: Database,
-    description: "Multi-tier business platforms, relational database schemas, and desktop POS suites.",
+    description: "Business management suites, point-of-sale desktop apps, and relational databases.",
     skills: [
-      { name: "Python (Flask / Django)", level: 95, tag: "Backend Core" },
-      { name: "CustomTkinter & PyQt", level: 92, tag: "Desktop ERP" },
-      { name: "SQL, SQLite & SQLAlchemy", level: 90, tag: "Relational DBs" },
-      { name: "React, Vite & TailwindCSS", level: 88, tag: "Modern Frontend" },
-      { name: "RESTful Architecture & RBAC", level: 90, tag: "Security & API" }
+      { name: "Python (Flask & Django)", level: 95, tag: "Backend" },
+      { name: "PyQt & CustomTkinter", level: 92, tag: "Desktop POS/ERP" },
+      { name: "PostgreSQL, SQLite & SQLAlchemy", level: 90, tag: "Database" },
+      { name: "React, TypeScript & Tailwind", level: 88, tag: "Web UI" },
+      { name: "REST APIs & Role-Based Auth", level: 90, tag: "Access Control" }
     ]
   },
   {
-    title: "AI & Agentic Automation",
+    title: "Data Pipelines & Automation",
     icon: Cpu,
-    description: "Local inference workflows, autonomous scripting, and LLM API integrations.",
+    description: "High-reliability scrapers, document generators, and background worker daemons.",
     skills: [
-      { name: "Local LLMs (Ollama & DeepSeek)", level: 94, tag: "Private AI" },
-      { name: "Google Gemini API Pipelines", level: 92, tag: "Model Integrations" },
-      { name: "Dark Web OSINT Scraping", level: 88, tag: "Recon & Tor" },
-      { name: "Context Engineering & Tooling", level: 88, tag: "Agentic Systems" },
-      { name: "Automated Docx/PDF Pipelines", level: 92, tag: "Report Engines" }
+      { name: "Multi-Threaded Scrapers & Tor", level: 92, tag: "Network I/O" },
+      { name: "Automated PDF & Docx Engines", level: 94, tag: "Document Gen" },
+      { name: "Background Queues & Cron Jobs", level: 90, tag: "Workers" },
+      { name: "Barcode, Inventory & OCR Flows", level: 88, tag: "Clinic / Retail" },
+      { name: "Third-Party Webhook Sync", level: 90, tag: "Integrations" }
     ]
   },
   {
-    title: "Offensive Security & Systems",
+    title: "Linux Systems & Security",
     icon: Shield,
-    description: "Low-level EC registers, Wi-Fi CSI Doppler radar, hardware telemetry & network auditing.",
+    description: "Direct hardware register control, RF signal processing, and network auditing.",
     skills: [
-      { name: "Wi-Fi CSI Sensing & Radar", level: 90, tag: "RF Sensing" },
-      { name: "Embedded Controller (EC) I/O", level: 92, tag: "Hardware Tuning" },
-      { name: "Kali Linux Environment", level: 92, tag: "OS & Tooling" },
-      { name: "Network Auditing & Recon", level: 85, tag: "Pentest Fundamentals" },
-      { name: "Gamepad & HID Drivers", level: 88, tag: "Device Input" }
+      { name: "Wi-Fi CSI Doppler Sensing", level: 90, tag: "802.11 RF" },
+      { name: "Embedded Controller (EC) I/O", level: 92, tag: "Linux Firmware" },
+      { name: "USB HID & Gamepad Drivers", level: 88, tag: "Low-Latency" },
+      { name: "Network Recon & Auditing", level: 86, tag: "Security" },
+      { name: "Kali / Debian Kernel Tuning", level: 92, tag: "Systems" }
     ]
   },
   {
-    title: "DevOps & Cloud Deployments",
+    title: "Infrastructure & Delivery",
     icon: Server,
-    description: "Isolated environments, continuous deployment pipelines, and microservice stacks.",
+    description: "Reproducible containers, hardened Linux VPS setups, and automated builds.",
     skills: [
-      { name: "Docker Containerization", level: 88, tag: "Microservices" },
-      { name: "Git & GitHub CI/CD", level: 92, tag: "Version Control" },
-      { name: "Vercel & Cloud Edge", level: 90, tag: "Deployment" },
-      { name: "Linux System Hardening", level: 88, tag: "Infrastructure" }
+      { name: "Docker & Compose Stacks", level: 88, tag: "Containers" },
+      { name: "Nginx, Systemd & TLS", level: 90, tag: "VPS Ops" },
+      { name: "Git & GitHub Actions CI", level: 92, tag: "Release" },
+      { name: "SSH, Firewall & Fail2ban", level: 89, tag: "Hardening" }
     ]
   }
 ];
@@ -131,15 +131,15 @@ export const projectsData: Project[] = [];
 export const friendLoungeData = {
   gamerTag: "ZaneGoat",
   favoriteGames: ["Cyberpunk 2077", "Counter-Strike 2", "Elden Ring", "Dead Cells"],
-  vibeTrack: "Cyberpunk Synthwave & Moroccan Lo-Fi",
-  teaIntake: "4+ Pots of Mint Tea per day 🍵",
-  homieNote: "Thanks for dropping by! Hit the scratchpad below to leave a shoutout that saves right in your browser."
+  vibeTrack: "Synthwave & Moroccan Lo-Fi",
+  teaIntake: "4+ Pots of Mint Tea / day",
+  homieNote: "Glad you stopped by. Drop a note on the board below—it saves locally in your browser."
 };
 
 export const contactLinks = [
   { icon: Mail, label: "Email", href: "mailto:azizmaaizat@outlook.com", display: "azizmaaizat@outlook.com" },
   { icon: Github, label: "GitHub", href: "https://github.com/ZaneGoat", display: "github.com/ZaneGoat" },
-  { icon: Globe, label: "Live Portfolio", href: "https://github.com/ZaneGoat/ZaneX-Portfolio", display: "ZaneX-Portfolio" }
+  { icon: Globe, label: "Source Code", href: "https://github.com/ZaneGoat/ZaneX-Portfolio", display: "ZaneX-Portfolio" }
 ];
 
 export interface PricingTier {
@@ -159,63 +159,63 @@ export interface PricingTier {
 
 export const pricingTiers: PricingTier[] = [
   {
-    id: "recon",
+    id: "care",
     index: "01",
-    name: "Recon & Code Health",
-    tagline: "Vulnerability Scans & Continuous Maintenance",
+    name: "Maintenance & Security",
+    tagline: "Keep your live app fast, patched, and backed up",
     price: "$199.98",
-    period: "/ month",
-    description: "Proactive security audits, weekly dependency updates, and async bug fixing for production web and systems code.",
+    period: "/ mo",
+    description: "Hands-on monthly upkeep for existing web apps, databases, and Linux servers so nothing breaks in production.",
     deliverables: [
-      "Continuous vulnerability & CVE tracking",
-      "Weekly security & dependency patch reviews",
-      "Linux server / VPS hardening & CI/CD tuning",
-      "Async bug fixing & architectural health reports",
-      "Direct async communication via Discord or Signal"
+      "Weekly security patches & dependency updates",
+      "Linux VPS, Docker & SSL certificate upkeep",
+      "Automated off-site database backups",
+      "Bug fixes & performance cleanup (48h response)",
+      "Direct line via Email, WhatsApp, or Discord"
     ],
-    idealFor: "Solo founders & teams needing a veteran second pair of eyes",
-    cta: "INITIATE RECON CONTRACT"
+    idealFor: "Live business sites & clinics that want reliable peace of mind",
+    cta: "Start Maintenance Plan"
   },
   {
-    id: "sprint",
+    id: "build",
     index: "02",
-    name: "Full-Stack & ERP Sprint",
-    tagline: "Dedicated Monthly Engineering Capacity",
+    name: "Full-Stack & Custom ERP",
+    tagline: "Steady feature shipping for web & desktop software",
     price: "$449.98",
-    period: "/ month",
-    badge: "MOST POPULAR",
+    period: "/ mo",
+    badge: "Most Popular",
     recommended: true,
-    description: "High-velocity development for custom business ERPs, POS desktop software, relational databases, and modern React portals.",
+    description: "Ongoing engineering capacity to build and expand your POS, clinic/inventory ERP, or customer web portal.",
     deliverables: [
-      "Dedicated monthly engineering sprint capacity",
-      "Custom ERP / POS modules (PyQt, CustomTkinter, React)",
-      "SQL / SQLite schema optimization & data pipelines",
-      "Rapid 48-hour turnaround on task requests",
-      "Automated medical / inventory Docx & PDF export engines",
-      "Direct priority sprint board management"
+      "Continuous feature builds (Python, React, TypeScript)",
+      "Custom desktop POS & ERP modules (PyQt / CustomTkinter)",
+      "PostgreSQL & SQLite database design & migrations",
+      "PDF / Docx invoice, prescription & report exports",
+      "48-hour turnaround on queued tasks",
+      "Weekly progress builds you can test immediately"
     ],
-    idealFor: "Businesses & clinics wanting custom software without agency bloat",
-    cta: "INITIATE ERP SPRINT"
+    idealFor: "Growing businesses replacing spreadsheets with custom software",
+    cta: "Start Full-Stack Plan"
   },
   {
-    id: "blackops",
+    id: "systems",
     index: "03",
-    name: "Dedicated Black-Ops & AI",
-    tagline: "Autonomous Agentic Pipelines & Low-Level Systems",
+    name: "Systems & Dedicated Eng",
+    tagline: "Heavy backend architecture, scrapers & Linux systems",
     price: "$899.98",
-    period: "/ month",
-    badge: "MAX CAPACITY",
-    description: "Mission-critical architectures: private local LLM integrations, autonomous web/OSINT pipelines, and kernel/EC tuning.",
+    period: "/ mo",
+    badge: "Priority",
+    description: "Senior-level execution for complex backends, automated data pipelines, custom hardware/RF tools, and multi-service stacks.",
     deliverables: [
-      "Private local AI inference pipelines (Ollama, DeepSeek)",
-      "Autonomous scraping & agentic context engineering",
-      "Embedded Controller (EC) & hardware telemetry governor",
-      "Wi-Fi CSI RF sensing & low-latency HID integration",
-      "Emergency hotfixes & mission-critical SLA",
-      "24/7 priority communication channel"
+      "Custom data pipelines, scrapers & background workers",
+      "Multi-container Docker & hardened Linux deployments",
+      "Low-level Linux daemons, HID & hardware integration",
+      "Architecture reviews, load testing & security audits",
+      "Same-day priority response & emergency hotfixes",
+      "Direct 1-on-1 collaboration with zero middlemen"
     ],
-    idealFor: "High-stakes platforms, local AI automation & custom hardware systems",
-    cta: "INITIATE BLACK-OPS CONTRACT"
+    idealFor: "Teams shipping demanding backend or hardware-linked products",
+    cta: "Start Dedicated Plan"
   }
 ];
 
@@ -223,19 +223,19 @@ export const terminalCommandsHelp = [
   { cmd: "help", desc: "List all available terminal commands" },
   { cmd: "neofetch", desc: "Display ZaneOS system telemetry and specs" },
   { cmd: "whoami", desc: "Display operator identity & security clearance" },
-  { cmd: "pricing", desc: "View monthly dev-as-a-service retainers & contract rates" },
+  { cmd: "pricing", desc: "View monthly engineering plans ($199.98 – $899.98/mo)" },
   { cmd: "ctf [flag]", desc: "Hack My Portfolio CTF bounty board & flag submission" },
   { cmd: "csi [--gui]", desc: "Wi-Fi CSI Doppler radar & 64 OFDM subcarrier visualizer" },
   { cmd: "controler [--gui]", desc: "DualSense & Gamepad calibration suite" },
   { cmd: "hardware [--gui]", desc: "MSI GF65 EC hardware simulator & live fan curve tuner" },
-  { cmd: "projects", desc: "List all enterprise ERP, AI, Systems, and Security projects" },
+  { cmd: "projects", desc: "List signature systems, ERP, and security repositories" },
   { cmd: "mood [random | jazz]", desc: "Switch Zanophy mood: Random (3 AM) or They are Jazz" },
   { cmd: "playlist [random | jazz]", desc: "Open official YouTube playlist for Random or They are Jazz" },
   { cmd: "cat [id]", desc: "Inspect architectural deep-dive of any project or file" },
   { cmd: "curl [url]", desc: "Simulate HTTP request (e.g. curl /robots.txt)" },
   { cmd: "repo [id]", desc: "Open the GitHub repository for any project" },
   { cmd: "skills", desc: "Inspect categorized technical proficiencies" },
-  { cmd: "theme [matrix | existence]", desc: "Transform entire portfolio between Matrix Green HUD & Existence ASCII Universe" },
+  { cmd: "theme [matrix | existence]", desc: "Switch between Default HUD & ASCII Map View" },
   { cmd: "matrix", desc: "Unleash full-screen Matrix Construct Takeover" },
   { cmd: "breach", desc: "Launch Cyberpunk Breach Protocol hacking minigame" },
   { cmd: "fortune", desc: "Display a random hacker/dev quote" },
@@ -251,8 +251,8 @@ export const terminalCommandsHelp = [
 export const navLinks = [
   { name: "Overview", href: "#overview" },
   { name: "Repositories", href: "#repositories" },
-  { name: "Tech Matrix", href: "#skills" },
-  { name: "Contracts", href: "#pricing" },
-  { name: "Minigame", href: "#games" },
+  { name: "Stack", href: "#skills" },
+  { name: "Pricing", href: "#pricing" },
+  { name: "Arena", href: "#games" },
   { name: "Contact", href: "#contact" }
 ];

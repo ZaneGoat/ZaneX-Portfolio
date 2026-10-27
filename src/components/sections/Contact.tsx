@@ -4,32 +4,36 @@ import { sound } from "@/lib/sound";
 import { SectionHeader } from "@/components/SectionHeader";
 
 export const Contact = () => (
-  <section id="contact" className="py-24 relative z-10 cv-auto">
-    <div className="container mx-auto px-4 md:px-6">
-      <SectionHeader index="06" kicker="Comms" title="Get In Touch" />
+  <section id="contact" className="py-12 sm:py-16 md:py-24 relative z-10 cv-auto">
+    <div className="container mx-auto px-3.5 sm:px-6">
+      <SectionHeader index="06" kicker="Contact" title="Get In Touch" />
 
-      <div className="max-w-7xl mx-auto grid lg:grid-cols-5 gap-5">
+      <div className="max-w-7xl mx-auto grid lg:grid-cols-5 gap-4 sm:gap-5">
         {/* Primary CTA */}
-        <div className="hud-card lg:col-span-3 p-8 md:p-10 relative overflow-hidden">
-          <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-          <p className="font-mono text-xs text-primary/60 mb-4">&gt; open_channel --secure</p>
-          <h3 className="text-3xl md:text-4xl font-black text-primary leading-tight mb-4">
-            Need an ERP, an automation pipeline, or a second pair of eyes on your stack?
-          </h3>
-          <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-8 max-w-xl">
-            Available for ERP engineering, local-AI tooling, and custom systems work. Replies usually within a day.
-          </p>
-          <a
-            href="mailto:azizmaaizat@outlook.com"
-            onClick={() => sound.playClick()}
-            className="inline-flex items-center gap-2 bg-primary text-background font-mono font-bold px-6 py-3.5 rounded-xl hover:scale-105 active:scale-95 transition-transform shadow-[0_0_25px_hsl(var(--primary)/0.4)]"
-          >
-            <Mail className="w-4 h-4" /> azizmaaizat@outlook.com
-          </a>
+        <div className="hud-card lg:col-span-3 p-5 sm:p-8 md:p-10 flex flex-col justify-between">
+          <div>
+            <p className="font-mono text-xs text-primary mb-3">Direct Inquiry</p>
+            <h3 className="text-xl sm:text-3xl md:text-4xl font-bold text-foreground leading-snug mb-3 sm:mb-4">
+              Need custom ERP software, backend automation, or a second pair of eyes on your system?
+            </h3>
+            <p className="text-muted-foreground text-xs sm:text-sm md:text-base leading-relaxed mb-6 sm:mb-8 max-w-xl">
+              Available for monthly engineering retainers and scoped software builds. Direct replies within 24 hours.
+            </p>
+          </div>
+          <div>
+            <a
+              href="mailto:azizmaaizat@outlook.com"
+              onClick={() => sound.playClick()}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary text-background font-mono font-bold px-5 py-3 rounded-lg hover:bg-primary/90 active:scale-[0.98] transition-all text-xs sm:text-sm"
+            >
+              <Mail className="w-4 h-4 shrink-0" />
+              <span className="truncate">azizmaaizat@outlook.com</span>
+            </a>
+          </div>
         </div>
 
         {/* Link list */}
-        <div className="lg:col-span-2 flex flex-col gap-3">
+        <div className="lg:col-span-2 flex flex-col gap-2.5 sm:gap-3">
           {contactLinks.map(contact => {
             const Icon = contact.icon;
             return (
@@ -39,18 +43,22 @@ export const Contact = () => (
                 target={contact.href.startsWith("mailto:") ? undefined : "_blank"}
                 rel="noopener noreferrer"
                 onClick={() => sound.playClick()}
-                className="hud-card flex-1 flex items-center justify-between gap-4 px-6 py-5 group"
+                className="hud-card flex-1 flex items-center justify-between gap-3 px-4 sm:px-6 py-4 sm:py-5 group"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                    <Icon className="w-5 h-5" />
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <div className="font-mono">
-                    <span className="block font-bold text-sm text-primary">{contact.label}</span>
-                    <span className="block text-[11px] text-muted-foreground">{contact.display}</span>
+                  <div className="font-mono min-w-0">
+                    <span className="block font-bold text-xs sm:text-sm text-foreground group-hover:text-primary transition-colors">
+                      {contact.label}
+                    </span>
+                    <span className="block text-[11px] text-muted-foreground truncate">
+                      {contact.display}
+                    </span>
                   </div>
                 </div>
-                <ArrowUpRight className="w-4 h-4 text-primary/50 group-hover:text-primary group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
+                <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all shrink-0" />
               </a>
             );
           })}

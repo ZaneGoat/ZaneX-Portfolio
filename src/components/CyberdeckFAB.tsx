@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Zap, Radio, Volume2, VolumeX, X, Cpu, ShieldAlert, Wind, UserCheck, Smartphone, Eye, Sparkles } from "lucide-react";
+import { Terminal, Zap, Radio, Volume2, VolumeX, X, Cpu, ShieldAlert, Wind, UserCheck, Smartphone, Eye, Code2 } from "lucide-react";
 import { sound } from "@/lib/sound";
 import { usePersona } from "@/context/PersonaContext";
 import { useUniverseTheme } from "@/context/ThemeContext";
@@ -22,13 +22,11 @@ export const CyberdeckFAB = ({
   onOpenCtf,
   onOpenMegaCenter
 }: CyberdeckFABProps) => {
-  const { persona, cyclePersona, deviceChoice, spoofActive } = usePersona();
+  const { persona, cyclePersona } = usePersona();
   const { isExistence, toggleTheme } = useUniverseTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [sensorsEnabled, setSensorsEnabled] = useState(false);
-
-  const forceShowOnDesktop = deviceChoice === "phone" && spoofActive;
 
   const handleEnableMotionSensors = () => {
     sound.playClick();
@@ -52,7 +50,7 @@ export const CyberdeckFAB = ({
   return (
     <div
       onPointerDown={e => e.stopPropagation()}
-      className="fixed bottom-5 right-5 z-40 font-mono select-none"
+      className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-40 font-mono select-none"
     >
       {/* Backdrop for easy dismiss */}
       <AnimatePresence>
@@ -215,7 +213,7 @@ export const CyberdeckFAB = ({
             </div>
 
             {/* Quick Controls: Universe Theme & Audio */}
-            <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-primary/20">
+            <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-white/10">
               <button
                 onClick={toggleTheme}
                 className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border text-[10px] font-bold active:scale-95 transition-transform cursor-pointer ${
@@ -223,18 +221,18 @@ export const CyberdeckFAB = ({
                     ? "border-white bg-white text-black"
                     : "border-primary/40 bg-primary/10 text-primary"
                 }`}
-                title="Toggle Universe Architecture (Matrix Green / Existence ASCII)"
+                title="Toggle Interface Mode (Standard / ASCII Map)"
               >
-                <Sparkles className="w-3 h-3" />
-                <span>{isExistence ? "MATRIX" : "EXISTENCE"}</span>
+                <Code2 className="w-3 h-3" />
+                <span>{isExistence ? "STANDARD" : "ASCII MAP"}</span>
               </button>
 
               <button
                 onClick={toggleAudio}
                 className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border text-[10px] font-bold active:scale-95 transition-transform cursor-pointer ${
                   isMuted
-                    ? "border-primary/20 text-primary/40 bg-transparent"
-                    : "border-primary text-primary bg-primary/10 shadow-[0_0_10px_hsl(var(--primary)/0.3)]"
+                    ? "border-white/15 text-muted-foreground bg-transparent"
+                    : "border-primary/50 text-primary bg-primary/10"
                 }`}
                 title="Toggle Audio & Haptics"
               >
@@ -283,15 +281,14 @@ export const CyberdeckFAB = ({
 
       {/* Floating Cyberdeck Trigger Button */}
       <motion.button
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.92 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.94 }}
         onClick={toggleOpen}
-        className="w-13 h-13 rounded-2xl bg-black/95 border-2 border-primary text-primary flex items-center justify-center shadow-[0_0_25px_hsl(var(--primary)/0.6)] cursor-pointer relative group overflow-hidden"
-        title="Open Cyberdeck Mobile HUD"
-        aria-label="Open Cyberdeck Mobile HUD"
+        className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#070b14]/95 border border-primary/50 hover:border-primary text-primary flex items-center justify-center shadow-xl cursor-pointer relative group overflow-hidden"
+        title="Open Quick Tools"
+        aria-label="Open Quick Tools"
       >
-        <div className="absolute inset-0 bg-primary/10 group-hover:bg-primary/20 transition-colors" />
-        <div className="absolute -inset-1 border border-primary/30 rounded-2xl animate-pulse pointer-events-none" />
+        <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/15 transition-colors" />
 
         <AnimatePresence mode="wait">
           {isOpen ? (

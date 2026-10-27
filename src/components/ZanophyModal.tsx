@@ -17,7 +17,6 @@ import {
   ExternalLink,
   Disc3,
   Music2,
-  Sparkles,
   Check
 } from "lucide-react";
 import { useMusic } from "@/context/MusicContext";
