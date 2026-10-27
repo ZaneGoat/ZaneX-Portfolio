@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Eye, Smartphone, Code2 } from "lucide-react";
+import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Eye, Smartphone, Code2, Moon } from "lucide-react";
 import { navLinks } from "@/data/portfolio";
 import { sound, AUDIO_MUTE_EVENT } from "@/lib/sound";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
@@ -10,6 +10,7 @@ import { useUniverseTheme } from "@/context/ThemeContext";
 interface NavigationProps {
   onOpenTerminal: () => void;
   onOpenBreach: () => void;
+  onOpenCelestial?: () => void;
   onOpenCtf?: () => void;
   onReplayIntro?: () => void;
 }
@@ -17,6 +18,7 @@ interface NavigationProps {
 export const Navigation = ({
   onOpenTerminal,
   onOpenBreach,
+  onOpenCelestial,
   onOpenCtf,
   onReplayIntro
 }: NavigationProps) => {
@@ -210,6 +212,17 @@ export const Navigation = ({
               <Zap className="w-4 h-4" />
             </button>
 
+            {/* Quick Celestial Zen Trigger */}
+            {onOpenCelestial && (
+              <button
+                onClick={() => onOpenCelestial()}
+                className="hidden sm:flex p-2 bg-blue-400/10 border border-blue-300/30 text-blue-100 hover:bg-blue-400/20 rounded-lg transition-all"
+                title="Launch Celestial Zen Night Arcade"
+              >
+                <Moon className="w-4 h-4 text-amber-200" />
+              </button>
+            )}
+
             {/* Quick CTF Bounty Trigger (Hidden on small mobile to avoid cramped navbar wrap) */}
             {onOpenCtf && (
               <button
@@ -325,6 +338,19 @@ export const Navigation = ({
                   <span>BREACH ICE</span>
                 </button>
 
+                {onOpenCelestial && (
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      onOpenCelestial();
+                    }}
+                    className="flex items-center justify-center gap-1.5 p-3 rounded-xl border border-blue-300/35 bg-blue-400/15 text-blue-100 font-bold text-xs"
+                  >
+                    <Moon className="w-4 h-4 text-amber-200" />
+                    <span>CELESTIAL ZEN</span>
+                  </button>
+                )}
+
                 {onOpenCtf && (
                   <button
                     onClick={() => {
@@ -332,7 +358,7 @@ export const Navigation = ({
                       setIsMenuOpen(false);
                       onOpenCtf();
                     }}
-                    className={`flex items-center justify-center gap-1.5 p-3 rounded-xl border font-bold text-xs ${
+                    className={`col-span-2 flex items-center justify-center gap-1.5 p-3 rounded-xl border font-bold text-xs ${
                       isExistence
                         ? "border-white/40 bg-white/10 text-white"
                         : "border-yellow-500/40 bg-yellow-500/15 text-yellow-400"

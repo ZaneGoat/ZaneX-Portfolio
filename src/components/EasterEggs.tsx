@@ -7,6 +7,7 @@ import { RyukAsciiOverlay } from "@/components/RyukAsciiOverlay";
 interface EasterEggsProps {
   onOpenTerminal: () => void;
   onOpenMatrixTakeover: () => void;
+  disabled?: boolean;
 }
 
 interface ClickParticle {
@@ -16,7 +17,7 @@ interface ClickParticle {
   char: string;
 }
 
-export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsProps) => {
+export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover, disabled = false }: EasterEggsProps) => {
   const [clickCount, setClickCount] = useState(0);
   const [showClickExploit, setShowClickExploit] = useState(false);
   const [showSecretButton, setShowSecretButton] = useState(false);
@@ -28,6 +29,15 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
   const [ryukActive, setRyukActive] = useState(false);
   const [shinigamiDealUnlocked, setShinigamiDealUnlocked] = useState(false);
   const pausedRef = useRef(false);
+  const disabledRef = useRef(disabled);
+
+  useEffect(() => {
+    disabledRef.current = disabled;
+    if (disabled) {
+      isHoldingRef.current = false;
+      konamiIndexRef.current = 0;
+    }
+  }, [disabled]);
 
   // Mobile Sensor State
   const [permissionStatus, setPermissionStatus] = useState<"idle" | "granted" | "denied">("idle");
@@ -43,6 +53,7 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
 
   // Motion processor
   const handleMotion = useCallback((e: DeviceMotionEvent) => {
+    if (disabledRef.current) return;
     const now = Date.now();
     // Allow trigger if currently holding OR released within the last 1200ms
     const isHolding = isHoldingRef.current || (now - lastHoldEndTimeRef.current < 1200);
@@ -125,6 +136,7 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
 
     // Desktop Konami Code listener
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (disabledRef.current) return;
       const idx = konamiIndexRef.current;
       if (e.key === konamiCode[idx]) {
         konamiIndexRef.current = idx + 1;
@@ -142,6 +154,7 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
 
     // Hold tracking (pure background state for shake detection, zero UI visual clutter)
     const handleHoldStart = () => {
+      if (disabledRef.current) return;
       isHoldingRef.current = true;
     };
 
@@ -174,7 +187,13 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
   // Uses pointerdown so mobile phone taps register 1:1 without double-tap zoom coalescing
   useEffect(() => {
     const handlePointerClick = (e: PointerEvent | MouseEvent | TouchEvent) => {
-      if (pausedRef.current) return;
+      if (
+        pausedRef.current ||
+        disabledRef.current ||
+        (typeof document !== "undefined" && Boolean(document.querySelector('[role="dialog"]')))
+      ) {
+        return;
+      }
 
       let clientX = 0;
       let clientY = 0;

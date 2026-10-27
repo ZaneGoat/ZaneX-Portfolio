@@ -2,7 +2,7 @@ import { memo, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Terminal, Cpu, ExternalLink, Zap, Clock, MapPin, Monitor, Play, Github, Keyboard,
-  Radio, ShieldAlert, Lock, Key
+  Radio, ShieldAlert, Lock, Key, Moon
 } from "lucide-react";
 import { systemSpecsByPersona } from "@/data/portfolio";
 import { usePersona } from "@/context/PersonaContext";
@@ -15,6 +15,7 @@ import { sound } from "@/lib/sound";
 interface BentoGridProps {
   onOpenTerminal: () => void;
   onOpenBreach: () => void;
+  onOpenCelestial?: () => void;
   onOpenCsi?: () => void;
   onOpenCtf?: () => void;
   onOpenMegaCenter?: () => void;
@@ -46,6 +47,7 @@ const fadeUp = (delay: number) => ({
 export const BentoGrid = ({
   onOpenTerminal,
   onOpenBreach,
+  onOpenCelestial,
   onOpenCsi,
   onOpenCtf,
   onOpenMegaCenter,
@@ -163,13 +165,24 @@ export const BentoGrid = ({
               )}
 
               {persona === "friend" ? (
-                <button
-                  onClick={() => { sound.playBoot(); onOpenBreach(); }}
-                  className="flex items-center justify-center gap-1.5 border border-secondary/40 bg-secondary/10 text-secondary font-mono font-bold px-3.5 py-2.5 sm:py-3 rounded-lg hover:bg-secondary/20 active:scale-[0.98] transition-all cursor-pointer text-xs"
-                >
-                  <Zap className="w-3.5 h-3.5" />
-                  <span>PLAY BREACH</span>
-                </button>
+                <>
+                  <button
+                    onClick={() => { sound.playBoot(); onOpenBreach(); }}
+                    className="flex items-center justify-center gap-1.5 border border-secondary/40 bg-secondary/10 text-secondary font-mono font-bold px-3.5 py-2.5 sm:py-3 rounded-lg hover:bg-secondary/20 active:scale-[0.98] transition-all cursor-pointer text-xs"
+                  >
+                    <Zap className="w-3.5 h-3.5" />
+                    <span>PLAY BREACH</span>
+                  </button>
+                  {onOpenCelestial && (
+                    <button
+                      onClick={() => onOpenCelestial()}
+                      className="flex items-center justify-center gap-1.5 border border-blue-300/35 bg-blue-400/10 text-blue-100 font-mono font-bold px-3.5 py-2.5 sm:py-3 rounded-lg hover:bg-blue-400/20 active:scale-[0.98] transition-all cursor-pointer text-xs"
+                    >
+                      <Moon className="w-3.5 h-3.5 text-amber-200" />
+                      <span>CELESTIAL ZEN</span>
+                    </button>
+                  )}
+                </>
               ) : (
                 <a
                   href="#pricing"
@@ -294,7 +307,7 @@ export const BentoGrid = ({
           </p>
         </motion.button>
 
-        {/* 4 — Breach Protocol & Upcoming Game */}
+        {/* 4 — Breach Protocol, Celestial Zen & Upcoming Game */}
         <motion.div {...fadeUp(0.2)} className="hud-card p-5 sm:p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between gap-2 mb-2.5">
@@ -309,17 +322,31 @@ export const BentoGrid = ({
                 +1 Game WIP
               </a>
             </div>
-            <h3 className="text-lg sm:text-xl font-black text-foreground uppercase mb-1">Breach Protocol</h3>
+            <h3 className="text-lg sm:text-xl font-black text-foreground uppercase mb-1">
+              Breach & Celestial Zen
+            </h3>
             <p className="text-muted-foreground text-xs leading-relaxed">
-              Hex-buffer puzzle (35s). Also building a full game on the side—it'll take time, if I'm still alive.
+              5×5 hex puzzle (35s) or 3-mode night-sky arcade. Also building a full game—takes time, if I'm still alive.
             </p>
           </div>
-          <button
-            onClick={() => { sound.playBoot(); onOpenBreach(); }}
-            className="mt-4 w-full flex items-center justify-center gap-2 bg-secondary/15 hover:bg-secondary/25 border border-secondary/40 text-secondary font-mono font-bold py-2.5 rounded-lg text-xs active:scale-[0.98] transition-all cursor-pointer"
-          >
-            <Play className="w-3.5 h-3.5 fill-current" /> PLAY PUZZLE
-          </button>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <button
+              onClick={() => { sound.playBoot(); onOpenBreach(); }}
+              className="flex items-center justify-center gap-1.5 bg-secondary/15 hover:bg-secondary/25 border border-secondary/40 text-secondary font-mono font-bold py-2.5 px-2 rounded-lg text-[11px] active:scale-[0.98] transition-all cursor-pointer"
+            >
+              <Play className="w-3 h-3 fill-current shrink-0" />
+              <span className="truncate">PLAY BREACH</span>
+            </button>
+            {onOpenCelestial && (
+              <button
+                onClick={() => onOpenCelestial()}
+                className="flex items-center justify-center gap-1.5 bg-blue-400/10 hover:bg-blue-400/20 border border-blue-300/35 text-blue-100 font-mono font-bold py-2.5 px-2 rounded-lg text-[11px] active:scale-[0.98] transition-all cursor-pointer"
+              >
+                <Moon className="w-3 h-3 text-amber-200 shrink-0" />
+                <span className="truncate">CELESTIAL ZEN</span>
+              </button>
+            )}
+          </div>
         </motion.div>
 
         {/* Exclusive Friend Lounge Card */}

@@ -20,6 +20,7 @@ import { Contact } from "@/components/sections/Contact";
 // Heavy overlays are split into their own chunks and only fetched the first time they're opened.
 const TerminalOverlay = lazy(() => import("@/components/TerminalOverlay").then(m => ({ default: m.TerminalOverlay })));
 const BreachProtocol = lazy(() => import("@/components/BreachProtocol").then(m => ({ default: m.BreachProtocol })));
+const CelestialZenModal = lazy(() => import("@/components/CelestialZenModal").then(m => ({ default: m.CelestialZenModal })));
 const MatrixTakeover = lazy(() => import("@/components/MatrixTakeover").then(m => ({ default: m.MatrixTakeover })));
 const CsiRadarModal = lazy(() => import("@/components/CsiRadarModal").then(m => ({ default: m.CsiRadarModal })));
 const CtfBountyBoard = lazy(() => import("@/components/CtfBountyBoard").then(m => ({ default: m.CtfBountyBoard })));
@@ -30,7 +31,7 @@ const OperatorInfiltrationModal = lazy(() => import("@/components/OperatorInfilt
 
 import { ZanophyMiniBar } from "@/components/ZanophyMiniBar";
 
-type Overlay = "terminal" | "breach" | "matrix" | "csi" | "ctf" | "megacenter" | "infiltration";
+type Overlay = "terminal" | "breach" | "celestial" | "matrix" | "csi" | "ctf" | "megacenter" | "infiltration";
 
 const Index = () => {
   const { persona } = usePersona();
@@ -45,6 +46,7 @@ const Index = () => {
   const [loaded, setLoaded] = useState<Record<Overlay, boolean>>({
     terminal: false,
     breach: false,
+    celestial: false,
     matrix: false,
     csi: false,
     ctf: false,
@@ -60,6 +62,7 @@ const Index = () => {
 
   const openTerminal = useCallback(() => show("terminal"), [show]);
   const openBreach = useCallback(() => show("breach"), [show]);
+  const openCelestial = useCallback(() => show("celestial"), [show]);
   const openMatrix = useCallback(() => show("matrix"), [show]);
   const openCsi = useCallback(() => show("csi"), [show]);
   const openCtf = useCallback(() => show("ctf"), [show]);
@@ -81,7 +84,8 @@ const Index = () => {
   }, [open, openTerminal]);
 
   const matrixOpen = open === "matrix";
-  const canvasOverlayActive = matrixOpen || introOpen;
+  const celestialOpen = open === "celestial";
+  const canvasOverlayActive = matrixOpen || celestialOpen || introOpen;
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-background text-foreground font-sans selection:bg-primary selection:text-background">
@@ -101,16 +105,22 @@ const Index = () => {
       )}
       <div className="scanlines fixed inset-0 pointer-events-none z-10 opacity-30" />
 
-      <EasterEggs onOpenTerminal={openTerminal} onOpenMatrixTakeover={openMatrix} />
+      <EasterEggs
+        disabled={open !== null || introOpen}
+        onOpenTerminal={openTerminal}
+        onOpenMatrixTakeover={openMatrix}
+      />
       <Navigation
         onOpenTerminal={openTerminal}
         onOpenBreach={openBreach}
+        onOpenCelestial={openCelestial}
         onOpenCtf={openCtf}
         onReplayIntro={replayIntro}
       />
       <CyberdeckFAB
         onOpenTerminal={openTerminal}
         onOpenBreach={openBreach}
+        onOpenCelestial={openCelestial}
         onOpenMatrixTakeover={openMatrix}
         onOpenCsi={openCsi}
         onOpenCtf={openCtf}
@@ -124,6 +134,7 @@ const Index = () => {
             inputEnabled={open === null && !introOpen}
             onOpenTerminal={openTerminal}
             onOpenBreach={openBreach}
+            onOpenCelestial={openCelestial}
             onOpenCsi={openCsi}
             onOpenCtf={openCtf}
             onOpenMegaCenter={openMegaCenter}
@@ -134,6 +145,7 @@ const Index = () => {
             <BentoGrid
               onOpenTerminal={openTerminal}
               onOpenBreach={openBreach}
+              onOpenCelestial={openCelestial}
               onOpenCsi={openCsi}
               onOpenCtf={openCtf}
               onOpenMegaCenter={openMegaCenter}
@@ -146,7 +158,7 @@ const Index = () => {
             {/* Culture, Philosophy, Breach Protocol & Minigames */}
             <Philosophy />
             <Pricing />
-            <Games onOpenBreach={openBreach} />
+            <Games onOpenBreach={openBreach} onOpenCelestial={openCelestial} />
             <Contact />
           </>
         )}
@@ -158,6 +170,7 @@ const Index = () => {
             isOpen={open === "terminal"}
             onClose={close}
             onOpenBreach={openBreach}
+            onOpenCelestial={openCelestial}
             onOpenMatrixTakeover={openMatrix}
             onOpenCsi={openCsi}
             onOpenCtf={openCtf}
@@ -165,6 +178,7 @@ const Index = () => {
           />
         )}
         {loaded.breach && <BreachProtocol isOpen={open === "breach"} onClose={close} />}
+        {loaded.celestial && <CelestialZenModal isOpen={celestialOpen} onClose={close} />}
         {loaded.matrix && <MatrixTakeover isOpen={matrixOpen} onClose={close} />}
         {loaded.csi && <CsiRadarModal isOpen={open === "csi"} onClose={close} />}
         {loaded.ctf && (

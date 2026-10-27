@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Zap, Radio, Volume2, VolumeX, X, Cpu, ShieldAlert, Wind, UserCheck, Smartphone, Eye, Code2 } from "lucide-react";
+import { Terminal, Zap, Radio, Volume2, VolumeX, X, Cpu, ShieldAlert, Wind, UserCheck, Smartphone, Eye, Code2, Moon } from "lucide-react";
 import { sound, AUDIO_MUTE_EVENT } from "@/lib/sound";
 import { usePersona } from "@/context/PersonaContext";
 import { useUniverseTheme } from "@/context/ThemeContext";
@@ -8,6 +8,7 @@ import { useUniverseTheme } from "@/context/ThemeContext";
 interface CyberdeckFABProps {
   onOpenTerminal: () => void;
   onOpenBreach: () => void;
+  onOpenCelestial?: () => void;
   onOpenMatrixTakeover: () => void;
   onOpenCsi?: () => void;
   onOpenCtf?: () => void;
@@ -17,6 +18,7 @@ interface CyberdeckFABProps {
 export const CyberdeckFAB = ({
   onOpenTerminal,
   onOpenBreach,
+  onOpenCelestial,
   onOpenMatrixTakeover,
   onOpenCsi,
   onOpenCtf,
@@ -127,6 +129,24 @@ export const CyberdeckFAB = ({
                 </div>
                 <span className="text-[10px] text-secondary/60 font-mono">GAME</span>
               </button>
+
+              {/* Celestial Zen Night Arcade */}
+              {onOpenCelestial && (
+                <button
+                  onClick={() => {
+                    sound.haptic(30);
+                    setIsOpen(false);
+                    onOpenCelestial();
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-blue-400/10 border border-blue-300/30 hover:bg-blue-400/20 text-blue-100 active:scale-95 transition-all text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <Moon className="w-4 h-4 text-amber-200" />
+                    <span className="font-bold">Celestial Zen</span>
+                  </div>
+                  <span className="text-[10px] text-blue-200/70 font-mono">ARCADE</span>
+                </button>
+              )}
 
               {/* CTF Bounty Board */}
               {onOpenCtf && (

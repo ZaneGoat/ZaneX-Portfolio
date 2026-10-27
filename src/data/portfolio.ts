@@ -238,6 +238,7 @@ export const terminalCommandsHelp = [
   { cmd: "theme [matrix | existence]", desc: "Switch between Default HUD & ASCII Map View" },
   { cmd: "matrix", desc: "Unleash full-screen Matrix Construct Takeover" },
   { cmd: "breach", desc: "Launch Cyberpunk Breach Protocol hacking minigame" },
+  { cmd: "celestial", desc: "Launch Celestial Zen Night Mode Arcade (3 modes)" },
   { cmd: "fortune", desc: "Display a random hacker/dev quote" },
   { cmd: "cowsay [msg]", desc: "Classic Linux cowsay ASCII art" },
   { cmd: "ping [host]", desc: "Ping remote hosts with simulated latency" },

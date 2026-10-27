@@ -17,6 +17,7 @@ interface ExistenceWorldProps {
   inputEnabled: boolean;
   onOpenTerminal: () => void;
   onOpenBreach: () => void;
+  onOpenCelestial?: () => void;
   onOpenCsi: () => void;
   onOpenCtf: () => void;
   onOpenMegaCenter: () => void;
@@ -79,6 +80,7 @@ export const ExistenceWorld: React.FC<ExistenceWorldProps> = ({
   inputEnabled,
   onOpenTerminal,
   onOpenBreach,
+  onOpenCelestial,
   onOpenCsi,
   onOpenCtf,
   onOpenMegaCenter,
@@ -161,10 +163,11 @@ export const ExistenceWorld: React.FC<ExistenceWorldProps> = ({
         id: "arena",
         glyph: "✦",
         name: "ARENA",
-        tag: "BREACH · CTF · WIP",
-        lore: "Training grounds. Slip past Arasaka ICE in Breach Protocol, hunt the three flags hidden across this portfolio, or wait on the standalone game currently in production — it will take time, if I'm still alive.",
+        tag: "BREACH · ZEN · CTF",
+        lore: "Training grounds. Slip past Arasaka ICE in Breach Protocol, drift through Celestial Zen night arcade, hunt the three hidden flags, or wait on the standalone game in production — it will take time, if I'm still alive.",
         actions: [
           { label: "BREACH ICE", run: onOpenBreach },
+          ...(onOpenCelestial ? [{ label: "CELESTIAL ZEN", run: onOpenCelestial }] : []),
           { label: "CTF BOARD", run: onOpenCtf }
         ]
       },
@@ -180,7 +183,7 @@ export const ExistenceWorld: React.FC<ExistenceWorldProps> = ({
         ]
       }
     ],
-    [identityLocked, specs, archiveRepos.length, onOpenInfiltration, onOpenTerminal, onOpenMegaCenter, onOpenCsi, onOpenBreach, onOpenCtf]
+    [identityLocked, specs, archiveRepos.length, onOpenInfiltration, onOpenTerminal, onOpenMegaCenter, onOpenCsi, onOpenBreach, onOpenCelestial, onOpenCtf]
   );
 
   const [selected, setSelected] = useState(0);

@@ -12,6 +12,7 @@ interface TerminalOverlayProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenBreach?: () => void;
+  onOpenCelestial?: () => void;
   onOpenMatrixTakeover?: () => void;
   onOpenCsi?: () => void;
   onOpenCtf?: () => void;
@@ -49,6 +50,7 @@ export const DECK_MODULES: DeckModule[] = [
 
   // Operations & Security
   { id: "breach", label: "Breach ICE", category: "ops", command: "breach", icon: "🔓", badge: "HEX", desc: "ICE Breaker Minigame" },
+  { id: "celestial", label: "Celestial Zen", category: "ops", command: "celestial", icon: "🌙", badge: "ZEN", desc: "Night Mode Arcade" },
   { id: "ctf", label: "CTF Bounties", category: "ops", command: "ctf", icon: "🛡️", badge: "QUEST", desc: "Cyber Bounties & Flags" },
   { id: "clearance", label: "Clearance", category: "ops", command: "clearance", icon: "🔒", badge: "LVL", desc: "Operator Security Vault" },
   { id: "matrix", label: "Matrix Construct", category: "ops", command: "matrix", icon: "🟢", badge: "FX", desc: "Rain & Particle Takeover" },
@@ -81,6 +83,7 @@ export const TerminalOverlay = ({
   isOpen,
   onClose,
   onOpenBreach,
+  onOpenCelestial,
   onOpenMatrixTakeover,
   onOpenCsi,
   onOpenCtf,
@@ -1163,6 +1166,18 @@ Allow: /
           onClose();
           if (onOpenBreach) onOpenBreach();
         }, 300);
+        break;
+
+      case "celestial":
+      case "zen":
+        newLogs.push({
+          type: "system",
+          content: "[+] Opening Celestial Zen — Night Mode Arcade..."
+        });
+        setTimeout(() => {
+          onClose();
+          if (onOpenCelestial) onOpenCelestial();
+        }, 260);
         break;
 
       case "maze":
