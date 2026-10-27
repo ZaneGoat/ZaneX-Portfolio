@@ -1,10 +1,14 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import { Check, ArrowRight, Zap, Terminal, Lock } from "lucide-react";
 import { pricingTiers, PricingTier } from "@/data/portfolio";
 import { SectionHeader } from "@/components/SectionHeader";
+import { AsciiPlanEntryOverlay } from "@/components/AsciiPlanEntryOverlay";
 import { sound } from "@/lib/sound";
 
 export const Pricing: React.FC = () => {
+  const [activeTier, setActiveTier] = useState<PricingTier | null>(null);
+  const [activeMailto, setActiveMailto] = useState<string>("");
+
   const handleInitiate = (tier: PricingTier) => {
     sound.playBoot();
     sound.haptic([30, 40]);
@@ -12,8 +16,14 @@ export const Pricing: React.FC = () => {
     const body = encodeURIComponent(
       `Hi Zane,\n\nI'd like to discuss the ${tier.name} plan (${tier.price}${tier.period}).\n\nCompany / Project:\n- Scope & Goals:\n- Preferred Start Date:\n- Current Stack:\n\nBest regards,`
     );
-    window.location.href = `mailto:azizmaaizat@outlook.com?subject=${subject}&body=${body}`;
+    setActiveMailto(`mailto:azizmaaizat@outlook.com?subject=${subject}&body=${body}`);
+    setActiveTier(tier);
   };
+
+  const handleCloseOverlay = useCallback(() => {
+    setActiveTier(null);
+    setActiveMailto("");
+  }, []);
 
   return (
     <section id="pricing" className="py-12 sm:py-16 md:py-24 relative z-10 cv-auto font-mono">
@@ -132,6 +142,13 @@ export const Pricing: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Procedural 3D ASCII Entry Sequence -> "It's way cheaper than you think." -> Direct Outlook Mailto */}
+      <AsciiPlanEntryOverlay
+        tier={activeTier}
+        mailtoUrl={activeMailto}
+        onClose={handleCloseOverlay}
+      />
     </section>
   );
 };
