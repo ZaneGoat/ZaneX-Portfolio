@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { sound } from "@/lib/sound";
 
 const RAMP = " .'`^\",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
 const RAMP_LEN = RAMP.length;
@@ -10,136 +11,147 @@ const smoothstep = (e0: number, e1: number, x: number) => {
   return t * t * (3.0 - 2.0 * t);
 };
 
+interface MatrixWatchingEyeProps {
+  className?: string;
+}
+
 /**
- * Matrix HUD Background Watching Eye
- * - Live procedural 70-character RGB ASCII eye behind the Matrix HUD layout.
- * - Smoothly tracks cursor/touch position across the entire viewport.
- * - Blinks organically on every click/tap anywhere on the page (via capture listener),
- *   plus occasional natural idle blinks.
+ * Fixed Top-Center Visor Optic Pod (Matrix HUD)
+ * - Live procedural 70-char RGB micro-ASCII eye housed in the center keystone of Navigation.
+ * - Tracks cursor & touch position relative to the top-center pod across the entire viewport.
+ * - Blinks organically on every click/tap anywhere on the page (and double-blinks when clicked directly).
  */
-export const MatrixWatchingEye: React.FC = () => {
+export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className = "" }) => {
+  const podRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [blinkFlash, setBlinkFlash] = useState(false);
+  const manualBlinkRef = useRef<number>(-10);
+  const doubleBlinkRef = useRef<boolean>(false);
+  const startMsRef = useRef<number>(performance.now());
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: true });
+    const pod = podRef.current;
+    if (!canvas || !pod) return;
+    const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
 
-    let width = 1;
-    let height = 1;
-    let cellW = 8;
-    let cellH = 14;
+    startMsRef.current = performance.now();
+    let cssW = 148;
+    let cssH = 48;
+    let dpr = 1;
+    let cellW = 4.2;
+    let cellH = 6.5;
     let cols = 1;
     let rows = 1;
-    let fontSpec = "bold 12px 'Consolas', 'Courier New', monospace";
+    let fontSpec = "bold 6.5px 'Consolas', 'Courier New', monospace";
     let uCoords = new Float32Array(0);
     let vCoords = new Float32Array(0);
-    let activeColStart = 0;
-    let activeColEnd = 0;
-    let activeRowStart = 0;
-    let activeRowEnd = 0;
 
     let targetX = 0;
     let targetY = 0;
     let smoothX = 0;
     let smoothY = 0;
-
-    const startTime = performance.now();
-    let manualBlinkStart = -10;
+    let nextAutoBlinkTime = 3.8;
     let autoBlinkStart = -10;
-    let nextAutoBlinkTime = 4.0;
+    let flashTimer: number | null = null;
 
-    const resizeGrid = () => {
-      width = Math.max(1, window.innerWidth);
-      height = Math.max(1, window.innerHeight);
-      const isDesktop = width >= 768;
+    const resizePod = () => {
+      const vw = window.innerWidth;
+      if (vw < 640) {
+        cssW = 92;
+        cssH = 34;
+      } else if (vw < 1024) {
+        cssW = 132;
+        cssH = 42;
+      } else {
+        cssW = 168;
+        cssH = 50;
+      }
 
-      const fontSize = width < 640 ? 10 : width < 1024 ? 12 : 13;
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      const fontSize = vw < 640 ? 5.6 : vw < 1024 ? 6.4 : 7.0;
       fontSpec = `bold ${fontSize}px 'Consolas', 'Courier New', monospace`;
-      ctx.font = fontSpec;
-      const charWidth = ctx.measureText("M").width || fontSize * 0.6;
-      cellW = Math.max(6, Math.round(charWidth));
-      cellH = Math.max(9, Math.round(fontSize * 1.24));
 
-      canvas.width = width;
-      canvas.height = height;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
+      canvas.width = Math.round(cssW * dpr);
+      canvas.height = Math.round(cssH * dpr);
+      canvas.style.width = `${cssW}px`;
+      canvas.style.height = `${cssH}px`;
 
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.font = fontSpec;
       ctx.textBaseline = "top";
 
-      cols = Math.max(20, Math.ceil(width / cellW));
-      rows = Math.max(16, Math.ceil(height / cellH));
+      const measuredW = ctx.measureText("M").width || fontSize * 0.6;
+      cellW = Math.max(3.1, measuredW);
+      cellH = Math.max(4.8, fontSize * 1.12);
+
+      cols = Math.max(16, Math.ceil(cssW / cellW));
+      rows = Math.max(6, Math.ceil(cssH / cellH));
 
       uCoords = new Float32Array(cols);
       vCoords = new Float32Array(rows);
 
-      // Large isotropic scale so the background eye spans majestically across the Matrix HUD
-      const unitPixels = isDesktop
-        ? Math.min(height * 0.56, width * 0.42)
-        : Math.min(height * 0.36, width * 0.46);
-
-      activeColStart = cols;
-      activeColEnd = 0;
+      // Isotropic physical scaling so iris & pupil stay circular inside the almond pod
+      const unitPx = Math.min(cssW * 0.45, cssH * 1.05);
       for (let c = 0; c < cols; c++) {
-        const px = (c + 0.5) * cellW - width * 0.5;
-        const u = px / unitPixels;
-        uCoords[c] = u;
-        if (Math.abs(u) <= 1.12) {
-          if (c < activeColStart) activeColStart = c;
-          if (c > activeColEnd) activeColEnd = c;
-        }
+        const px = (c + 0.5) * cellW - cssW * 0.5;
+        uCoords[c] = px / unitPx;
       }
-
-      activeRowStart = rows;
-      activeRowEnd = 0;
       for (let r = 0; r < rows; r++) {
-        const py = (r + 0.5) * cellH - height * 0.5;
-        const v = py / unitPixels;
-        vCoords[r] = v;
-        if (Math.abs(v) <= 0.52) {
-          if (r < activeRowStart) activeRowStart = r;
-          if (r > activeRowEnd) activeRowEnd = r;
-        }
+        const py = (r + 0.5) * cellH - cssH * 0.5;
+        vCoords[r] = py / unitPx;
       }
     };
 
-    resizeGrid();
+    resizePod();
 
-    const updateTargetFromPoint = (clientX: number, clientY: number) => {
-      if (width <= 0 || height <= 0) return;
-      targetX = clamp((clientX - width * 0.5) / (width * 0.5), -1.0, 1.0);
-      targetY = clamp((clientY - height * 0.5) / (height * 0.5), -1.0, 1.0);
+    const updateGazeFromPoint = (clientX: number, clientY: number) => {
+      const vw = Math.max(1, window.innerWidth);
+      const vh = Math.max(1, window.innerHeight);
+      const rect = pod.getBoundingClientRect();
+      const cx = rect.left + rect.width * 0.5;
+      // Horizontal gaze relative to the center pod; vertical gaze relative to upper-hero horizon
+      targetX = clamp((clientX - cx) / (vw * 0.44), -1.0, 1.0);
+      targetY = clamp((clientY - vh * 0.26) / (vh * 0.62), -1.0, 1.0);
     };
 
     const onPointerMove = (e: PointerEvent) => {
-      updateTargetFromPoint(e.clientX, e.clientY);
+      updateGazeFromPoint(e.clientX, e.clientY);
     };
 
     const onTouchMove = (e: TouchEvent) => {
       if (!e.touches || e.touches.length === 0) return;
-      updateTargetFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+      updateGazeFromPoint(e.touches[0].clientX, e.touches[0].clientY);
     };
 
-    const onPointerDown = (e: PointerEvent) => {
-      const nowSec = (performance.now() - startTime) * 0.001;
-      manualBlinkStart = nowSec;
-      nextAutoBlinkTime = nowSec + 3.8 + Math.random() * 3.0;
-      updateTargetFromPoint(e.clientX, e.clientY);
+    const triggerBlinkPulse = (clientX?: number, clientY?: number, isDouble = false) => {
+      const nowSec = (performance.now() - startMsRef.current) * 0.001;
+      manualBlinkRef.current = nowSec;
+      doubleBlinkRef.current = isDouble;
+      nextAutoBlinkTime = nowSec + 4.0 + Math.random() * 3.2;
+
+      if (typeof clientX === "number" && typeof clientY === "number") {
+        updateGazeFromPoint(clientX, clientY);
+      }
+
+      setBlinkFlash(true);
+      if (flashTimer !== null) window.clearTimeout(flashTimer);
+      flashTimer = window.setTimeout(() => setBlinkFlash(false), 260);
     };
 
-    // Capture phase ensures clicks on buttons/cards that call stopPropagation() still blink the eye
-    window.addEventListener("resize", resizeGrid, { passive: true });
+    const onGlobalPointerDown = (e: PointerEvent) => {
+      triggerBlinkPulse(e.clientX, e.clientY, false);
+    };
+
+    window.addEventListener("resize", resizePod, { passive: true });
     window.addEventListener("pointermove", onPointerMove, { capture: true, passive: true });
     window.addEventListener("touchmove", onTouchMove, { capture: true, passive: true });
-    window.addEventListener("pointerdown", onPointerDown, { capture: true, passive: true });
+    window.addEventListener("pointerdown", onGlobalPointerDown, { capture: true, passive: true });
 
     const eyeOut = { r: 0, g: 0, b: 0, lum: 0 };
 
-    const computeBlinkFactor = (elapsed: number, duration: number): number => {
+    const computeSingleBlink = (elapsed: number, duration: number): number => {
       if (elapsed < 0 || elapsed > duration) return 1.0;
       const closeEnd = duration * 0.36;
       const holdEnd = duration * 0.50;
@@ -152,7 +164,7 @@ export const MatrixWatchingEye: React.FC = () => {
       return 0.02 + 0.98 * smoothstep(0.0, 1.0, (elapsed - holdEnd) / (duration - holdEnd));
     };
 
-    const evaluateWatchingEye = (
+    const evaluateVisorEye = (
       u: number,
       v: number,
       t: number,
@@ -163,21 +175,20 @@ export const MatrixWatchingEye: React.FC = () => {
     ) => {
       const absU = Math.abs(u);
       const absV = Math.abs(v);
-      if (absU >= 1.06 || absV >= 0.46) {
+      if (absU >= 1.05 || absV >= 0.46) {
         eyeOut.lum = 0;
         return;
       }
 
-      const eyeSpanX = 1.04;
-      const nx = u / eyeSpanX;
-      const arch = Math.pow(Math.max(0.0, 1.0 - nx * nx), 0.85);
+      const nx = u / 1.02;
+      const arch = Math.pow(Math.max(0.0, 1.0 - nx * nx), 0.82);
 
-      const maxHalfOpen = 0.38;
-      const gazeLidShift = lookV * 0.05 * arch * blinkOpen;
+      const maxHalfOpen = 0.40;
+      const gazeLidShift = lookV * 0.045 * arch * blinkOpen;
       const upperLid = -maxHalfOpen * arch * blinkOpen + gazeLidShift;
       const lowerLid = maxHalfOpen * arch * blinkOpen + gazeLidShift;
 
-      const insideAperture = v >= upperLid && v <= lowerLid && blinkOpen > 0.02;
+      const insideAperture = v >= upperLid && v <= lowerLid && blinkOpen > 0.025;
 
       if (insideAperture) {
         const eu = u - lookU;
@@ -188,68 +199,26 @@ export const MatrixWatchingEye: React.FC = () => {
         const distToUpper = v - upperLid;
         const distToLower = lowerLid - v;
         const lidShadow =
-          smoothstep(0.0, 0.11, distToUpper) * smoothstep(0.0, 0.08, distToLower);
+          smoothstep(0.0, 0.10, distToUpper) * smoothstep(0.0, 0.08, distToLower);
 
-        const specDist = Math.hypot(eu + 0.075 - lookU * 0.14, ev + 0.068 - lookV * 0.14);
-        const spec2Dist = Math.hypot(eu - 0.068, ev - 0.055);
+        const specDist = Math.hypot(eu + 0.075 - lookU * 0.12, ev + 0.065 - lookV * 0.12);
+        const spec2Dist = Math.hypot(eu - 0.065, ev - 0.055);
         const spec =
-          Math.exp(-specDist * specDist * 1150.0) +
-          0.42 * Math.exp(-spec2Dist * spec2Dist * 1450.0);
+          Math.exp(-specDist * specDist * 980.0) +
+          0.45 * Math.exp(-spec2Dist * spec2Dist * 1300.0);
 
-        const pupilRadius = 0.125 + 0.032 * clickPulse;
+        const pupilRadius = 0.13 + 0.035 * clickPulse;
 
         if (r < pupilRadius) {
-          const pupilEdge = smoothstep(pupilRadius - 0.024, pupilRadius, r);
-          let rr = mix(4, 0, pupilEdge);
-          let gg = mix(8, 145, pupilEdge);
-          let bb = mix(14, 102, pupilEdge);
-          let lum = mix(0.04, 0.38, pupilEdge);
+          const pupilEdge = smoothstep(pupilRadius - 0.028, pupilRadius, r);
+          let rr = mix(3, 0, pupilEdge);
+          let gg = mix(6, 175, pupilEdge);
+          let bb = mix(12, 120, pupilEdge);
+          let lum = mix(0.03, 0.42, pupilEdge);
 
           if (spec > 0.06) {
             const s = clamp(spec, 0.0, 1.0);
-            rr = mix(rr, 235, s);
-            gg = mix(gg, 255, s);
-            bb = mix(bb, 248, s);
-            lum = mix(lum, 1.0, s);
-          }
-
-          eyeOut.r = rr;
-          eyeOut.g = gg;
-          eyeOut.b = bb;
-          eyeOut.lum = lum;
-          return;
-        } else if (r < 0.355) {
-          const nr = (r - pupilRadius) / (0.355 - pupilRadius);
-          const fiberWave = Math.sin(angle * 26.0 + Math.sin(r * 34.0 + t * 0.9));
-          const fiberWave2 = Math.cos(angle * 18.0 - Math.cos(r * 42.0 - t * 0.6));
-          const fibers = 0.5 + 0.34 * fiberWave + 0.16 * fiberWave2;
-
-          const collarette = Math.exp(-Math.pow((nr - 0.28) / 0.16, 2.0));
-          const limbal = smoothstep(1.0, 0.74, nr);
-          const tone = clamp(fibers * 0.68 + collarette * 0.48, 0.0, 1.0) * limbal;
-
-          const goldMix = clamp(collarette * (0.52 + 0.48 * clickPulse), 0.0, 1.0);
-          const baseR = mix(0, 255, goldMix);
-          const baseG = mix(255, 215, goldMix);
-          const baseB = mix(158, 95, goldMix);
-
-          let rr = mix(baseR * 0.35, baseR, tone) * (0.45 + 0.55 * limbal);
-          let gg = mix(baseG * 0.48, baseG, tone) * (0.45 + 0.55 * limbal);
-          let bb = mix(baseB * 0.48, baseB, tone) * (0.45 + 0.55 * limbal);
-
-          rr *= 0.48 + 0.52 * lidShadow;
-          gg *= 0.48 + 0.52 * lidShadow;
-          bb *= 0.48 + 0.52 * lidShadow;
-
-          let lum = clamp(
-            (0.35 + 0.63 * tone) * limbal * (0.48 + 0.52 * lidShadow),
-            0.07,
-            0.96
-          );
-
-          if (spec > 0.05) {
-            const s = clamp(spec, 0.0, 1.0);
-            rr = mix(rr, 240, s);
+            rr = mix(rr, 245, s);
             gg = mix(gg, 255, s);
             bb = mix(bb, 250, s);
             lum = mix(lum, 1.0, s);
@@ -260,29 +229,73 @@ export const MatrixWatchingEye: React.FC = () => {
           eyeOut.b = bb;
           eyeOut.lum = lum;
           return;
-        } else {
-          const sphereZ = Math.sqrt(Math.max(0.05, 1.0 - (u * u * 0.65 + v * v * 2.2)));
-          const limbusAO = smoothstep(0.355, 0.405, r);
-          const shade = sphereZ * (0.40 + 0.60 * lidShadow) * (0.72 + 0.28 * limbusAO);
+        } else if (r < 0.365) {
+          const nr = (r - pupilRadius) / (0.365 - pupilRadius);
+          const fiberWave = Math.sin(angle * 22.0 + Math.sin(r * 30.0 + t * 1.1));
+          const fiberWave2 = Math.cos(angle * 14.0 - Math.cos(r * 36.0 - t * 0.7));
+          const fibers = 0.5 + 0.35 * fiberWave + 0.15 * fiberWave2;
 
-          eyeOut.r = 72 * shade;
-          eyeOut.g = 210 * shade;
-          eyeOut.b = 165 * shade;
-          eyeOut.lum = clamp(shade * 0.62, 0.06, 0.66);
+          const collarette = Math.exp(-Math.pow((nr - 0.28) / 0.18, 2.0));
+          const limbal = smoothstep(1.0, 0.72, nr);
+          const tone = clamp(fibers * 0.68 + collarette * 0.52, 0.0, 1.0) * limbal;
+
+          // Vivid Matrix Emerald + Golden-Amber Collarette Flare on Click
+          const goldMix = clamp(collarette * (0.55 + 0.45 * clickPulse), 0.0, 1.0);
+          const baseR = mix(0, 255, goldMix);
+          const baseG = mix(255, 220, goldMix);
+          const baseB = mix(158, 95, goldMix);
+
+          let rr = mix(baseR * 0.38, baseR, tone) * (0.50 + 0.50 * limbal);
+          let gg = mix(baseG * 0.52, baseG, tone) * (0.50 + 0.50 * limbal);
+          let bb = mix(baseB * 0.52, baseB, tone) * (0.50 + 0.50 * limbal);
+
+          rr *= 0.52 + 0.48 * lidShadow;
+          gg *= 0.52 + 0.48 * lidShadow;
+          bb *= 0.52 + 0.48 * lidShadow;
+
+          let lum = clamp(
+            (0.40 + 0.60 * tone) * limbal * (0.52 + 0.48 * lidShadow),
+            0.10,
+            0.98
+          );
+
+          if (spec > 0.05) {
+            const s = clamp(spec, 0.0, 1.0);
+            rr = mix(rr, 245, s);
+            gg = mix(gg, 255, s);
+            bb = mix(bb, 252, s);
+            lum = mix(lum, 1.0, s);
+          }
+
+          eyeOut.r = rr;
+          eyeOut.g = gg;
+          eyeOut.b = bb;
+          eyeOut.lum = lum;
+          return;
+        } else {
+          // Crisp spherical cyber-sclera
+          const sphereZ = Math.sqrt(Math.max(0.06, 1.0 - (u * u * 0.68 + v * v * 2.1)));
+          const limbusAO = smoothstep(0.365, 0.415, r);
+          const shade = sphereZ * (0.45 + 0.55 * lidShadow) * (0.74 + 0.26 * limbusAO);
+
+          eyeOut.r = 95 * shade;
+          eyeOut.g = 230 * shade;
+          eyeOut.b = 185 * shade;
+          eyeOut.lum = clamp(shade * 0.72, 0.08, 0.76);
           return;
         }
       }
 
-      // Eyelid cyber-lash contour (glows brightly during blink closure!)
+      // Eyelid cyber-lash contour (glows vivid emerald when blinking shut!)
       const dLid = Math.min(Math.abs(v - upperLid), Math.abs(v - lowerLid));
-      const lidThickness = blinkOpen < 0.15 ? 0.052 : 0.038;
+      const lidThickness = blinkOpen < 0.15 ? 0.068 : 0.048;
       if (dLid < lidThickness) {
-        const lashStrength = (1.0 - dLid / lidThickness) * (1.0 - Math.abs(nx) * 0.32);
-        const blinkGlow = 1.0 + (1.0 - blinkOpen) * 0.75;
-        eyeOut.r = clamp(mix(0, 120, lashStrength) * blinkGlow, 0, 255);
-        eyeOut.g = clamp(mix(110, 255, lashStrength) * blinkGlow, 0, 255);
-        eyeOut.b = clamp(mix(75, 190, lashStrength) * blinkGlow, 0, 255);
-        eyeOut.lum = clamp(lashStrength * (0.46 + 0.38 * (1.0 - blinkOpen)), 0.09, 0.88);
+        const lashStrength = (1.0 - dLid / lidThickness) * (1.0 - Math.abs(nx) * 0.28);
+        const blinkGlow = 1.0 + (1.0 - blinkOpen) * 0.85;
+        eyeOut.r = clamp(mix(0, 140, lashStrength) * blinkGlow, 0, 255);
+        eyeOut.g = clamp(mix(135, 255, lashStrength) * blinkGlow, 0, 255);
+        eyeOut.b = clamp(mix(90, 200, lashStrength) * blinkGlow, 0, 255);
+        eyeOut.lum = clamp(lashStrength * (0.55 + 0.40 * (1.0 - blinkOpen)), 0.12, 0.94);
         return;
       }
 
@@ -291,7 +304,7 @@ export const MatrixWatchingEye: React.FC = () => {
 
     let rafId = 0;
     let lastFrameMs = 0;
-    const frameInterval = 1000 / 32;
+    const frameInterval = 1000 / 40;
 
     const render = (now: number) => {
       rafId = requestAnimationFrame(render);
@@ -299,34 +312,38 @@ export const MatrixWatchingEye: React.FC = () => {
       if (now - lastFrameMs < frameInterval) return;
       lastFrameMs = now;
 
-      const t = (now - startTime) * 0.001;
+      const t = (now - startMsRef.current) * 0.001;
 
       if (t >= nextAutoBlinkTime) {
         autoBlinkStart = t;
-        nextAutoBlinkTime = t + 4.0 + Math.random() * 3.5;
+        nextAutoBlinkTime = t + 4.2 + Math.random() * 3.4;
       }
 
-      smoothX += (targetX - smoothX) * 0.16;
-      smoothY += (targetY - smoothY) * 0.16;
+      smoothX += (targetX - smoothX) * 0.18;
+      smoothY += (targetY - smoothY) * 0.18;
 
-      // Full-range cursor tracking across the almond eye aperture
-      const lookU = smoothX * 0.40 + 0.007 * Math.sin(t * 1.4);
-      const lookV = smoothY * 0.18 + 0.005 * Math.cos(t * 1.1);
+      const lookU = smoothX * 0.44 + 0.007 * Math.sin(t * 1.5);
+      const lookV = smoothY * 0.15 + 0.004 * Math.cos(t * 1.2);
 
-      const manualBlink = computeBlinkFactor(t - manualBlinkStart, 0.30);
-      const autoBlink = computeBlinkFactor(t - autoBlinkStart, 0.25);
+      const sinceManual = t - manualBlinkRef.current;
+      let manualBlink = computeSingleBlink(sinceManual, 0.28);
+      if (doubleBlinkRef.current && sinceManual > 0.30 && sinceManual <= 0.58) {
+        manualBlink = Math.min(manualBlink, computeSingleBlink(sinceManual - 0.30, 0.26));
+      }
+      const autoBlink = computeSingleBlink(t - autoBlinkStart, 0.24);
       const blinkOpen = Math.min(manualBlink, autoBlink);
 
-      const sinceClick = t - manualBlinkStart;
       const clickPulse =
-        sinceClick >= 0 && sinceClick < 0.55
-          ? Math.sin((sinceClick / 0.55) * Math.PI)
+        sinceManual >= 0 && sinceManual < 0.55
+          ? Math.sin((sinceManual / 0.55) * Math.PI)
           : 0.0;
 
-      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#03060e";
+      ctx.fillRect(0, 0, cssW, cssH);
       ctx.font = fontSpec;
 
-      for (let r = activeRowStart; r <= activeRowEnd; r++) {
+      let lastColor = "";
+      for (let r = 0; r < rows; r++) {
         const v = vCoords[r];
         const py = r * cellH;
 
@@ -335,16 +352,19 @@ export const MatrixWatchingEye: React.FC = () => {
         let batchColor = "";
 
         const flushBatch = () => {
-          if (batchStr.length > 0) {
-            ctx.fillStyle = batchColor;
+          if (batchStr.length > 0 && batchColor) {
+            if (batchColor !== lastColor) {
+              ctx.fillStyle = batchColor;
+              lastColor = batchColor;
+            }
             ctx.fillText(batchStr, batchStartCol * cellW, py);
             batchStr = "";
           }
         };
 
-        for (let c = activeColStart; c <= activeColEnd; c++) {
+        for (let c = 0; c < cols; c++) {
           const u = uCoords[c];
-          evaluateWatchingEye(u, v, t, blinkOpen, lookU, lookV, clickPulse);
+          evaluateVisorEye(u, v, t, blinkOpen, lookU, lookV, clickPulse);
 
           if (eyeOut.lum <= 0.03) {
             flushBatch();
@@ -384,18 +404,63 @@ export const MatrixWatchingEye: React.FC = () => {
 
     return () => {
       cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", resizeGrid);
+      if (flashTimer !== null) window.clearTimeout(flashTimer);
+      window.removeEventListener("resize", resizePod);
       window.removeEventListener("pointermove", onPointerMove, true);
       window.removeEventListener("touchmove", onTouchMove, true);
-      window.removeEventListener("pointerdown", onPointerDown, true);
+      window.removeEventListener("pointerdown", onGlobalPointerDown, true);
     };
   }, []);
 
+  const handlePodClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    sound.playRadarPing();
+    sound.haptic(25);
+    const nowSec = (performance.now() - startMsRef.current) * 0.001;
+    manualBlinkRef.current = nowSec;
+    doubleBlinkRef.current = true;
+    setBlinkFlash(true);
+    window.setTimeout(() => setBlinkFlash(false), 450);
+  };
+
   return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden="true"
-      className="fixed inset-0 pointer-events-none z-0 opacity-[0.62] sm:opacity-[0.72] mix-blend-screen"
-    />
+    <div
+      ref={podRef}
+      onClick={handlePodClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          sound.playRadarPing();
+          const nowSec = (performance.now() - startMsRef.current) * 0.001;
+          manualBlinkRef.current = nowSec;
+          doubleBlinkRef.current = true;
+        }
+      }}
+      title="Overwatch ASCII Optic — Follows Cursor · Click Anywhere to Blink"
+      aria-label="Overwatch ASCII Optic — Follows Cursor and Blinks on Click"
+      className={`group relative flex items-center justify-center rounded-xl bg-[#03060e] px-1.5 sm:px-2.5 py-1 border transition-all duration-200 cursor-pointer select-none overflow-hidden ${
+        blinkFlash
+          ? "border-[#00ff9e] shadow-[0_0_22px_rgba(0,255,158,0.55),inset_0_0_12px_rgba(0,255,158,0.22)]"
+          : "border-primary/45 hover:border-primary/85 shadow-[0_6px_24px_rgba(0,0,0,0.85),0_0_14px_rgba(0,255,158,0.16)]"
+      } ${className}`}
+    >
+      {/* Sculpted Corner Reticles */}
+      <span className="pointer-events-none absolute top-0.5 left-1 text-[8px] leading-none text-primary/70 font-mono">
+        ⌜
+      </span>
+      <span className="pointer-events-none absolute top-0.5 right-1 text-[8px] leading-none text-primary/70 font-mono">
+        ⌝
+      </span>
+      <span className="pointer-events-none absolute bottom-0.5 left-1 text-[8px] leading-none text-primary/70 font-mono">
+        ⌞
+      </span>
+      <span className="pointer-events-none absolute bottom-0.5 right-1 text-[8px] leading-none text-primary/70 font-mono">
+        ⌟
+      </span>
+
+      <canvas ref={canvasRef} className="block rounded-md pointer-events-none" />
+    </div>
   );
 };

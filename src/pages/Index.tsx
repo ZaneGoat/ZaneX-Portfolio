@@ -3,7 +3,6 @@ import { usePersona } from "@/context/PersonaContext";
 import { useOperatorClearance } from "@/context/OperatorClearanceContext";
 import { useUniverseTheme } from "@/context/ThemeContext";
 import { MatrixRain } from "@/components/MatrixRain";
-import { MatrixWatchingEye } from "@/components/MatrixWatchingEye";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import { ExistenceAsciiCanvas } from "@/components/ExistenceAsciiCanvas";
 import { ExistenceWorld } from "@/components/ExistenceWorld";
@@ -100,7 +99,6 @@ const Index = () => {
         ) : (
           <>
             <MatrixRain />
-            <MatrixWatchingEye />
             <FloatingParticles />
           </>
         )
@@ -129,7 +127,7 @@ const Index = () => {
         onOpenMegaCenter={openMegaCenter}
       />
 
-      <main className={isExistence ? "relative z-10 pt-20 sm:pt-28" : "relative z-10 pt-14 sm:pt-16"}>
+      <main className={isExistence ? "relative z-10 pt-20 sm:pt-28" : "relative z-10 pt-[68px] sm:pt-20"}>
         {isExistence ? (
           /* ASCII universe: a completely different, game-style layout */
           <ExistenceWorld
