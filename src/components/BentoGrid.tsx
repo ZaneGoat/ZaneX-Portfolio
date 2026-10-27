@@ -2,7 +2,7 @@ import { memo, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Terminal, Cpu, ExternalLink, Zap, Clock, MapPin, Monitor, Play, Github, Keyboard,
-  Radio, ShieldAlert, Lock, Key
+  Radio, ShieldAlert, Lock, Key, ChevronDown, ChevronUp, FolderGit2
 } from "lucide-react";
 import { CelestialZenLogo } from "@/components/CelestialZenLogo";
 import { systemSpecsByPersona } from "@/data/portfolio";
@@ -56,9 +56,21 @@ export const BentoGrid = ({
 }: BentoGridProps) => {
   const { persona } = usePersona();
   const { clearance, clearanceLevel } = useOperatorClearance();
+  const [showMoreProjects, setShowMoreProjects] = useState(false);
   const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.operator;
 
   const isOperator = persona === "operator";
+
+  useEffect(() => {
+    const onExpand = () => setShowMoreProjects(true);
+    const onCollapse = () => setShowMoreProjects(false);
+    window.addEventListener("zanex:expand-repos", onExpand);
+    window.addEventListener("zanex:collapse-repos", onCollapse);
+    return () => {
+      window.removeEventListener("zanex:expand-repos", onExpand);
+      window.removeEventListener("zanex:collapse-repos", onCollapse);
+    };
+  }, []);
 
   // Operator Redactions based on clearance
   const displayName = isOperator && !clearance.identityUnlocked ? "████████ ████████" : activeSpecs.realName;
@@ -81,68 +93,68 @@ export const BentoGrid = ({
     : activeSpecs.stats;
 
   return (
-    <section id="overview" className="relative z-10 px-3.5 sm:px-6 md:px-8 pt-3 sm:pt-6 pb-12 sm:pb-20 max-w-7xl mx-auto">
+    <section id="overview" className="relative z-10 px-3 sm:px-6 md:px-8 pt-2 sm:pt-6 pb-8 sm:pb-20 max-w-7xl mx-auto">
       {/* Compact Visitor Bar: Mode & Hardware Check */}
-      <motion.div {...fadeUp(0)} className="mb-4 sm:mb-6 flex flex-col items-center gap-2">
+      <motion.div {...fadeUp(0)} className="mb-3 sm:mb-6 flex flex-col items-center gap-1.5 sm:gap-2">
         <PersonaSwitcher variant="hero" />
         <DeviceQuestion />
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
 
-        {/* 1 — Identity (Hero) */}
-        <motion.div {...fadeUp(0.04)} className="hud-card md:col-span-2 lg:row-span-2 p-5 sm:p-8 md:p-10 relative overflow-hidden flex flex-col justify-between">
-          <div>
-            <div className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-[11px] font-mono mb-4 sm:mb-6 border ${
+        {/* 1 — Identity (Hero) — Optimized to fit phone viewports cleanly */}
+        <motion.div {...fadeUp(0.04)} className="hud-card md:col-span-2 lg:row-span-2 p-4 sm:p-8 md:p-10 relative overflow-hidden flex flex-col justify-between">
+          <div className="min-w-0">
+            <div className={`inline-flex max-w-full items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-[11px] font-mono mb-2.5 sm:mb-6 border ${
               isOperator && !clearance.identityUnlocked
                 ? "bg-red-500/10 border-red-500/30 text-red-400"
                 : "bg-primary/10 border-primary/25 text-primary"
             }`}>
-              <span className={`inline-flex rounded-full w-1.5 h-1.5 ${
+              <span className={`inline-flex rounded-full w-1.5 h-1.5 shrink-0 ${
                 isOperator && !clearance.identityUnlocked ? "bg-red-500" : "bg-primary"
               }`} />
               <span className="truncate">{displayStatus}</span>
             </div>
 
-            <p className="font-mono text-xs text-muted-foreground mb-1.5">$ whoami</p>
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[0.98] uppercase select-none">
+            <p className="font-mono text-[11px] sm:text-xs text-muted-foreground mb-1">$ whoami</p>
+            <h1 className="text-2xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.02] sm:leading-[0.98] uppercase select-none break-words">
               <span className="text-primary">{displayName.split(" ")[0]}</span>
               <br />
               <span className="text-foreground">{displayName.split(" ").slice(1).join(" ")}</span>
             </h1>
-            <p className="mt-3 sm:mt-4 font-mono text-xs sm:text-sm md:text-base text-foreground/85">
+            <p className="mt-2 sm:mt-4 font-mono text-[11px] sm:text-sm md:text-base text-foreground/85 leading-snug">
               <span className="text-primary font-bold">{displayHandle}</span> — {displayRole}
             </p>
-            <p className="mt-3 text-muted-foreground text-xs sm:text-sm md:text-base leading-relaxed max-w-xl">
+            <p className="mt-2 sm:mt-3 text-muted-foreground text-[11px] sm:text-sm md:text-base leading-relaxed max-w-xl line-clamp-3 sm:line-clamp-none">
               {displayBio}
             </p>
           </div>
 
           <div>
             {/* Compact Stats Strip */}
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-4 my-5 sm:my-7 max-w-md pt-4 border-t border-white/[0.07]">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 my-3.5 sm:my-7 max-w-md pt-3 sm:pt-4 border-t border-white/[0.07]">
               {displayStats.map(s => (
-                <div key={s.label} className="border-l-2 border-primary/40 pl-2.5 sm:pl-3">
-                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-foreground font-mono leading-tight">{s.value}</div>
-                  <div className="text-[10px] sm:text-[11px] uppercase tracking-wider text-muted-foreground font-mono mt-0.5">{s.label}</div>
+                <div key={s.label} className="border-l-2 border-primary/40 pl-2 sm:pl-3 min-w-0">
+                  <div className="text-lg sm:text-2xl md:text-3xl font-black text-foreground font-mono leading-tight truncate">{s.value}</div>
+                  <div className="text-[9px] sm:text-[11px] uppercase tracking-wider text-muted-foreground font-mono mt-0.5 truncate">{s.label}</div>
                 </div>
               ))}
             </div>
 
             {/* Action Buttons: Clean 2-col grid on phones, inline flex on desktop */}
-            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 sm:gap-2">
               <button
                 onClick={() => { sound.playBoot(); onOpenTerminal(); }}
-                className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 bg-primary text-background font-mono font-bold px-4 sm:px-5 py-2.5 sm:py-3 rounded-lg hover:bg-primary/90 active:scale-[0.98] transition-all text-xs cursor-pointer"
+                className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 sm:gap-2 bg-primary text-background font-mono font-bold px-3.5 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-primary/90 active:scale-[0.98] transition-all text-[11px] sm:text-xs cursor-pointer"
               >
-                <Terminal className="w-4 h-4" />
-                OPEN TERMINAL
+                <Terminal className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span>OPEN TERMINAL</span>
               </button>
 
               {isOperator && (
                 <button
                   onClick={() => { sound.playBoot(); onOpenInfiltration?.(); }}
-                  className={`flex items-center justify-center gap-1.5 font-mono font-bold px-3.5 py-2.5 sm:py-3 rounded-lg text-xs transition-all cursor-pointer ${
+                  className={`flex items-center justify-center gap-1.5 font-mono font-bold px-2.5 sm:px-3.5 py-2 sm:py-3 rounded-lg text-[11px] sm:text-xs transition-all cursor-pointer min-w-0 ${
                     clearance.identityUnlocked
                       ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
                       : "border border-red-500/50 bg-red-500/10 text-red-400 hover:bg-red-500/20"
@@ -158,10 +170,10 @@ export const BentoGrid = ({
               {onOpenCtf && (
                 <button
                   onClick={() => { sound.playBoot(); onOpenCtf(); }}
-                  className="flex items-center justify-center gap-1.5 border border-amber-500/40 bg-amber-500/10 text-amber-300 font-mono font-bold px-3.5 py-2.5 sm:py-3 rounded-lg hover:bg-amber-500/20 active:scale-[0.98] transition-all text-xs cursor-pointer"
+                  className="flex items-center justify-center gap-1.5 border border-amber-500/40 bg-amber-500/10 text-amber-300 font-mono font-bold px-2.5 sm:px-3.5 py-2 sm:py-3 rounded-lg hover:bg-amber-500/20 active:scale-[0.98] transition-all text-[11px] sm:text-xs cursor-pointer min-w-0"
                 >
                   <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
-                  <span>CTF BOARD</span>
+                  <span className="truncate">CTF BOARD</span>
                 </button>
               )}
 
@@ -169,18 +181,18 @@ export const BentoGrid = ({
                 <>
                   <button
                     onClick={() => { sound.playBoot(); onOpenBreach(); }}
-                    className="flex items-center justify-center gap-1.5 border border-secondary/40 bg-secondary/10 text-secondary font-mono font-bold px-3.5 py-2.5 sm:py-3 rounded-lg hover:bg-secondary/20 active:scale-[0.98] transition-all cursor-pointer text-xs"
+                    className="flex items-center justify-center gap-1.5 border border-secondary/40 bg-secondary/10 text-secondary font-mono font-bold px-2.5 sm:px-3.5 py-2 sm:py-3 rounded-lg hover:bg-secondary/20 active:scale-[0.98] transition-all cursor-pointer text-[11px] sm:text-xs min-w-0"
                   >
-                    <Zap className="w-3.5 h-3.5" />
-                    <span>PLAY BREACH</span>
+                    <Zap className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">PLAY BREACH</span>
                   </button>
                   {onOpenCelestial && (
                     <button
                       onClick={() => onOpenCelestial()}
-                      className="flex items-center justify-center gap-1.5 border border-blue-300/35 bg-blue-400/10 text-blue-100 font-mono font-bold px-3.5 py-2.5 sm:py-3 rounded-lg hover:bg-blue-400/20 active:scale-[0.98] transition-all cursor-pointer text-xs"
+                      className="flex items-center justify-center gap-1.5 border border-blue-300/35 bg-blue-400/10 text-blue-100 font-mono font-bold px-2.5 sm:px-3.5 py-2 sm:py-3 rounded-lg hover:bg-blue-400/20 active:scale-[0.98] transition-all cursor-pointer text-[11px] sm:text-xs min-w-0"
                     >
                       <CelestialZenLogo className="w-3.5 h-3.5 fill-white shrink-0" />
-                      <span>CELESTIAL ZEN</span>
+                      <span className="truncate">CELESTIAL ZEN</span>
                     </button>
                   )}
                 </>
@@ -188,7 +200,7 @@ export const BentoGrid = ({
                 <a
                   href="#pricing"
                   onClick={() => sound.playClick()}
-                  className="flex items-center justify-center gap-1.5 border border-white/15 bg-white/[0.03] text-foreground font-mono font-bold px-3.5 py-2.5 sm:py-3 rounded-lg hover:border-primary/40 hover:text-primary transition-colors text-xs"
+                  className="flex items-center justify-center gap-1.5 border border-white/15 bg-white/[0.03] text-foreground font-mono font-bold px-2.5 sm:px-3.5 py-2 sm:py-3 rounded-lg hover:border-primary/40 hover:text-primary transition-colors text-[11px] sm:text-xs"
                 >
                   <span>PLANS</span>
                 </a>
@@ -199,7 +211,7 @@ export const BentoGrid = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => sound.playClick()}
-                className="flex items-center justify-center gap-1.5 border border-white/10 sm:border-transparent text-muted-foreground hover:text-foreground font-mono font-bold px-3 py-2.5 sm:py-3 rounded-lg transition-colors text-xs"
+                className="flex items-center justify-center gap-1.5 border border-white/10 sm:border-transparent text-muted-foreground hover:text-foreground font-mono font-bold px-2.5 sm:px-3 py-2 sm:py-3 rounded-lg transition-colors text-[11px] sm:text-xs"
               >
                 <Github className="w-3.5 h-3.5" />
                 <span>GitHub</span>
@@ -355,104 +367,134 @@ export const BentoGrid = ({
           {persona === "friend" && <FriendLoungeCard />}
         </AnimatePresence>
 
-        {/* 5 & 6 — Repositories & Systems Stack (Operator mode) */}
+        {/* 5 & 6 — Repositories & Systems Stack (Operator mode: hidden until user clicks "See More") */}
         {persona !== "friend" && (
           <>
-            {isOperator && !clearance.projectsUnlocked ? (
-              <motion.div
-                {...fadeUp(0.26)}
-                className="hud-card md:col-span-2 lg:col-span-4 p-5 sm:p-8 border border-red-500/35 bg-[#0d070b]/95"
-              >
-                <div className="flex items-center gap-2 text-red-400 font-mono text-xs font-bold uppercase tracking-wider mb-2">
-                  <Lock className="w-4 h-4" />
-                  <span>Node 03 // Repository Index Locked</span>
+            <motion.div
+              {...fadeUp(0.26)}
+              className="hud-card md:col-span-2 lg:col-span-4 p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 border border-primary/30 bg-primary/[0.03]"
+            >
+              <div className="space-y-1 min-w-0">
+                <div className="flex items-center gap-2 text-primary font-mono text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+                  <FolderGit2 className="w-3.5 h-3.5 shrink-0" />
+                  <span>Operator Project Index // Flagships & Repositories</span>
                 </div>
-                <h3 className="text-xl sm:text-2xl font-black text-foreground uppercase font-mono mb-2">
-                  Project Archives Restricted
-                </h3>
-                <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed max-w-2xl mb-5 font-mono">
-                  Production ERP modules, 802.11 Wi-Fi CSI radar tools, DualSense HID drivers, and MSI EC fan controllers are locked in Operator mode. Complete the security challenges to unlock.
+                <p className="text-muted-foreground text-xs leading-relaxed font-mono">
+                  {showMoreProjects
+                    ? "Showing flagship builds (ZaneMegaCenter, csi_project, Controler-space) and live GitHub repositories."
+                    : "Projects & repositories are hidden by default in Operator mode. Click See More to reveal flagship builds and live GitHub repos."}
                 </p>
-                {onOpenInfiltration && (
-                  <button
-                    onClick={() => { sound.playBoot(); onOpenInfiltration(); }}
-                    className="inline-flex items-center gap-2 border border-primary/40 bg-primary/15 text-primary font-mono font-bold px-4 py-2.5 rounded-lg hover:bg-primary/25 active:scale-[0.98] transition-all text-xs cursor-pointer"
-                  >
-                    <Key className="w-4 h-4" />
-                    UNLOCK CHALLENGES
-                  </button>
-                )}
-              </motion.div>
-            ) : (
-              <>
-                <motion.div {...fadeUp(0.26)} className="hud-card md:col-span-2 lg:col-span-3 p-5 sm:p-7 flex flex-col justify-between">
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.08] pb-3.5 mb-4">
-                    <div className="flex items-center gap-2 text-primary font-mono text-xs font-bold uppercase tracking-wider">
-                      <Github className="w-4 h-4" /> Source Code & Flagships
-                    </div>
-                    <a
-                      href="https://github.com/ZaneGoat"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => sound.playClick()}
-                      className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-white/[0.04] text-foreground/85 hover:text-primary border border-white/10 transition-colors flex items-center gap-1.5"
-                    >
-                      <span>github.com/ZaneGoat</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  sound.haptic(20);
+                  const next = !showMoreProjects;
+                  setShowMoreProjects(next);
+                  if (next) {
+                    window.dispatchEvent(new CustomEvent("zanex:expand-repos"));
+                  } else {
+                    window.dispatchEvent(new CustomEvent("zanex:collapse-repos"));
+                  }
+                }}
+                aria-expanded={showMoreProjects}
+                className={`px-4 py-2.5 rounded-lg font-mono text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98] shrink-0 ${
+                  showMoreProjects
+                    ? "bg-white/[0.06] text-foreground border border-white/20 hover:border-white/35"
+                    : "bg-primary text-background hover:bg-primary/90 shadow-[0_0_20px_rgba(0,255,158,0.2)]"
+                }`}
+              >
+                <Github className="w-3.5 h-3.5" />
+                <span>{showMoreProjects ? "HIDE PROJECTS & REPOS" : "SEE MORE — SHOW PROJECTS & REPOS"}</span>
+                {showMoreProjects ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+            </motion.div>
 
-                  <div className="grid md:grid-cols-5 gap-5">
-                    <div className="md:col-span-3">
-                      <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-1">Open-Source & Production Work</h3>
-                      <p className="text-primary text-xs font-mono mb-2.5">
-                        ZaneMegaCenter · csi_project · Controler-space
-                      </p>
-                      <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
-                        From Linux Embedded Controller (EC) thermal governors and 802.11 Wi-Fi CSI motion sensing to low-latency USB HID calibration and custom business ERP software.
-                      </p>
-                    </div>
-                    <div className="md:col-span-2 flex flex-col justify-between gap-4">
-                      <div className="space-y-1.5 text-xs font-mono text-muted-foreground">
-                        <div className="flex items-center gap-2"><span className="text-primary">▸</span> GitHub: @ZaneGoat</div>
-                        <div className="flex items-center gap-2"><span className="text-primary">▸</span> Focus: Python, TypeScript, C, Linux</div>
-                        <div className="flex items-center gap-2"><span className="text-primary">▸</span> Live API repository index below</div>
+            <AnimatePresence initial={false}>
+              {showMoreProjects && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    className="hud-card md:col-span-2 lg:col-span-3 p-4 sm:p-7 flex flex-col justify-between"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.08] pb-3.5 mb-4">
+                      <div className="flex items-center gap-2 text-primary font-mono text-xs font-bold uppercase tracking-wider">
+                        <Github className="w-4 h-4" /> Source Code & Flagships
                       </div>
                       <a
-                        href="#repositories"
-                        onClick={() => {
-                          sound.playClick();
-                          window.dispatchEvent(new CustomEvent("zanex:expand-repos"));
-                        }}
-                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-background rounded-lg font-mono text-xs font-bold transition-colors hover:bg-primary/90 active:scale-[0.98]"
+                        href="https://github.com/ZaneGoat"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => sound.playClick()}
+                        className="px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-white/[0.04] text-foreground/85 hover:text-primary border border-white/10 transition-colors flex items-center gap-1.5"
                       >
-                        <Github className="w-4 h-4" />
-                        <span>SHOW REPOSITORIES</span>
+                        <span>github.com/ZaneGoat</span>
+                        <ExternalLink className="w-3 h-3" />
                       </a>
                     </div>
-                  </div>
-                </motion.div>
 
-                {/* 6 — Low-Level Systems Stack (Replaces generic AI tool list) */}
-                <motion.div {...fadeUp(0.32)} className="hud-card md:col-span-2 lg:col-span-1 p-5 sm:p-6 font-mono">
-                  <div className="flex items-center gap-1.5 text-primary text-xs font-bold uppercase tracking-wider mb-4">
-                    <Cpu className="w-4 h-4" /> Systems Focus
-                  </div>
-                  <ul className="space-y-3 text-xs">
-                    {[
-                      ["Linux EC / Kernel", "Register & fan curve control"],
-                      ["802.11 Wi-Fi CSI", "64-subcarrier Doppler radar"],
-                      ["USB HID / Evdev", "1000Hz gamepad calibration"],
-                    ].map(([name, desc]) => (
-                      <li key={name} className="border-l-2 border-primary/40 pl-3">
-                        <span className="block text-foreground font-bold">{name}</span>
-                        <span className="text-muted-foreground text-[11px]">{desc}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              </>
-            )}
+                    <div className="grid md:grid-cols-5 gap-5">
+                      <div className="md:col-span-3">
+                        <h3 className="text-lg sm:text-2xl font-bold text-foreground mb-1">Open-Source & Production Work</h3>
+                        <p className="text-primary text-xs font-mono mb-2.5">
+                          ZaneMegaCenter · csi_project · Controler-space
+                        </p>
+                        <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
+                          From Linux Embedded Controller (EC) thermal governors and 802.11 Wi-Fi CSI motion sensing to low-latency USB HID calibration and custom business ERP software.
+                        </p>
+                      </div>
+                      <div className="md:col-span-2 flex flex-col justify-between gap-4">
+                        <div className="space-y-1.5 text-xs font-mono text-muted-foreground">
+                          <div className="flex items-center gap-2"><span className="text-primary">▸</span> GitHub: @ZaneGoat</div>
+                          <div className="flex items-center gap-2"><span className="text-primary">▸</span> Focus: Python, TypeScript, C, Linux</div>
+                          <div className="flex items-center gap-2"><span className="text-primary">▸</span> Live API repository index below</div>
+                        </div>
+                        <a
+                          href="#repositories"
+                          onClick={() => {
+                            sound.playClick();
+                            window.dispatchEvent(new CustomEvent("zanex:expand-repos"));
+                          }}
+                          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-background rounded-lg font-mono text-xs font-bold transition-colors hover:bg-primary/90 active:scale-[0.98]"
+                        >
+                          <Github className="w-4 h-4" />
+                          <span>JUMP TO REPOSITORIES</span>
+                        </a>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* 6 — Low-Level Systems Stack */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25, delay: 0.04 }}
+                    className="hud-card md:col-span-2 lg:col-span-1 p-4 sm:p-6 font-mono"
+                  >
+                    <div className="flex items-center gap-1.5 text-primary text-xs font-bold uppercase tracking-wider mb-4">
+                      <Cpu className="w-4 h-4" /> Systems Focus
+                    </div>
+                    <ul className="space-y-3 text-xs">
+                      {[
+                        ["Linux EC / Kernel", "Register & fan curve control"],
+                        ["802.11 Wi-Fi CSI", "64-subcarrier Doppler radar"],
+                        ["USB HID / Evdev", "1000Hz gamepad calibration"],
+                      ].map(([name, desc]) => (
+                        <li key={name} className="border-l-2 border-primary/40 pl-3">
+                          <span className="block text-foreground font-bold">{name}</span>
+                          <span className="text-muted-foreground text-[11px]">{desc}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
           </>
         )}
 

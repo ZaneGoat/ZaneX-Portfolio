@@ -42,15 +42,18 @@ export const LiveRepositories: React.FC = () => {
   // Auto-expand when user explicitly clicks a "Repositories" / "Show Repositories" link
   useEffect(() => {
     const handleExpand = () => setIsExpanded(true);
+    const handleCollapse = () => setIsExpanded(false);
     const handleHash = () => {
       if (window.location.hash === "#repositories") {
         setIsExpanded(true);
       }
     };
     window.addEventListener("zanex:expand-repos", handleExpand);
+    window.addEventListener("zanex:collapse-repos", handleCollapse);
     window.addEventListener("hashchange", handleHash);
     return () => {
       window.removeEventListener("zanex:expand-repos", handleExpand);
+      window.removeEventListener("zanex:collapse-repos", handleCollapse);
       window.removeEventListener("hashchange", handleHash);
     };
   }, []);
@@ -91,7 +94,15 @@ export const LiveRepositories: React.FC = () => {
   const toggleExpanded = () => {
     sound.playClick();
     sound.haptic(20);
-    setIsExpanded(prev => !prev);
+    setIsExpanded(prev => {
+      const next = !prev;
+      if (next) {
+        window.dispatchEvent(new CustomEvent("zanex:expand-repos"));
+      } else {
+        window.dispatchEvent(new CustomEvent("zanex:collapse-repos"));
+      }
+      return next;
+    });
   };
 
   return (

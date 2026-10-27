@@ -153,8 +153,8 @@ export function drawShadedMeditatingGuardian(
   const horizScale = Math.sign(cosSpin || 1) * Math.max(0.18, Math.abs(cosSpin));
 
   bctx.save();
-  // Map SVG [-100..100] coordinates into normalized [-0.78..0.78] world units
-  const svgToWorld = 0.0076;
+  // Map SVG [-100..100] coordinates into normalized [-0.78..0.78] world units (scaled down slightly on narrow portrait phones)
+  const svgToWorld = aspect < 0.75 ? 0.0064 : 0.0076;
   bctx.scale(svgToWorld * horizScale, svgToWorld);
 
   if (typeof Path2D !== "undefined") {
@@ -752,14 +752,14 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
       <canvas ref={canvasRef} className="block w-full h-full select-none" />
 
       {/* Discreet Skip Pill & Realm Telemetry */}
-      <div className="fixed inset-x-0 bottom-5 flex items-center justify-center gap-3 px-4 pointer-events-none">
+      <div className="fixed inset-x-0 bottom-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 pointer-events-none">
         <span
           style={{
             backgroundColor: "rgba(4, 8, 18, 0.78)",
             backdropFilter: "blur(10px)",
             WebkitBackdropFilter: "blur(10px)",
           }}
-          className="px-3.5 py-1.5 rounded-full border border-white/25 text-[10px] sm:text-xs font-bold tracking-widest text-white"
+          className="px-3 sm:px-3.5 py-1.5 rounded-full border border-white/25 text-[9px] sm:text-xs font-bold tracking-wider sm:tracking-widest text-white max-w-[72vw] truncate"
         >
           [ ◈ SHIFTING REALM → {targetLabel} ]
         </span>
@@ -774,7 +774,7 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
             backdropFilter: "blur(10px)",
             WebkitBackdropFilter: "blur(10px)",
           }}
-          className="pointer-events-auto px-3 py-1.5 rounded-full border border-white/35 hover:bg-white/15 text-[10px] sm:text-xs font-bold text-white cursor-pointer"
+          className="pointer-events-auto px-3 py-1.5 rounded-full border border-white/35 hover:bg-white/15 text-[10px] sm:text-xs font-bold text-white cursor-pointer shrink-0"
         >
           [ESC / SKIP]
         </button>
