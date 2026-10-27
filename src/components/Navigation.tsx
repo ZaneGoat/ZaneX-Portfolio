@@ -74,13 +74,13 @@ export const Navigation = ({
         )}
 
         <div className="container mx-auto px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 flex justify-between items-center">
-          {/* Logo / Brand: Solo Braille ASCII Meditating Emblem + Hover Hologram + Click 3D Rolling Zoom */}
+          {/* Logo / Brand: Top-Left Menu Meditating Logo + Live ASCII Hover Hologram + Click Fullscreen ASCII Zoom */}
           <div className="flex items-center gap-2 sm:gap-3">
             <AsciiBrandLogo
-              size="micro"
+              variant="navbar"
               withPopover
               interactive
-              label="ZaneX ASCII Emblem — Hover for Hologram · Click for 3D Rolling Zoom & Theme Shift"
+              label="ZaneX Brand Logo — Hover for Live ASCII Hologram · Click for Fullscreen ASCII Shift"
             />
 
             {/* Desktop Compact Persona Switcher */}

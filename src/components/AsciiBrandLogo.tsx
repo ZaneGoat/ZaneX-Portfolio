@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { MEDITATING_LOGO_SVG_PATH } from "@/components/CelestialZenLogo";
+import { CelestialZenLogo, MEDITATING_LOGO_SVG_PATH } from "@/components/CelestialZenLogo";
 import { drawShadedMeditatingGuardian } from "@/components/AsciiLogoZoomPortal";
 import { useUniverseTheme } from "@/context/ThemeContext";
 import { sound } from "@/lib/sound";
@@ -9,6 +9,7 @@ export type AsciiLogoSize = "micro" | "sm" | "md" | "lg";
 
 interface AsciiBrandLogoProps {
   size?: AsciiLogoSize;
+  variant?: "navbar" | "ascii";
   interactive?: boolean;
   withPopover?: boolean;
   framed?: boolean;
@@ -147,7 +148,6 @@ const LiveAsciiHologramCanvas: React.FC<{ isExistence: boolean }> = ({ isExisten
     const render = (now: number) => {
       const t = (now - startMs) * 0.001;
 
-      // Gentle 3D sway + periodic blink inside the live hover hologram
       const swaySpin = Math.sin(t * 2.1) * 0.52;
       const swayRoll = Math.sin(t * 1.3) * 0.14;
       const blinkCycle = t % 2.6;
@@ -204,7 +204,6 @@ const LiveAsciiHologramCanvas: React.FC<{ isExistence: boolean }> = ({ isExisten
             let pb = pixels[pIdx + 2];
             let lum = (0.299 * pr + 0.587 * pg + 0.114 * pb) / 255.0;
 
-            // Brief initial scanline glitch-in when hover opens (first 0.45s)
             if (t < 0.45) {
               const mp = t / 0.45;
               const h = Math.sin((c + Math.floor(t * 32)) * 29.7 + r * 73.1) * 43758.5453;
@@ -261,6 +260,7 @@ const LiveAsciiHologramCanvas: React.FC<{ isExistence: boolean }> = ({ isExisten
 
 export const AsciiBrandLogo: React.FC<AsciiBrandLogoProps> = ({
   size = "micro",
+  variant = "ascii",
   interactive = true,
   withPopover = true,
   framed = true,
@@ -269,7 +269,6 @@ export const AsciiBrandLogo: React.FC<AsciiBrandLogoProps> = ({
 }) => {
   const { isExistence, triggerLogoThemeShift } = useUniverseTheme();
   const [hovered, setHovered] = useState(false);
-  const [shimmerTick, setShimmerTick] = useState(0);
   const [anchorPos, setAnchorPos] = useState<{ top: number; left: number }>({ top: 56, left: 12 });
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const closeTimerRef = useRef<number | null>(null);
@@ -279,35 +278,6 @@ export const AsciiBrandLogo: React.FC<AsciiBrandLogoProps> = ({
     () => rasterizeMeditatingBraille(preset.cols, preset.rows),
     [preset.cols, preset.rows]
   );
-
-  // Subtle live ASCII character wave across the crest itself while hovered!
-  useEffect(() => {
-    if (!hovered) {
-      setShimmerTick(0);
-      return;
-    }
-    const id = window.setInterval(() => {
-      setShimmerTick(t => t + 1);
-    }, 65);
-    return () => window.clearInterval(id);
-  }, [hovered]);
-
-  const activeCrestArt = useMemo(() => {
-    if (!hovered || shimmerTick === 0) return baseBrailleArt;
-    const rows = baseBrailleArt.split("\n");
-    const waveRow = shimmerTick % rows.length;
-    return rows
-      .map((line, rIdx) => {
-        if (rIdx !== waveRow) return line;
-        let out = "";
-        for (let i = 0; i < line.length; i++) {
-          const code = line.charCodeAt(i);
-          out += code > 0x2800 ? "⣿" : line[i];
-        }
-        return out;
-      })
-      .join("\n");
-  }, [baseBrailleArt, hovered, shimmerTick]);
 
   const openHover = () => {
     if (closeTimerRef.current !== null) {
@@ -374,25 +344,17 @@ export const AsciiBrandLogo: React.FC<AsciiBrandLogoProps> = ({
           : "text-[#00ff9e] drop-shadow-[0_0_6px_rgba(0,255,158,0.55)]"
       }`}
     >
-      {activeCrestArt}
+      {baseBrailleArt}
     </pre>
   );
 
-  if (!framed) {
+  if (!framed && variant === "ascii") {
     return (
       <div
         onClick={interactive ? handleClick : undefined}
-        onMouseEnter={interactive ? openHover : undefined}
-        onMouseLeave={interactive ? scheduleCloseHover : undefined}
         className={`inline-flex flex-col items-center ${
           interactive ? "cursor-pointer group/ascii" : ""
         } ${className}`}
-        title={
-          label ||
-          (interactive
-            ? `Click ASCII Emblem → Fullscreen ASCII Animation & Switch to ${nextUniverseName}`
-            : undefined)
-        }
       >
         {preBlock}
       </div>
@@ -405,38 +367,76 @@ export const AsciiBrandLogo: React.FC<AsciiBrandLogoProps> = ({
       onMouseEnter={openHover}
       onMouseLeave={scheduleCloseHover}
     >
-      <button
-        ref={btnRef}
-        type="button"
-        onClick={handleClick}
-        onFocus={openHover}
-        onBlur={scheduleCloseHover}
-        aria-label={
-          label || `ZaneX ASCII Emblem — Hover for Live ASCII Hologram · Click to Shift to ${nextUniverseName}`
-        }
-        title={
-          label || `Hover for Live ASCII Hologram · Click for Fullscreen ASCII Shift to ${nextUniverseName}`
-        }
-        className={`group/ascii relative inline-flex flex-col items-center justify-center transition-all duration-200 select-none ${
-          interactive ? "cursor-pointer active:scale-95" : "cursor-default"
-        } ${hovered ? "scale-110" : "scale-100"} ${
-          size === "micro"
-            ? "px-1.5 py-1"
-            : size === "sm"
-            ? "px-2 py-1.5"
-            : "px-2.5 py-2"
-        } ${
-          isExistence
-            ? "bg-black border border-white/75 hover:bg-white shadow-[0_0_16px_rgba(255,255,255,0.22)]"
-            : hovered
-            ? "rounded-lg bg-[#051224] border border-[#00ff9e] shadow-[0_0_28px_rgba(0,255,158,0.65)]"
-            : "rounded-lg bg-[#040915]/95 border border-primary/55 shadow-[0_0_16px_rgba(0,255,158,0.24)]"
-        }`}
-      >
-        {preBlock}
-      </button>
+      {variant === "navbar" ? (
+        <button
+          ref={btnRef}
+          type="button"
+          onClick={handleClick}
+          onFocus={openHover}
+          onBlur={scheduleCloseHover}
+          aria-label={
+            label || `ZaneX Top-Left Brand Logo — Hover for Live ASCII Hologram · Click to Shift to ${nextUniverseName}`
+          }
+          title={
+            label || `Hover for Live ASCII Hologram · Click for Fullscreen ASCII Shift to ${nextUniverseName}`
+          }
+          className="flex items-center gap-2 sm:gap-2.5 group font-mono shrink-0 cursor-pointer active:scale-95 transition-all"
+        >
+          {isExistence ? (
+            <>
+              <span className="w-7 h-7 sm:w-8 sm:h-8 border border-white/60 bg-black flex items-center justify-center group-hover:bg-white transition-colors shrink-0">
+                <CelestialZenLogo className="w-4 h-4 sm:w-5 sm:h-5 fill-white group-hover:fill-black transition-colors" />
+              </span>
+              <span className="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight border border-white/50 px-2 py-0.5 bg-black group-hover:bg-white group-hover:text-black transition-colors">
+                [ZANEX<span className="hidden sm:inline">::Ω-EXISTENCE</span>
+                <span className="sm:hidden">::Ω</span>]
+              </span>
+            </>
+          ) : (
+            <>
+              <span
+                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/95 border flex items-center justify-center transition-all shrink-0 ${
+                  hovered
+                    ? "border-[#00ff9e] scale-110 shadow-[0_0_22px_rgba(0,255,158,0.65)]"
+                    : "border-white/35 shadow-[0_0_14px_rgba(255,255,255,0.22)] group-hover:border-primary/80 group-hover:scale-105"
+                }`}
+              >
+                <CelestialZenLogo
+                  className={`w-5 h-5 sm:w-[22px] sm:h-[22px] transition-colors ${
+                    hovered ? "fill-[#00ff9e]" : "fill-white group-hover:fill-primary"
+                  }`}
+                />
+              </span>
+              <span className="text-base sm:text-xl md:text-2xl font-black text-primary tracking-tighter group-hover:scale-105 transition-transform">
+                ZANE<span className="text-secondary">X</span>
+              </span>
+              <span className="hidden sm:inline-block text-[10px] bg-primary/10 text-primary border border-primary/30 px-2 py-0.5 rounded-full font-bold">
+                v6.0
+              </span>
+            </>
+          )}
+        </button>
+      ) : (
+        <button
+          ref={btnRef}
+          type="button"
+          onClick={handleClick}
+          onFocus={openHover}
+          onBlur={scheduleCloseHover}
+          aria-label={label || `ZaneX ASCII Emblem — Click to Shift to ${nextUniverseName}`}
+          className={`group/ascii relative inline-flex flex-col items-center justify-center transition-all duration-200 select-none ${
+            interactive ? "cursor-pointer active:scale-95" : "cursor-default"
+          } px-1.5 py-1 ${
+            isExistence
+              ? "bg-black border border-white/75 hover:bg-white"
+              : "rounded-lg bg-[#040915]/95 border border-primary/55"
+          }`}
+        >
+          {preBlock}
+        </button>
+      )}
 
-      {/* Portal-Mounted Live 60-FPS Procedural RGB ASCII Hologram Popover (Immune to Navbar Clipping!) */}
+      {/* Portal-Mounted Live 60-FPS Procedural RGB ASCII Hologram Popover */}
       {withPopover &&
         hovered &&
         typeof document !== "undefined" &&
