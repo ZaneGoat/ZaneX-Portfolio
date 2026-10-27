@@ -280,10 +280,10 @@ export const Navigation = ({
               className="pointer-events-none absolute bottom-1 right-2.5 w-2 h-2 border-b border-r border-primary/50"
             />
 
-            {/* Bidirectional Scroll-Progress Laser Filaments Radiating Outward from the Center Eye */}
+            {/* Bidirectional Scroll-Progress Laser Filaments Radiating Outward from Dead Center Eye */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute bottom-0 left-3 right-1/2 mr-10 sm:mr-18 h-[1.5px] overflow-hidden"
+              className="pointer-events-none absolute bottom-0 left-3 right-1/2 mr-12 sm:mr-16 xl:mr-20 h-[1.5px] overflow-hidden"
             >
               <div
                 style={{ width: `${Math.round(scrollProgress * 100)}%` }}
@@ -292,7 +292,7 @@ export const Navigation = ({
             </div>
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute bottom-0 left-1/2 right-3 ml-10 sm:mr-18 h-[1.5px] overflow-hidden"
+              className="pointer-events-none absolute bottom-0 left-1/2 right-3 ml-12 sm:ml-16 xl:mr-20 h-[1.5px] overflow-hidden"
             >
               <div
                 style={{ width: `${Math.round(scrollProgress * 100)}%` }}
@@ -300,10 +300,10 @@ export const Navigation = ({
               />
             </div>
 
-            {/* 3-Zone Symmetric Visor Grid: [Left Wing 1fr] — [Center Eye Keystone auto] — [Right Wing 1fr] */}
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5 sm:gap-2.5">
+            {/* Split-Wing Cyber-Visor: Left Wing + Dead-Center Keystone Eye + Right Wing */}
+            <div className="relative flex items-center justify-between w-full min-w-0">
               {/* LEFT WING: Clean Picture Logo + Left Sector Nodes (01, 02, 03) */}
-              <div className="flex items-center justify-start gap-1.5 sm:gap-2.5 min-w-0">
+              <div className="flex items-center justify-start gap-1.5 sm:gap-2.5 min-w-0 pr-8 sm:pr-14 lg:pr-20">
                 <a
                   href="#overview"
                   onClick={() => sound.playClick()}
@@ -330,15 +330,18 @@ export const Navigation = ({
                 </nav>
               </div>
 
-              {/* CENTER KEYSTONE: Cybernetic Overwatch Oculus Pod */}
-              <div className="relative flex items-center justify-center -my-1 z-10 shrink-0">
+              {/* DEAD-CENTER KEYSTONE: Cybernetic Overwatch Oculus Pod (Locked at 50% screen center across all resolutions) */}
+              <div
+                aria-label="Overwatch Oculus Center Pod"
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-auto flex items-center justify-center select-none"
+              >
                 <div className="relative p-0.5 rounded-xl visor-cradle">
                   <MatrixWatchingEye />
                 </div>
               </div>
 
               {/* RIGHT WING: Right Sector Nodes (04, 05, 06) + Tactical Instruments + Existence Switch */}
-              <div className="flex items-center justify-end gap-1 sm:gap-2 min-w-0">
+              <div className="flex items-center justify-end gap-1 sm:gap-2 min-w-0 pl-8 sm:pl-14 lg:pl-20">
                 <nav
                   aria-label="Primary Right Sectors"
                   className="hidden lg:flex items-center gap-0.5 xl:gap-1 shrink-0"
