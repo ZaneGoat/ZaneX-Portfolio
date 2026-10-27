@@ -126,15 +126,17 @@ export const Navigation = ({
             window.dispatchEvent(new CustomEvent("zanex:expand-repos"));
           }
         }}
-        className={`relative px-2 xl:px-2.5 py-1 rounded-lg font-mono text-[11px] xl:text-xs font-bold tracking-tight transition-colors whitespace-nowrap ${
-          isActive ? "text-primary" : "text-foreground/70 hover:text-foreground"
+        className={`relative px-2 xl:px-2.5 py-1 rounded-md font-mono text-[11px] xl:text-xs font-bold tracking-tight transition-all whitespace-nowrap group ${
+          isActive
+            ? "text-primary drop-shadow-[0_0_8px_rgba(0,255,158,0.45)]"
+            : "text-foreground/70 hover:text-foreground hover:bg-white/[0.04]"
         }`}
       >
         {isActive && (
           <motion.span
             layoutId="visorActiveSector"
             transition={{ type: "spring", stiffness: 420, damping: 30 }}
-            className="absolute inset-0 rounded-lg bg-primary/12 border border-primary/40 -z-10"
+            className="absolute inset-0 rounded-md bg-primary/12 border border-primary/45 -z-10 shadow-[inset_0_0_10px_rgba(0,255,158,0.15)]"
           />
         )}
         <span className="text-[9px] text-primary/55 mr-0.5">0{indexNum}/</span>
@@ -218,106 +220,105 @@ export const Navigation = ({
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.38, ease: "easeOut" }}
-        className="fixed top-1.5 sm:top-2.5 inset-x-2 sm:inset-x-4 lg:inset-x-6 z-50 max-w-7xl mx-auto pointer-events-none font-mono"
+        className="fixed top-1 sm:top-2.5 inset-x-2 sm:inset-x-4 lg:inset-x-6 z-50 max-w-7xl mx-auto pointer-events-none font-mono"
       >
-        <div className="pointer-events-auto relative rounded-2xl bg-[#050914]/92 backdrop-blur-xl border border-primary/30 shadow-[0_12px_38px_rgba(0,0,0,0.82),inset_0_1px_0_rgba(0,255,158,0.18)] px-2.5 sm:px-4 py-1.5">
-          {/* Outer Sculpted Cyber-Visor Corner Ticks */}
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -top-px -left-px w-2.5 h-2.5 border-t-2 border-l-2 border-primary rounded-tl-md"
-          />
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -top-px -right-px w-2.5 h-2.5 border-t-2 border-r-2 border-primary rounded-tr-md"
-          />
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -bottom-px -left-px w-2.5 h-2.5 border-b-2 border-l-2 border-primary/65 rounded-bl-md"
-          />
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -bottom-px -right-px w-2.5 h-2.5 border-b-2 border-r-2 border-primary/65 rounded-br-md"
-          />
-
-          {/* Bidirectional Scroll-Progress Laser Filaments Radiating Outward from the Center Eye */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute bottom-0 left-3 right-1/2 mr-12 sm:mr-20 h-[1.5px] overflow-hidden"
-          >
+        <div className="pointer-events-auto relative visor-chamfer visor-hull-border shadow-[0_16px_45px_rgba(0,0,0,0.88),0_0_24px_rgba(0,255,158,0.08)]">
+          <div className="relative visor-chamfer visor-hull backdrop-blur-xl px-2.5 sm:px-4 py-1.5 sm:py-2">
+            {/* Top Scanning Visor Laser Beam */}
             <div
-              style={{ width: `${Math.round(scrollProgress * 100)}%` }}
-              className="ml-auto h-full bg-gradient-to-l from-primary via-primary/80 to-secondary shadow-[0_0_8px_#00ff9e] transition-[width] duration-150"
-            />
-          </div>
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute bottom-0 left-1/2 right-3 ml-12 sm:ml-20 h-[1.5px] overflow-hidden"
-          >
-            <div
-              style={{ width: `${Math.round(scrollProgress * 100)}%` }}
-              className="mr-auto h-full bg-gradient-to-r from-primary via-primary/80 to-secondary shadow-[0_0_8px_#00ff9e] transition-[width] duration-150"
-            />
-          </div>
-
-          {/* 3-Zone Symmetric Visor Grid: [Left Wing 1fr] — [Center Eye Keystone auto] — [Right Wing 1fr] */}
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5 sm:gap-3">
-            {/* LEFT WING: Clean Picture Logo + Left Sector Nodes */}
-            <div className="flex items-center justify-start gap-2 xl:gap-3 min-w-0">
-              <a
-                href="#overview"
-                onClick={() => sound.playClick()}
-                className="flex items-center gap-1.5 sm:gap-2 group shrink-0"
-                aria-label="ZaneX Home"
-              >
-                <img
-                  src="/logo.svg"
-                  alt="ZaneX Emblem"
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-white/30 group-hover:border-primary/85 shadow-[0_0_12px_rgba(255,255,255,0.2)] group-hover:scale-105 transition-all shrink-0 object-contain bg-[#050816]"
-                />
-                <span className="text-sm sm:text-lg xl:text-xl font-black text-primary tracking-tighter group-hover:scale-105 transition-transform">
-                  ZANE<span className="text-secondary">X</span>
-                </span>
-              </a>
-
-              <span className="hidden lg:block h-4 w-px bg-primary/20 shrink-0" />
-
-              <nav
-                aria-label="Primary Left Sectors"
-                className="hidden lg:flex items-center gap-0.5 xl:gap-1 min-w-0"
-              >
-                {leftWingLinks.map((link, idx) => renderVisorSectorLink(link, idx + 1))}
-              </nav>
+              aria-hidden="true"
+              className="pointer-events-none absolute top-0 inset-x-8 h-[1.5px] overflow-hidden opacity-75"
+            >
+              <div className="w-56 h-full visor-sweep" />
             </div>
 
-            {/* CENTER KEYSTONE: Fixed Cursor-Following & Click-Blinking ASCII Watching Eye Pod */}
-            <div className="relative flex items-center justify-center gap-1 sm:gap-1.5 -my-1 translate-y-[2px] sm:translate-y-[4px] z-10">
-              <span
-                aria-hidden="true"
-                className="hidden sm:inline text-[11px] font-bold text-primary/45 select-none"
-              >
-                ‹
-              </span>
-              <MatrixWatchingEye />
-              <span
-                aria-hidden="true"
-                className="hidden sm:inline text-[11px] font-bold text-primary/45 select-none"
-              >
-                ›
-              </span>
+            {/* Chamfer Corner Tech Accents */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1 left-2.5 w-2 h-2 border-t border-l border-primary/70"
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1 right-2.5 w-2 h-2 border-t border-r border-primary/70"
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-1 left-2.5 w-2 h-2 border-b border-l border-primary/50"
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-1 right-2.5 w-2 h-2 border-b border-r border-primary/50"
+            />
+
+            {/* Bidirectional Scroll-Progress Laser Filaments Radiating Outward from the Center Eye */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-0 left-3 right-1/2 mr-14 sm:mr-24 h-[1.5px] overflow-hidden"
+            >
+              <div
+                style={{ width: `${Math.round(scrollProgress * 100)}%` }}
+                className="ml-auto h-full bg-gradient-to-l from-primary via-primary/80 to-secondary shadow-[0_0_8px_#00ff9e] transition-[width] duration-150"
+              />
+            </div>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-0 left-1/2 right-3 ml-14 sm:ml-24 h-[1.5px] overflow-hidden"
+            >
+              <div
+                style={{ width: `${Math.round(scrollProgress * 100)}%` }}
+                className="mr-auto h-full bg-gradient-to-r from-primary via-primary/80 to-secondary shadow-[0_0_8px_#00ff9e] transition-[width] duration-150"
+              />
             </div>
 
-            {/* RIGHT WING: Right Sector Nodes + Unified Tactical Instrument Dock + Existence Shift */}
-            <div className="flex items-center justify-end gap-1.5 sm:gap-2 min-w-0">
-              <nav
-                aria-label="Primary Right Sectors"
-                className="hidden lg:flex items-center gap-0.5 xl:gap-1 min-w-0"
-              >
-                {rightWingLinks.map((link, idx) =>
-                  renderVisorSectorLink(link, leftWingLinks.length + idx + 1)
-                )}
-              </nav>
+            {/* 3-Zone Symmetric Visor Grid: [Left Wing 1fr] — [Center Eye Keystone auto] — [Right Wing 1fr] */}
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5 sm:gap-3">
+              {/* LEFT WING: Clean Picture Logo + Left Sector Nodes */}
+              <div className="flex items-center justify-start gap-2 xl:gap-3 min-w-0">
+                <a
+                  href="#overview"
+                  onClick={() => sound.playClick()}
+                  className="flex items-center gap-1.5 sm:gap-2 group shrink-0"
+                  aria-label="ZaneX Home"
+                >
+                  <img
+                    src="/logo.svg"
+                    alt="ZaneX Emblem"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-white/30 group-hover:border-primary/85 shadow-[0_0_12px_rgba(255,255,255,0.2)] group-hover:scale-105 transition-all shrink-0 object-contain bg-[#050816]"
+                  />
+                  <span className="text-sm sm:text-lg xl:text-xl font-black text-primary tracking-tighter group-hover:scale-105 transition-transform">
+                    ZANE<span className="text-secondary">X</span>
+                  </span>
+                </a>
 
-              <span className="hidden lg:block h-4 w-px bg-primary/20 shrink-0" />
+                <span className="hidden lg:block h-4 w-px bg-primary/20 shrink-0" />
+
+                <nav
+                  aria-label="Primary Left Sectors"
+                  className="hidden lg:flex items-center gap-0.5 xl:gap-1 min-w-0"
+                >
+                  {leftWingLinks.map((link, idx) => renderVisorSectorLink(link, idx + 1))}
+                </nav>
+              </div>
+
+              {/* CENTER KEYSTONE: Cybernetic Overwatch Oculus Pod */}
+              <div className="relative flex items-center justify-center -my-1 z-10">
+                <div className="relative p-0.5 rounded-xl visor-cradle">
+                  <MatrixWatchingEye />
+                </div>
+              </div>
+
+              {/* RIGHT WING: Right Sector Nodes + Unified Tactical Instrument Dock + Existence Shift */}
+              <div className="flex items-center justify-end gap-1.5 sm:gap-2 min-w-0">
+                <nav
+                  aria-label="Primary Right Sectors"
+                  className="hidden lg:flex items-center gap-0.5 xl:gap-1 min-w-0"
+                >
+                  {rightWingLinks.map((link, idx) =>
+                    renderVisorSectorLink(link, leftWingLinks.length + idx + 1)
+                  )}
+                </nav>
+
+                <span className="hidden lg:block h-4 w-px bg-primary/20 shrink-0" />
 
               {/* Unified Tactical Command Capsule (Tablet & Desktop) */}
               <div className="hidden sm:inline-flex items-center gap-0.5 p-0.5 rounded-xl bg-black/65 border border-white/12 shrink-0">
@@ -409,7 +410,8 @@ export const Navigation = ({
             </div>
           </div>
         </div>
-      </motion.header>
+      </div>
+    </motion.header>
 
       {/* Floating Tactical Visor Drawer (Mobile & Tablet < lg) */}
       <AnimatePresence>

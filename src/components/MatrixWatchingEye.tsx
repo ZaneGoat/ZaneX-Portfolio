@@ -25,6 +25,11 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
   const podRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [blinkFlash, setBlinkFlash] = useState(false);
+  const [locked, setLocked] = useState(false);
+  const lockedRef = useRef(false);
+  const azRef = useRef<HTMLSpanElement | null>(null);
+  const elRef = useRef<HTMLSpanElement | null>(null);
+  const statusRef = useRef<HTMLSpanElement | null>(null);
   const manualBlinkRef = useRef<number>(-10);
   const doubleBlinkRef = useRef<boolean>(false);
   const startMsRef = useRef<number>(performance.now());
@@ -47,6 +52,9 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
     let fontSpec = "bold 6.5px 'Consolas', 'Courier New', monospace";
     let uCoords = new Float32Array(0);
     let vCoords = new Float32Array(0);
+    let unitPxVal = 40;
+    let lockMix = 0;
+    let frameCount = 0;
 
     let targetX = 0;
     let targetY = 0;
@@ -94,6 +102,7 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
 
       // Isotropic physical scaling so iris & pupil stay circular inside the almond pod
       const unitPx = Math.min(cssW * 0.45, cssH * 1.05);
+      unitPxVal = unitPx;
       for (let c = 0; c < cols; c++) {
         const px = (c + 0.5) * cellW - cssW * 0.5;
         uCoords[c] = px / unitPx;
@@ -398,6 +407,100 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
         }
         flushBatch();
       }
+
+      // ---- Holographic reticle overlay (vector pass on top of the ASCII eye) ----
+      lockMix += ((lockedRef.current ? 1 : 0) - lockMix) * 0.2;
+      const cx = cssW * 0.5;
+      const cy = cssH * 0.5;
+      const orbitRx = unitPxVal * 1.1;
+      const orbitRy = Math.min(cssH * 0.47, unitPxVal * 0.52);
+
+      ctx.save();
+      ctx.lineWidth = 0.8;
+
+      // Counter-rotating dashed orbital rings around the eyelid aperture
+      ctx.setLineDash([3, 4]);
+      ctx.lineDashOffset = -t * 14;
+      ctx.strokeStyle = `rgba(0,255,158,${0.26 + 0.3 * lockMix})`;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, orbitRx, orbitRy, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([1.5, 6]);
+      ctx.lineDashOffset = t * 9;
+      ctx.strokeStyle = `rgba(0,224,255,${0.22 + 0.2 * lockMix})`;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, orbitRx * 0.9, orbitRy * 0.82, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Range ticks on the horizontal axis (left & right of the almond)
+      ctx.strokeStyle = `rgba(0,255,158,${0.5 + 0.3 * lockMix})`;
+      for (const side of [-1, 1]) {
+        const x0 = cx + side * (orbitRx + 1.5);
+        ctx.beginPath();
+        ctx.moveTo(x0, cy);
+        ctx.lineTo(x0 + side * 5, cy);
+        for (let k = 1; k <= 2; k++) {
+          const xt = x0 + side * k * 2.2;
+          ctx.moveTo(xt, cy - 1.6);
+          ctx.lineTo(xt, cy + 1.6);
+        }
+        ctx.stroke();
+      }
+
+      // Iris target brackets: loose while tracking, tighten into a gold lock on hover
+      const ix = cx + lookU * unitPxVal;
+      const iy = cy + lookV * unitPxVal;
+      const bw = mix(unitPxVal * 0.6, unitPxVal * 0.42, lockMix);
+      const bh = Math.min(cssH * 0.44, bw * 0.92);
+      const bl = 3.5;
+      const lr = Math.round(mix(0, 255, lockMix));
+      const lg = Math.round(mix(255, 205, lockMix));
+      const lb = Math.round(mix(158, 80, lockMix));
+      ctx.strokeStyle = `rgba(${lr},${lg},${lb},${0.4 + 0.5 * lockMix})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
+        const px = ix + sx * bw;
+        const py = iy + sy * bh;
+        ctx.moveTo(px, py - sy * bl);
+        ctx.lineTo(px, py);
+        ctx.lineTo(px - sx * bl, py);
+      }
+      ctx.stroke();
+
+      // Click pulse: expanding ripple ring from the iris
+      if (clickPulse > 0.01) {
+        const sinceClick = clamp(sinceManual / 0.55, 0, 1);
+        ctx.strokeStyle = `rgba(255,220,120,${0.55 * (1 - sinceClick)})`;
+        ctx.beginPath();
+        ctx.ellipse(ix, iy, unitPxVal * (0.3 + 0.9 * sinceClick), unitPxVal * (0.24 + 0.5 * sinceClick), 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Servo shutter line while the eyelid snaps shut
+      if (blinkOpen < 0.45) {
+        ctx.fillStyle = `rgba(143,247,204,${0.65 * (1 - blinkOpen / 0.45)})`;
+        ctx.fillRect(cx - orbitRx * 0.95, cy - 0.5, orbitRx * 1.9, 1);
+      }
+
+      // Fine CRT scanlines
+      ctx.fillStyle = "rgba(0,0,0,0.16)";
+      for (let y = 1; y < cssH; y += 2) ctx.fillRect(0, y, cssW, 0.6);
+      ctx.restore();
+
+      // ---- Live telemetry readout (throttled DOM writes, no React re-render) ----
+      if (frameCount++ % 5 === 0) {
+        const az = Math.round(smoothX * 60);
+        const el = Math.round(-smoothY * 30);
+        const fmt = (n: number) => `${n >= 0 ? "+" : "-"}${String(Math.abs(n)).padStart(2, "0")}°`;
+        if (azRef.current) azRef.current.textContent = `AZ${fmt(az)}`;
+        if (elRef.current) elRef.current.textContent = `EL${fmt(el)}`;
+        if (statusRef.current) {
+          statusRef.current.textContent =
+            blinkOpen < 0.5 ? "BLINK" : lockMix > 0.5 ? "LOCK" : "TRACK";
+        }
+      }
     };
 
     rafId = requestAnimationFrame(render);
@@ -423,10 +526,23 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
     window.setTimeout(() => setBlinkFlash(false), 450);
   };
 
+  const setLock = (on: boolean) => {
+    if (lockedRef.current === on) return;
+    lockedRef.current = on;
+    setLocked(on);
+    if (on) sound.playKeypress();
+  };
+
+  const lit = blinkFlash || locked;
+
   return (
     <div
       ref={podRef}
       onClick={handlePodClick}
+      onMouseEnter={() => setLock(true)}
+      onMouseLeave={() => setLock(false)}
+      onFocus={() => setLock(true)}
+      onBlur={() => setLock(false)}
       role="button"
       tabIndex={0}
       onKeyDown={e => {
@@ -438,29 +554,54 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
           doubleBlinkRef.current = true;
         }
       }}
-      title="Overwatch ASCII Optic — Follows Cursor · Click Anywhere to Blink"
-      aria-label="Overwatch ASCII Optic — Follows Cursor and Blinks on Click"
-      className={`group relative flex items-center justify-center rounded-xl bg-[#03060e] px-1.5 sm:px-2.5 py-1 border transition-all duration-200 cursor-pointer select-none overflow-hidden ${
-        blinkFlash
-          ? "border-[#00ff9e] shadow-[0_0_22px_rgba(0,255,158,0.55),inset_0_0_12px_rgba(0,255,158,0.22)]"
-          : "border-primary/45 hover:border-primary/85 shadow-[0_6px_24px_rgba(0,0,0,0.85),0_0_14px_rgba(0,255,158,0.16)]"
-      } ${className}`}
+      title="Overwatch Oculus — follows your cursor · click anywhere to blink"
+      aria-label="Overwatch Oculus — follows your cursor and blinks on click"
+      style={{
+        filter: lit
+          ? "drop-shadow(0 0 12px rgba(0,255,158,0.55))"
+          : "drop-shadow(0 4px 14px rgba(0,0,0,0.85)) drop-shadow(0 0 8px rgba(0,255,158,0.18))",
+      }}
+      className={`group relative cursor-pointer select-none outline-none transition-[filter] duration-200 ${className}`}
     >
-      {/* Sculpted Corner Reticles */}
-      <span className="pointer-events-none absolute top-0.5 left-1 text-[8px] leading-none text-primary/70 font-mono">
-        ⌜
-      </span>
-      <span className="pointer-events-none absolute top-0.5 right-1 text-[8px] leading-none text-primary/70 font-mono">
-        ⌝
-      </span>
-      <span className="pointer-events-none absolute bottom-0.5 left-1 text-[8px] leading-none text-primary/70 font-mono">
-        ⌞
-      </span>
-      <span className="pointer-events-none absolute bottom-0.5 right-1 text-[8px] leading-none text-primary/70 font-mono">
-        ⌟
-      </span>
+      {/* Chamfered emerald bezel (1px border via layered clip-path) */}
+      <div
+        aria-hidden="true"
+        className={`absolute inset-0 oculus-chamfer transition-colors duration-200 ${
+          lit
+            ? "bg-gradient-to-b from-[#9dffd8] via-[#00ff9e] to-[#00b874]"
+            : "bg-gradient-to-b from-primary/80 via-primary/35 to-primary/70"
+        }`}
+      />
 
-      <canvas ref={canvasRef} className="block rounded-md pointer-events-none" />
+      <div className="relative m-px oculus-chamfer bg-[#03060e] flex items-center gap-1.5 px-1.5 sm:px-2 py-1">
+        {/* Left telemetry column (xl only, keeps phones/tablets compact) */}
+        <div className="hidden xl:flex flex-col items-end gap-0.5 w-[38px] text-[8px] leading-none tabular-nums font-mono text-primary/75">
+          <span ref={azRef}>AZ+00°</span>
+          <span ref={elRef}>EL+00°</span>
+          <span className="text-primary/40">FOV·90</span>
+        </div>
+
+        <canvas ref={canvasRef} className="block pointer-events-none" />
+
+        {/* Right telemetry column */}
+        <div className="hidden xl:flex flex-col items-start gap-0.5 w-[38px] text-[8px] leading-none font-mono">
+          <span className="text-primary/40">OPTIC</span>
+          <span
+            ref={statusRef}
+            className={`font-bold ${locked ? "text-amber-300" : "text-primary"}`}
+          >
+            TRACK
+          </span>
+          <span className="flex items-center gap-1 text-primary/40">
+            <span
+              className={`oculus-led inline-block w-1 h-1 rounded-full ${
+                locked ? "bg-amber-300" : "bg-primary"
+              }`}
+            />
+            LIVE
+          </span>
+        </div>
+      </div>
     </div>
   );
 };
