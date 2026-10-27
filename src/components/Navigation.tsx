@@ -250,10 +250,10 @@ export const Navigation = ({
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.38, ease: "easeOut" }}
-        className="fixed top-1 sm:top-2.5 inset-x-2 sm:inset-x-4 lg:inset-x-6 z-50 max-w-7xl mx-auto pointer-events-none font-mono"
+        className="fixed top-1 sm:top-2.5 inset-x-2 sm:inset-x-4 lg:inset-x-6 z-50 max-w-[1520px] 2xl:max-w-[1680px] mx-auto pointer-events-none font-mono"
       >
         <div className="pointer-events-auto relative visor-chamfer visor-hull-border shadow-[0_16px_45px_rgba(0,0,0,0.88),0_0_24px_rgba(0,255,158,0.08)]">
-          <div className="relative visor-chamfer visor-hull backdrop-blur-xl px-3 sm:px-5 xl:px-6 py-1.5 sm:py-2">
+          <div className="relative visor-chamfer visor-hull backdrop-blur-xl px-3 sm:px-6 xl:px-8 py-2 sm:py-2.5">
             {/* Top Scanning Visor Laser Beam */}
             <div
               aria-hidden="true"
@@ -280,10 +280,10 @@ export const Navigation = ({
               className="pointer-events-none absolute bottom-1 right-2.5 w-2 h-2 border-b border-r border-primary/50"
             />
 
-            {/* Bidirectional Scroll-Progress Laser Filaments Radiating Outward from Dead Center Eye */}
+            {/* Bidirectional Scroll-Progress Laser Filaments Radiating Outward from Center Eye */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute bottom-0 left-3 right-1/2 mr-12 sm:mr-16 xl:mr-20 h-[1.5px] overflow-hidden"
+              className="pointer-events-none absolute bottom-0 left-3 right-1/2 mr-14 sm:mr-18 xl:mr-22 h-[1.5px] overflow-hidden"
             >
               <div
                 style={{ width: `${Math.round(scrollProgress * 100)}%` }}
@@ -292,7 +292,7 @@ export const Navigation = ({
             </div>
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute bottom-0 left-1/2 right-3 ml-12 sm:ml-16 xl:mr-20 h-[1.5px] overflow-hidden"
+              className="pointer-events-none absolute bottom-0 left-1/2 right-3 ml-14 sm:mr-18 xl:mr-22 h-[1.5px] overflow-hidden"
             >
               <div
                 style={{ width: `${Math.round(scrollProgress * 100)}%` }}
@@ -300,10 +300,10 @@ export const Navigation = ({
               />
             </div>
 
-            {/* Split-Wing Cyber-Visor: Left Wing + Dead-Center Keystone Eye + Right Wing */}
-            <div className="relative flex items-center justify-between w-full min-w-0">
+            {/* Split-Wing Cyber-Visor: Equal-Width 3-Bay Enforced Architecture */}
+            <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-4 w-full">
               {/* LEFT WING: Clean Picture Logo + Left Sector Nodes (01, 02, 03) */}
-              <div className="flex items-center justify-start gap-1.5 sm:gap-2.5 min-w-0 pr-8 sm:pr-14 lg:pr-20">
+              <div className="flex items-center justify-start gap-1.5 sm:gap-2.5 min-w-0">
                 <a
                   href="#overview"
                   onClick={() => sound.playClick()}
@@ -330,18 +330,15 @@ export const Navigation = ({
                 </nav>
               </div>
 
-              {/* DEAD-CENTER KEYSTONE: Cybernetic Overwatch Oculus Pod (Locked at 50% screen center across all resolutions) */}
-              <div
-                aria-label="Overwatch Oculus Center Pod"
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-auto flex items-center justify-center select-none"
-              >
+              {/* CENTER KEYSTONE: Cybernetic Overwatch Oculus Pod (In-flow auto bay, physically separates wings) */}
+              <div className="flex items-center justify-center shrink-0 px-2 sm:px-4 xl:px-6 select-none z-10">
                 <div className="relative p-0.5 rounded-xl visor-cradle">
                   <MatrixWatchingEye />
                 </div>
               </div>
 
               {/* RIGHT WING: Right Sector Nodes (04, 05, 06) + Tactical Instruments + Existence Switch */}
-              <div className="flex items-center justify-end gap-1 sm:gap-2 min-w-0 pl-8 sm:pl-14 lg:pl-20">
+              <div className="flex items-center justify-end gap-1 sm:gap-2 min-w-0">
                 <nav
                   aria-label="Primary Right Sectors"
                   className="hidden lg:flex items-center gap-0.5 xl:gap-1 shrink-0"

@@ -67,21 +67,21 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
     const resizePod = () => {
       const vw = window.innerWidth;
       if (vw < 640) {
-        cssW = 84;
-        cssH = 30;
+        cssW = 80;
+        cssH = 28;
       } else if (vw < 1024) {
-        cssW = 108;
-        cssH = 34;
+        cssW = 104;
+        cssH = 32;
       } else if (vw < 1536) {
-        cssW = 120;
-        cssH = 36;
+        cssW = 116;
+        cssH = 34;
       } else {
-        cssW = 144;
-        cssH = 40;
+        cssW = 140;
+        cssH = 38;
       }
 
       dpr = Math.min(2, window.devicePixelRatio || 1);
-      const fontSize = vw < 640 ? 5.2 : vw < 1024 ? 6.0 : vw < 1536 ? 6.2 : 6.8;
+      const fontSize = vw < 640 ? 5.0 : vw < 1024 ? 5.8 : vw < 1536 ? 6.0 : 6.6;
       fontSpec = `bold ${fontSize}px 'Consolas', 'Courier New', monospace`;
 
       canvas.width = Math.round(cssW * dpr);
