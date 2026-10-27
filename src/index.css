@@ -210,6 +210,15 @@ section[id] {
   opacity: 1;
 }
 
+/* EXISTENCE.EXE world-map flowing path */
+.existence-path-flow {
+  stroke-dasharray: 6 6;
+  animation: existence-dash 2.4s linear infinite;
+}
+@keyframes existence-dash {
+  to { stroke-dashoffset: -24; }
+}
+
 /* Monochrome raster scanlines & obsidian scrollbar */
 [data-theme="existence"] .scanlines {
   background: repeating-linear-gradient(

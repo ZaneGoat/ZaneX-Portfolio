@@ -5,6 +5,7 @@ import { useUniverseTheme } from "@/context/ThemeContext";
 import { MatrixRain } from "@/components/MatrixRain";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import { ExistenceAsciiCanvas } from "@/components/ExistenceAsciiCanvas";
+import { ExistenceWorld } from "@/components/ExistenceWorld";
 import { EasterEggs } from "@/components/EasterEggs";
 import { Navigation } from "@/components/Navigation";
 import { CyberdeckFAB } from "@/components/CyberdeckFAB";
@@ -116,28 +117,43 @@ const Index = () => {
         onOpenMegaCenter={openMegaCenter}
       />
 
-      <main className={isExistence ? "relative z-10 pt-16 sm:pt-20" : "relative z-10 pt-16"}>
-        <BentoGrid
-          onOpenTerminal={openTerminal}
-          onOpenBreach={openBreach}
-          onOpenCsi={openCsi}
-          onOpenCtf={openCtf}
-          onOpenMegaCenter={openMegaCenter}
-          onOpenInfiltration={openInfiltration}
-        />
-
-        {/* Technical Showcase: Live Git Repositories & Tech Matrix (Operator mode; hidden for Friends who see the Lounge) */}
-        {persona !== "friend" && (
+      <main className={isExistence ? "relative z-10 pt-20 sm:pt-28" : "relative z-10 pt-16"}>
+        {isExistence ? (
+          /* ASCII universe: a completely different, game-style layout */
+          <ExistenceWorld
+            inputEnabled={open === null && !introOpen}
+            onOpenTerminal={openTerminal}
+            onOpenBreach={openBreach}
+            onOpenCsi={openCsi}
+            onOpenCtf={openCtf}
+            onOpenMegaCenter={openMegaCenter}
+            onOpenInfiltration={openInfiltration}
+          />
+        ) : (
           <>
-            <LiveRepositories />
-            <Skills />
+            <BentoGrid
+              onOpenTerminal={openTerminal}
+              onOpenBreach={openBreach}
+              onOpenCsi={openCsi}
+              onOpenCtf={openCtf}
+              onOpenMegaCenter={openMegaCenter}
+              onOpenInfiltration={openInfiltration}
+            />
+
+            {/* Technical Showcase: Live Git Repositories & Tech Matrix (Operator mode; hidden for Friends who see the Lounge) */}
+            {persona !== "friend" && (
+              <>
+                <LiveRepositories />
+                <Skills />
+              </>
+            )}
+
+            {/* Culture, Philosophy, Breach Protocol & Minigames */}
+            <Philosophy />
+            <Games onOpenBreach={openBreach} />
+            <Contact />
           </>
         )}
-
-        {/* Culture, Philosophy, Breach Protocol & Minigames */}
-        <Philosophy />
-        <Games onOpenBreach={openBreach} />
-        <Contact />
       </main>
 
       <Suspense fallback={null}>
