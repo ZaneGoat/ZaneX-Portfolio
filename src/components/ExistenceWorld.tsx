@@ -150,8 +150,8 @@ export const ExistenceWorld: React.FC<ExistenceWorldProps> = ({
         glyph: "Δ",
         name: "ARENA",
         shortName: "ARENA",
-        tag: "BREACH · CTF",
-        lore: "Solve the timed 5x5 hex matrix puzzle in Breach Protocol, or find the three security flags hidden across this site.",
+        tag: "BREACH · WIP GAME",
+        lore: "Solve the timed 5x5 hex matrix puzzle in Breach Protocol, hunt the three CTF flags, or wait on the full standalone game currently in production — it will take time, if I'm still alive.",
         actions: [
           { label: "BREACH ICE", run: onOpenBreach },
           { label: "CTF BOARD", run: onOpenCtf }

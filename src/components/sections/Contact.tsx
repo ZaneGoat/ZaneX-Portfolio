@@ -6,7 +6,7 @@ import { SectionHeader } from "@/components/SectionHeader";
 export const Contact = () => (
   <section id="contact" className="py-12 sm:py-16 md:py-24 relative z-10 cv-auto">
     <div className="container mx-auto px-3.5 sm:px-6">
-      <SectionHeader index="06" kicker="Contact" title="Get In Touch" />
+      <SectionHeader index="05" kicker="Contact" title="Get In Touch" />
 
       <div className="max-w-7xl mx-auto grid lg:grid-cols-5 gap-4 sm:gap-5">
         {/* Primary CTA */}

@@ -94,7 +94,12 @@ export const Navigation = ({
               <a
                 key={link.name}
                 href={link.href}
-                onClick={() => sound.playClick()}
+                onClick={() => {
+                  sound.playClick();
+                  if (link.href === "#repositories") {
+                    window.dispatchEvent(new CustomEvent("zanex:expand-repos"));
+                  }
+                }}
                 className={
                   isExistence
                     ? "text-white/75 hover:text-black hover:bg-white px-2 py-0.5 transition-colors text-[11px] lg:text-xs uppercase tracking-wider border border-transparent hover:border-white"
@@ -284,6 +289,9 @@ export const Navigation = ({
                     href={link.href}
                     onClick={() => {
                       sound.playClick();
+                      if (link.href === "#repositories") {
+                        window.dispatchEvent(new CustomEvent("zanex:expand-repos"));
+                      }
                       setIsMenuOpen(false);
                     }}
                     className="text-foreground/90 hover:text-primary text-base font-bold py-2.5 border-b border-primary/10 flex items-center justify-between"

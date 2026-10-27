@@ -1,4 +1,4 @@
-import { Swords, Zap, Play, Trophy } from "lucide-react";
+import { Swords, Zap, Play, Trophy, Gamepad2, Clock } from "lucide-react";
 import { sound } from "@/lib/sound";
 import { SectionHeader } from "@/components/SectionHeader";
 
@@ -10,10 +10,10 @@ export const Games = ({ onOpenBreach }: GamesProps) => (
   <section id="games" className="py-12 sm:py-16 md:py-24 relative z-10 cv-auto">
     <div className="container mx-auto px-3.5 sm:px-6">
       <SectionHeader
-        index="05"
+        index="04"
         kicker="Interactive"
         title="Arena"
-        subtitle="Take a quick break—solve a timed hex-buffer puzzle or send a chess challenge."
+        subtitle="Play a quick puzzle, send a chess challenge, or check on the standalone game currently in the works."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 max-w-5xl mx-auto">
@@ -68,6 +68,49 @@ export const Games = ({ onOpenBreach }: GamesProps) => (
           >
             <Swords className="w-4 h-4" /> CHALLENGE ON CHESS.COM
           </a>
+        </div>
+
+        {/* 3 — Upcoming Standalone Game in Production */}
+        <div className="hud-card md:col-span-2 p-5 sm:p-8 border border-amber-500/30 font-mono">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
+            <div className="space-y-2.5 max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 border border-amber-500/35 text-amber-300 uppercase tracking-wider">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  In Production
+                </span>
+                <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> Long-term solo build
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6 text-amber-300 shrink-0" />
+                <h3 className="text-xl sm:text-2xl font-black text-foreground uppercase tracking-tight">
+                  Standalone Game — Work in Progress
+                </h3>
+              </div>
+
+              <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
+                There is a full game currently in production behind the scenes. Building it properly from scratch will take real time—it will drop when it's ready, if I'm still alive by then.
+              </p>
+            </div>
+
+            <div className="shrink-0 bg-black/55 border border-white/10 rounded-xl p-3.5 sm:p-4 space-y-1.5 text-xs md:min-w-[220px]">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-muted-foreground">Status</span>
+                <span className="text-amber-300 font-bold">Active Dev</span>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-muted-foreground">Scope</span>
+                <span className="text-foreground font-semibold">Full Standalone</span>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-muted-foreground">ETA</span>
+                <span className="text-foreground font-semibold">Takes time (if alive)</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

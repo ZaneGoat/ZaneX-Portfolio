@@ -294,15 +294,24 @@ export const BentoGrid = ({
           </p>
         </motion.button>
 
-        {/* 4 — Breach Protocol */}
+        {/* 4 — Breach Protocol & Upcoming Game */}
         <motion.div {...fadeUp(0.2)} className="hud-card p-5 sm:p-6 flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-1.5 text-secondary font-mono text-xs font-bold uppercase tracking-wider mb-2.5">
-              <Zap className="w-4 h-4" /> Minigame
+            <div className="flex items-center justify-between gap-2 mb-2.5">
+              <span className="flex items-center gap-1.5 text-secondary font-mono text-xs font-bold uppercase tracking-wider">
+                <Zap className="w-4 h-4" /> Arena
+              </span>
+              <a
+                href="#games"
+                onClick={() => sound.playClick()}
+                className="text-[10px] font-mono text-amber-300/90 hover:text-amber-300 border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 rounded"
+              >
+                +1 Game WIP
+              </a>
             </div>
             <h3 className="text-lg sm:text-xl font-black text-foreground uppercase mb-1">Breach Protocol</h3>
             <p className="text-muted-foreground text-xs leading-relaxed">
-              Hex-buffer sequence puzzle with a 35-second timer.
+              Hex-buffer puzzle (35s). Also building a full game on the side—it'll take time, if I'm still alive.
             </p>
           </div>
           <button
@@ -383,11 +392,14 @@ export const BentoGrid = ({
                       </div>
                       <a
                         href="#repositories"
-                        onClick={() => sound.playClick()}
+                        onClick={() => {
+                          sound.playClick();
+                          window.dispatchEvent(new CustomEvent("zanex:expand-repos"));
+                        }}
                         className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-background rounded-lg font-mono text-xs font-bold transition-colors hover:bg-primary/90 active:scale-[0.98]"
                       >
                         <Github className="w-4 h-4" />
-                        <span>BROWSE REPOSITORIES</span>
+                        <span>SHOW REPOSITORIES</span>
                       </a>
                     </div>
                   </div>

@@ -38,7 +38,7 @@ export const Philosophy = () => {
       <section id="philosophy" className="py-12 sm:py-16 md:py-24 relative z-10 cv-auto">
         <div className="container mx-auto px-3.5 sm:px-6">
           <SectionHeader
-            index="03"
+            index="02"
             kicker="Notes"
             title="Late-Night Engineering"
             subtitle="Debugging habits, Moroccan mint tea rituals, and keeping software simple."
@@ -73,7 +73,7 @@ export const Philosophy = () => {
       <section id="philosophy" className="py-12 sm:py-16 md:py-24 relative z-10 cv-auto">
         <div className="container mx-auto px-3.5 sm:px-6">
           <SectionHeader
-            index="03"
+            index="02"
             kicker="Principles"
             title={clearance.projectsUnlocked ? "Engineering Principles" : "Engineering Principles [LOCKED]"}
             subtitle="Direct hardware verification, measurable latency, and defense-in-depth."
@@ -119,7 +119,7 @@ export const Philosophy = () => {
     <section id="philosophy" className="py-12 sm:py-16 md:py-24 relative z-10 cv-auto">
       <div className="container mx-auto px-3.5 sm:px-6">
         <SectionHeader
-          index="03"
+          index="02"
           kicker="Approach"
           title="How I Work"
           subtitle="Practical software architecture, clean databases, and reliable delivery."

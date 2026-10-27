@@ -12,7 +12,6 @@ import { CyberdeckFAB } from "@/components/CyberdeckFAB";
 import { BentoGrid } from "@/components/BentoGrid";
 import { AsciiIntroOverlay } from "@/components/AsciiIntroOverlay";
 import { LiveRepositories } from "@/components/sections/LiveRepositories";
-import { Skills } from "@/components/sections/Skills";
 import { Philosophy } from "@/components/sections/Philosophy";
 import { Pricing } from "@/components/sections/Pricing";
 import { Games } from "@/components/sections/Games";
@@ -141,13 +140,8 @@ const Index = () => {
               onOpenInfiltration={openInfiltration}
             />
 
-            {/* Technical Showcase: Live Git Repositories & Tech Matrix (Operator mode; hidden for Friends who see the Lounge) */}
-            {persona !== "friend" && (
-              <>
-                <LiveRepositories />
-                <Skills />
-              </>
-            )}
+            {/* Technical Showcase: Git Repositories (collapsed by default for quick skimming; hidden in Friend mode) */}
+            {persona !== "friend" && <LiveRepositories />}
 
             {/* Culture, Philosophy, Breach Protocol & Minigames */}
             <Philosophy />

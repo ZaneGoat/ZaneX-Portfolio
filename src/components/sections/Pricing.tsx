@@ -19,7 +19,7 @@ export const Pricing: React.FC = () => {
     <section id="pricing" className="py-12 sm:py-16 md:py-24 relative z-10 cv-auto font-mono">
       <div className="container mx-auto px-3.5 sm:px-6 max-w-7xl">
         <SectionHeader
-          index="04"
+          index="03"
           kicker="Monthly Plans"
           title="Work With Me"
           subtitle="Clear monthly retainers—predictable pricing, direct engineer access, pause or cancel anytime."
