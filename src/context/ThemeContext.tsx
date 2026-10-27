@@ -9,7 +9,7 @@ interface ThemeContextType {
   isExistence: boolean;
   setTheme: (next: UniverseTheme) => void;
   toggleTheme: () => void;
-  triggerLogoThemeShift: () => void;
+  triggerLogoThemeShift: (target?: UniverseTheme) => void;
 }
 
 const STORAGE_THEME_KEY = "zanex_theme";
@@ -82,17 +82,22 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTheme(theme === "existence" ? "matrix" : "existence");
   }, [theme, setTheme]);
 
-  const triggerLogoThemeShift = useCallback(() => {
-    setZoomPortal(prev => {
-      if (prev.active) return prev;
-      const next: UniverseTheme = theme === "existence" ? "matrix" : "existence";
-      return {
-        active: true,
-        fromTheme: theme,
-        toTheme: next,
-      };
-    });
-  }, [theme]);
+  const triggerLogoThemeShift = useCallback(
+    (target?: UniverseTheme) => {
+      setZoomPortal(prev => {
+        if (prev.active) return prev;
+        const next: UniverseTheme =
+          target ?? (theme === "existence" ? "matrix" : "existence");
+        if (next === theme && target !== undefined) return prev;
+        return {
+          active: true,
+          fromTheme: theme,
+          toTheme: next,
+        };
+      });
+    },
+    [theme]
+  );
 
   const handlePeakFlip = useCallback(() => {
     setTheme(zoomPortal.toTheme);

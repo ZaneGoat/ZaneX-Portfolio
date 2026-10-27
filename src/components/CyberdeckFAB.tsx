@@ -26,7 +26,7 @@ export const CyberdeckFAB = ({
   onOpenMegaCenter
 }: CyberdeckFABProps) => {
   const { persona, cyclePersona } = usePersona();
-  const { isExistence, toggleTheme } = useUniverseTheme();
+  const { isExistence, triggerLogoThemeShift } = useUniverseTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [sensorsEnabled, setSensorsEnabled] = useState(false);
@@ -245,7 +245,11 @@ export const CyberdeckFAB = ({
             {/* Quick Controls: Universe Theme & Audio */}
             <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-white/10">
               <button
-                onClick={toggleTheme}
+                onClick={e => {
+                  e.stopPropagation();
+                  setIsOpen(false);
+                  triggerLogoThemeShift();
+                }}
                 className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border text-[10px] font-bold active:scale-95 transition-transform cursor-pointer ${
                   isExistence
                     ? "border-white bg-white text-black"

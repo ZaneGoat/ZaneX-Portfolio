@@ -25,7 +25,7 @@ export const Navigation = ({
   onReplayIntro
 }: NavigationProps) => {
   const { persona } = usePersona();
-  const { isExistence, setTheme, toggleTheme } = useUniverseTheme();
+  const { isExistence, triggerLogoThemeShift } = useUniverseTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
 
@@ -115,7 +115,10 @@ export const Navigation = ({
             {/* Total-Conversion Universe Theme Button (Phone & Desktop Top Bar) */}
             <button
               type="button"
-              onClick={toggleTheme}
+              onClick={e => {
+                e.stopPropagation();
+                triggerLogoThemeShift();
+              }}
               className={
                 isExistence
                   ? "px-2 sm:px-2.5 py-1.5 bg-white text-black hover:bg-white/85 border border-white font-mono text-[10px] sm:text-xs font-bold flex items-center gap-1 cursor-pointer active:scale-95 transition-all"
@@ -261,7 +264,11 @@ export const Navigation = ({
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setTheme("matrix")}
+                    onClick={e => {
+                      e.stopPropagation();
+                      setIsMenuOpen(false);
+                      triggerLogoThemeShift("matrix");
+                    }}
                     className={`py-2 px-2.5 rounded-lg border text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                       !isExistence
                         ? "border-[#00ff9e] bg-[#00ff9e]/20 text-[#00ff9e]"
@@ -273,7 +280,11 @@ export const Navigation = ({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setTheme("existence")}
+                    onClick={e => {
+                      e.stopPropagation();
+                      setIsMenuOpen(false);
+                      triggerLogoThemeShift("existence");
+                    }}
                     className={`py-2 px-2.5 rounded-lg border text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                       isExistence
                         ? "border-white bg-white text-black"
