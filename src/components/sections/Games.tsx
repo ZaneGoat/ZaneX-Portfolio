@@ -10,7 +10,7 @@ export const Games = ({ onOpenBreach }: GamesProps) => (
   <section id="games" className="py-24 relative z-10 cv-auto">
     <div className="container mx-auto px-4 md:px-6">
       <SectionHeader
-        index="04"
+        index="05"
         kicker="Arena"
         title="Cyber Arena"
         subtitle="Procrastinate productively. Hex intrusion puzzles, open chess, and upcoming cyber constructs."

@@ -141,7 +141,7 @@ export const TerminalOverlay = ({
             <p><span className="text-primary font-bold">Uptime:</span> {activeSpecs.uptime}</p>
             <p><span className="text-primary font-bold">Shell:</span> {activeSpecs.shell}</p>
             <p><span className="text-primary font-bold">Display:</span> {telemetry.screenWidth}×{telemetry.screenHeight} Physical @ {telemetry.dpr}x ({telemetry.viewportWidth}×{telemetry.viewportHeight} Viewport)</p>
-            <p><span className="text-primary font-bold">DE / WM:</span> Cyberdeck HUD v4.2 / Xfwm4</p>
+            <p><span className="text-primary font-bold">DE / WM:</span> Cyberdeck HUD v6.0 / Xfwm4</p>
             <p><span className="text-primary font-bold">Terminal:</span> ZaneOS Matrix VTY</p>
             <p><span className="text-primary font-bold">CPU:</span> 11th Gen Intel i7-11800H (16) @ 4.60GHz</p>
             <p><span className="text-primary font-bold">GPU:</span> NVIDIA GeForce GTX 1650 Mobile</p>
@@ -1076,6 +1076,41 @@ Allow: /
         }
         break;
 
+      case "pricing":
+      case "contracts":
+      case "retainers":
+      case "subscription":
+        newLogs.push({
+          type: "output",
+          content: [
+            "╔══════════════════════════════════════════════════════════════════════════════════════╗",
+            "║                 ZANEX DEV-AS-A-SERVICE // MONTHLY RETAINER CONTRACTS                 ║",
+            "╚══════════════════════════════════════════════════════════════════════════════════════╝",
+            "",
+            "[01] RECON & CODE HEALTH ──────────── $199.98 / month",
+            "     • Weekly vulnerability & CVE audits, dependency patch updates",
+            "     • Linux server / VPS hardening, CI/CD health checks, async bug fixes",
+            "     • Ideal for: solo founders & startups needing a veteran second pair of eyes",
+            "",
+            "[02] FULL-STACK & ERP SPRINT ──────── $449.98 / month  ★ MOST POPULAR",
+            "     • Dedicated monthly sprint capacity for custom business ERPs & desktop POS",
+            "     • Python, PyQt, React, PostgreSQL & SQLite schema pipelines",
+            "     • 48-hour turnaround on task requests & automated report engines",
+            "     • Ideal for: businesses & clinics wanting custom software without agency bloat",
+            "",
+            "[03] DEDICATED BLACK-OPS & AI ─────── $899.98 / month  [MAX CAP]",
+            "     • Private local AI inference pipelines (Ollama, DeepSeek, Gemini API)",
+            "     • Embedded Controller (EC) & hardware telemetry governor integration",
+            "     • Wi-Fi CSI RF sensing, low-latency HID & emergency 24/7 mission-critical SLA",
+            "     • Ideal for: high-stakes platforms, local AI automation & custom systems",
+            "",
+            "Initiate direct contract inquiry: mailto:azizmaaizat@outlook.com",
+            "Guarantees: No lock-in (cancel anytime) · Mutual NDA protected · Direct Signal/Discord SLA"
+          ].join("\n")
+        });
+        sound.playSuccess();
+        break;
+
       case "theme": {
         const currentAttr = document.documentElement.getAttribute("data-theme");
         if (arg === "existence" || arg === "ascii" || arg === "singularity" || arg === "mono") {
@@ -1294,7 +1329,7 @@ Allow: /
             <div className="bg-primary/10 border-b border-primary/20 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
                 <TerminalIcon className="w-4 h-4" />
-                <span>ZANE_OS Shell :: Root v4.2 [Kali Linux Edition]</span>
+                <span>ZANE_OS Shell :: Root v6.0 [Kali Linux Edition]</span>
               </div>
               <div className="flex items-center gap-2">
                 <button

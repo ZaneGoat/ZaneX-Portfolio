@@ -142,10 +142,88 @@ export const contactLinks = [
   { icon: Globe, label: "Live Portfolio", href: "https://github.com/ZaneGoat/ZaneX-Portfolio", display: "ZaneX-Portfolio" }
 ];
 
+export interface PricingTier {
+  id: string;
+  index: string;
+  name: string;
+  tagline: string;
+  price: string;
+  period: string;
+  badge?: string;
+  recommended?: boolean;
+  description: string;
+  deliverables: string[];
+  idealFor: string;
+  cta: string;
+}
+
+export const pricingTiers: PricingTier[] = [
+  {
+    id: "recon",
+    index: "01",
+    name: "Recon & Code Health",
+    tagline: "Vulnerability Scans & Continuous Maintenance",
+    price: "$199.98",
+    period: "/ month",
+    description: "Proactive security audits, weekly dependency updates, and async bug fixing for production web and systems code.",
+    deliverables: [
+      "Continuous vulnerability & CVE tracking",
+      "Weekly security & dependency patch reviews",
+      "Linux server / VPS hardening & CI/CD tuning",
+      "Async bug fixing & architectural health reports",
+      "Direct async communication via Discord or Signal"
+    ],
+    idealFor: "Solo founders & teams needing a veteran second pair of eyes",
+    cta: "INITIATE RECON CONTRACT"
+  },
+  {
+    id: "sprint",
+    index: "02",
+    name: "Full-Stack & ERP Sprint",
+    tagline: "Dedicated Monthly Engineering Capacity",
+    price: "$449.98",
+    period: "/ month",
+    badge: "MOST POPULAR",
+    recommended: true,
+    description: "High-velocity development for custom business ERPs, POS desktop software, relational databases, and modern React portals.",
+    deliverables: [
+      "Dedicated monthly engineering sprint capacity",
+      "Custom ERP / POS modules (PyQt, CustomTkinter, React)",
+      "SQL / SQLite schema optimization & data pipelines",
+      "Rapid 48-hour turnaround on task requests",
+      "Automated medical / inventory Docx & PDF export engines",
+      "Direct priority sprint board management"
+    ],
+    idealFor: "Businesses & clinics wanting custom software without agency bloat",
+    cta: "INITIATE ERP SPRINT"
+  },
+  {
+    id: "blackops",
+    index: "03",
+    name: "Dedicated Black-Ops & AI",
+    tagline: "Autonomous Agentic Pipelines & Low-Level Systems",
+    price: "$899.98",
+    period: "/ month",
+    badge: "MAX CAPACITY",
+    description: "Mission-critical architectures: private local LLM integrations, autonomous web/OSINT pipelines, and kernel/EC tuning.",
+    deliverables: [
+      "Private local AI inference pipelines (Ollama, DeepSeek)",
+      "Autonomous scraping & agentic context engineering",
+      "Embedded Controller (EC) & hardware telemetry governor",
+      "Wi-Fi CSI RF sensing & low-latency HID integration",
+      "Emergency hotfixes & mission-critical SLA",
+      "24/7 priority communication channel"
+    ],
+    idealFor: "High-stakes platforms, local AI automation & custom hardware systems",
+    cta: "INITIATE BLACK-OPS CONTRACT"
+  }
+];
+
 export const terminalCommandsHelp = [
   { cmd: "help", desc: "List all available terminal commands" },
   { cmd: "neofetch", desc: "Display ZaneOS system telemetry and specs" },
   { cmd: "whoami", desc: "Display operator identity & security clearance" },
+  { cmd: "pricing", desc: "View monthly dev-as-a-service retainers & contract rates" },
   { cmd: "ctf [flag]", desc: "Hack My Portfolio CTF bounty board & flag submission" },
   { cmd: "csi [--gui]", desc: "Wi-Fi CSI Doppler radar & 64 OFDM subcarrier visualizer" },
   { cmd: "controler [--gui]", desc: "DualSense & Gamepad calibration suite" },
@@ -174,6 +252,7 @@ export const navLinks = [
   { name: "Overview", href: "#overview" },
   { name: "Repositories", href: "#repositories" },
   { name: "Tech Matrix", href: "#skills" },
+  { name: "Contracts", href: "#pricing" },
   { name: "Minigame", href: "#games" },
   { name: "Contact", href: "#contact" }
 ];

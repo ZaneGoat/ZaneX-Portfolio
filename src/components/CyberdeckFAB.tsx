@@ -80,7 +80,7 @@ export const CyberdeckFAB = ({
             <div className="flex items-center justify-between border-b border-primary/20 pb-2 mb-2">
               <div className="flex items-center gap-1.5 text-primary text-[11px] font-bold tracking-wider">
                 <Cpu className="w-3.5 h-3.5 text-primary animate-pulse" />
-                <span>CYBERDECK // V4.2</span>
+                <span>CYBERDECK // V6.0</span>
               </div>
               <span className="text-[9px] text-primary/60 border border-primary/30 px-1 rounded">HUD</span>
             </div>

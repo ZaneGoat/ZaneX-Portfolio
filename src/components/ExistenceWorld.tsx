@@ -174,7 +174,10 @@ export const ExistenceWorld: React.FC<ExistenceWorldProps> = ({
         name: "COMMS",
         tag: "OPEN CHANNEL",
         lore: "Every signal needs a receiver. ERP builds, automation pipelines, or a second pair of eyes on your stack: open a channel.",
-        actions: [{ label: "SEND MAIL", href: "mailto:azizmaaizat@outlook.com" }]
+        actions: [
+          { label: "SEND MAIL", href: "mailto:azizmaaizat@outlook.com" },
+          { label: "CONTRACTS ($199–$899)", run: onOpenTerminal }
+        ]
       }
     ],
     [identityLocked, specs, archiveRepos.length, onOpenInfiltration, onOpenTerminal, onOpenMegaCenter, onOpenCsi, onOpenBreach, onOpenCtf]

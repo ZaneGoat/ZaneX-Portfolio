@@ -14,6 +14,7 @@ import { AsciiIntroOverlay } from "@/components/AsciiIntroOverlay";
 import { LiveRepositories } from "@/components/sections/LiveRepositories";
 import { Skills } from "@/components/sections/Skills";
 import { Philosophy } from "@/components/sections/Philosophy";
+import { Pricing } from "@/components/sections/Pricing";
 import { Games } from "@/components/sections/Games";
 import { Contact } from "@/components/sections/Contact";
 
@@ -150,6 +151,7 @@ const Index = () => {
 
             {/* Culture, Philosophy, Breach Protocol & Minigames */}
             <Philosophy />
+            <Pricing />
             <Games onOpenBreach={openBreach} />
             <Contact />
           </>

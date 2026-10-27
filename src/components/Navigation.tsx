@@ -29,6 +29,7 @@ export const Navigation = ({
     ? [
         { name: "Overview", href: "#overview" },
         { name: "Homie Lounge", href: "#friend-lounge" },
+        { name: "Contracts", href: "#pricing" },
         { name: "Breach Protocol", href: "#games" },
         { name: "Philosophy", href: "#philosophy" },
         { name: "Contact", href: "#contact" }
@@ -77,7 +78,7 @@ export const Navigation = ({
                     ZANE<span className="text-secondary">X</span>
                   </span>
                   <span className="text-[9px] sm:text-[10px] bg-primary/10 text-primary border border-primary/30 px-1.5 sm:px-2 py-0.5 rounded-full font-bold">
-                    v4.2
+                    v6.0
                   </span>
                 </>
               )}
