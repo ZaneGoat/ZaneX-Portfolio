@@ -84,19 +84,27 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const triggerLogoThemeShift = useCallback(
     (target?: UniverseTheme) => {
+      const next: UniverseTheme =
+        target ?? (theme === "existence" ? "matrix" : "existence");
+      if (next === theme && target !== undefined) return;
+
+      // Only trigger the fullscreen ASCII animation when entering EXISTENCE;
+      // when clicking MATRIX HUD (returning to matrix), switch immediately without the animation.
+      if (next === "matrix") {
+        setTheme("matrix");
+        return;
+      }
+
       setZoomPortal(prev => {
         if (prev.active) return prev;
-        const next: UniverseTheme =
-          target ?? (theme === "existence" ? "matrix" : "existence");
-        if (next === theme && target !== undefined) return prev;
         return {
           active: true,
           fromTheme: theme,
-          toTheme: next,
+          toTheme: "existence",
         };
       });
     },
-    [theme]
+    [theme, setTheme]
   );
 
   const handlePeakFlip = useCallback(() => {

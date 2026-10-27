@@ -324,10 +324,15 @@ export const AsciiBrandLogo: React.FC<AsciiBrandLogoProps> = ({
     e.preventDefault();
     e.stopPropagation();
     setHovered(false);
-    triggerLogoThemeShift();
+    if (isExistence) {
+      sound.playClick();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    triggerLogoThemeShift("existence");
   };
 
-  const nextUniverseName = isExistence ? "MATRIX EMERALD" : "Ω-EXISTENCE";
+  const nextUniverseName = "Ω-EXISTENCE";
 
   const preBlock = (
     <pre
@@ -436,8 +441,9 @@ export const AsciiBrandLogo: React.FC<AsciiBrandLogoProps> = ({
         </button>
       )}
 
-      {/* Portal-Mounted Live 60-FPS Procedural RGB ASCII Hologram Popover */}
+      {/* Portal-Mounted Live 60-FPS Procedural RGB ASCII Hologram Popover (Matrix HUD mode) */}
       {withPopover &&
+        !isExistence &&
         hovered &&
         typeof document !== "undefined" &&
         createPortal(
