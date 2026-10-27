@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { usePersona } from "@/context/PersonaContext";
 import { useOperatorClearance } from "@/context/OperatorClearanceContext";
+import { useUniverseTheme } from "@/context/ThemeContext";
 import { MatrixRain } from "@/components/MatrixRain";
 import { FloatingParticles } from "@/components/FloatingParticles";
+import { ExistenceAsciiCanvas } from "@/components/ExistenceAsciiCanvas";
 import { EasterEggs } from "@/components/EasterEggs";
 import { Navigation } from "@/components/Navigation";
 import { CyberdeckFAB } from "@/components/CyberdeckFAB";
@@ -32,6 +34,7 @@ type Overlay = "terminal" | "breach" | "matrix" | "csi" | "ctf" | "megacenter" |
 const Index = () => {
   const { persona } = usePersona();
   const { clearance } = useOperatorClearance();
+  const { isExistence } = useUniverseTheme();
   const [open, setOpen] = useState<Overlay | null>(null);
   const [introOpen, setIntroOpen] = useState<boolean>(true);
   const handleIntroComplete = useCallback(() => setIntroOpen(false), []);
@@ -62,14 +65,6 @@ const Index = () => {
   const openMegaCenter = useCallback(() => show("megacenter"), [show]);
   const openInfiltration = useCallback(() => show("infiltration"), [show]);
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("zanex_theme");
-    if (savedTheme === "amber" || savedTheme === "cyan") {
-      localStorage.setItem("zanex_theme", "emerald");
-    }
-    document.documentElement.removeAttribute("data-theme");
-  }, []);
-
   // ` (backtick) toggles the terminal from anywhere, like a game console.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -93,8 +88,16 @@ const Index = () => {
       <AsciiIntroOverlay isOpen={introOpen} onComplete={handleIntroComplete} />
 
       {/* Background FX — paused while a fullscreen construct owns the GPU */}
-      {!canvasOverlayActive && <MatrixRain />}
-      {!canvasOverlayActive && <FloatingParticles />}
+      {!canvasOverlayActive && (
+        isExistence ? (
+          <ExistenceAsciiCanvas />
+        ) : (
+          <>
+            <MatrixRain />
+            <FloatingParticles />
+          </>
+        )
+      )}
       <div className="scanlines fixed inset-0 pointer-events-none z-10 opacity-30" />
 
       <EasterEggs onOpenTerminal={openTerminal} onOpenMatrixTakeover={openMatrix} />
@@ -113,7 +116,7 @@ const Index = () => {
         onOpenMegaCenter={openMegaCenter}
       />
 
-      <main className="relative z-10 pt-16">
+      <main className={isExistence ? "relative z-10 pt-16 sm:pt-20" : "relative z-10 pt-16"}>
         <BentoGrid
           onOpenTerminal={openTerminal}
           onOpenBreach={openBreach}
@@ -182,7 +185,9 @@ const Index = () => {
       <footer className="py-10 border-t border-primary/20 relative z-10 bg-black/60 font-mono text-xs">
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-muted-foreground">
           <div>
-            <p className="text-primary font-bold">ZANEX // ROOT CLEARANCE LEVEL 99</p>
+            <p className="text-primary font-bold">
+              {isExistence ? "[ ZANEX :: Ω-EXISTENCE // SINGULARITY ARCHIVE ]" : "ZANEX // ROOT CLEARANCE LEVEL 99"}
+            </p>
             <p>&copy; {new Date().getFullYear()} Aziz Maaizate (Zane Goat)</p>
           </div>
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 text-primary/70">

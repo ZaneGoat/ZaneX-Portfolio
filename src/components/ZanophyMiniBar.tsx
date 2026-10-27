@@ -39,7 +39,7 @@ export const ZanophyMiniBar: React.FC = () => {
           sound.haptic(20);
           setIsMinimized(false);
         }}
-        className={`fixed bottom-4 left-4 z-40 p-3 rounded-full bg-[#070b0e]/95 border-2 backdrop-blur-xl flex items-center justify-center group cursor-pointer font-mono transition-transform hover:scale-105 active:scale-95 ${
+        className={`keep-round fixed bottom-4 left-4 z-40 p-3 rounded-full bg-[#070b0e]/95 border-2 backdrop-blur-xl flex items-center justify-center group cursor-pointer font-mono transition-transform hover:scale-105 active:scale-95 ${
           mood === "jazz"
             ? "border-amber-500/60 shadow-[0_0_25px_rgba(245,158,11,0.4)]"
             : "border-emerald-500/60 shadow-[0_0_25px_rgba(29,185,84,0.4)]"

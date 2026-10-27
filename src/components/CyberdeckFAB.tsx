@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Terminal, Zap, Radio, Volume2, VolumeX, X, Cpu, ShieldAlert, Wind, UserCheck, Smartphone, Eye } from "lucide-react";
+import { Terminal, Zap, Radio, Volume2, VolumeX, X, Cpu, ShieldAlert, Wind, UserCheck, Smartphone, Eye, Sparkles } from "lucide-react";
 import { sound } from "@/lib/sound";
 import { usePersona } from "@/context/PersonaContext";
+import { useUniverseTheme } from "@/context/ThemeContext";
 
 interface CyberdeckFABProps {
   onOpenTerminal: () => void;
@@ -22,6 +23,7 @@ export const CyberdeckFAB = ({
   onOpenMegaCenter
 }: CyberdeckFABProps) => {
   const { persona, cyclePersona, deviceChoice, spoofActive } = usePersona();
+  const { isExistence, toggleTheme } = useUniverseTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [sensorsEnabled, setSensorsEnabled] = useState(false);
@@ -212,11 +214,24 @@ export const CyberdeckFAB = ({
               </button>
             </div>
 
-            {/* Quick Controls: Audio */}
-            <div className="pt-1 border-t border-primary/20">
+            {/* Quick Controls: Universe Theme & Audio */}
+            <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-primary/20">
+              <button
+                onClick={toggleTheme}
+                className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border text-[10px] font-bold active:scale-95 transition-transform cursor-pointer ${
+                  isExistence
+                    ? "border-white bg-white text-black"
+                    : "border-primary/40 bg-primary/10 text-primary"
+                }`}
+                title="Toggle Universe Architecture (Matrix Green / Existence ASCII)"
+              >
+                <Sparkles className="w-3 h-3" />
+                <span>{isExistence ? "MATRIX" : "EXISTENCE"}</span>
+              </button>
+
               <button
                 onClick={toggleAudio}
-                className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border text-[10px] font-bold active:scale-95 transition-transform ${
+                className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border text-[10px] font-bold active:scale-95 transition-transform cursor-pointer ${
                   isMuted
                     ? "border-primary/20 text-primary/40 bg-transparent"
                     : "border-primary text-primary bg-primary/10 shadow-[0_0_10px_hsl(var(--primary)/0.3)]"

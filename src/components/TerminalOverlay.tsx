@@ -1076,12 +1076,47 @@ Allow: /
         }
         break;
 
-      case "theme":
-        document.documentElement.removeAttribute("data-theme");
-        localStorage.setItem("zanex_theme", "emerald");
-        sound.playSuccess();
-        newLogs.push({ type: "output", content: "Active theme: Matrix EMERALD (Canonical Green Baseline)." });
+      case "theme": {
+        const currentAttr = document.documentElement.getAttribute("data-theme");
+        if (arg === "existence" || arg === "ascii" || arg === "singularity" || arg === "mono") {
+          document.documentElement.setAttribute("data-theme", "existence");
+          localStorage.setItem("zanex_theme", "existence");
+          sound.playSuccess();
+          newLogs.push({
+            type: "output",
+            content: "[Ω] Dimensional shift complete: EXISTENCE // SINGULARITY (8x Braille Subpixel & Stark Monochrome TUI)."
+          });
+        } else if (arg === "matrix" || arg === "emerald" || arg === "green" || arg === "default") {
+          document.documentElement.removeAttribute("data-theme");
+          localStorage.setItem("zanex_theme", "matrix");
+          sound.playSuccess();
+          newLogs.push({
+            type: "output",
+            content: "[◈] Dimensional shift complete: MATRIX EMERALD Cyber-HUD."
+          });
+        } else if (!arg) {
+          if (currentAttr === "existence") {
+            document.documentElement.removeAttribute("data-theme");
+            localStorage.setItem("zanex_theme", "matrix");
+            sound.playSuccess();
+            newLogs.push({
+              type: "output",
+              content: "[◈] Toggled universe -> MATRIX EMERALD Cyber-HUD."
+            });
+          } else {
+            document.documentElement.setAttribute("data-theme", "existence");
+            localStorage.setItem("zanex_theme", "existence");
+            sound.playSuccess();
+            newLogs.push({
+              type: "output",
+              content: "[Ω] Toggled universe -> EXISTENCE // SINGULARITY Monochrome ASCII TUI."
+            });
+          }
+        } else {
+          newLogs.push({ type: "error", content: "Usage: theme [matrix | existence]" });
+        }
         break;
+      }
 
       case "breach":
       case "ice":

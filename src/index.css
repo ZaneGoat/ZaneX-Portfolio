@@ -37,6 +37,43 @@
     --cyber-glow: 158 100% 53%;
     --matrix-color: #00ff9e;
   }
+
+  /* =========================================================================
+   * EXISTENCE // SINGULARITY — Total-Conversion Stark Monochrome TUI Universe
+   * ========================================================================= */
+  [data-theme="existence"] {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 96%;
+
+    --card: 0 0% 2%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 0 0% 2%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 0 0% 72%;
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 62%;
+
+    --accent: 0 0% 100%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 0% 82%;
+    --destructive-foreground: 0 0% 0%;
+
+    --border: 0 0% 22%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 100%;
+
+    --radius: 0rem;
+    --cyber-glow: 0 0% 100%;
+    --matrix-color: #ffffff;
+  }
 }
 
 @layer base {
@@ -110,6 +147,130 @@ section[id] {
 
 .glow-text {
   text-shadow: 0 0 28px hsl(var(--primary) / 0.35);
+}
+
+/* =========================================================================
+ * EXISTENCE // Total-Conversion Typography, Borders, Reticles & Monochrome
+ * ========================================================================= */
+[data-theme="existence"] body,
+[data-theme="existence"] .font-sans,
+[data-theme="existence"] .font-mono {
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  letter-spacing: -0.01em;
+}
+
+[data-theme="existence"] h1,
+[data-theme="existence"] h2,
+[data-theme="existence"] h3 {
+  font-family: "Space Mono", "IBM Plex Mono", monospace !important;
+  letter-spacing: -0.025em;
+}
+
+[data-theme="existence"] .glow-text {
+  text-shadow: none !important;
+}
+
+/* Zero-radius brutalist geometry across cards, buttons, badges, inputs */
+[data-theme="existence"] *:not(.keep-round) {
+  border-radius: 0px !important;
+}
+
+/* Observatory Monolith Slab (.hud-card) + 4-Corner Crosshair Reticles */
+[data-theme="existence"] .hud-card {
+  position: relative;
+  background: rgba(3, 3, 4, 0.90) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="existence"] .hud-card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  opacity: 0.72;
+  transition: opacity 0.2s ease;
+  background:
+    linear-gradient(to right, #ffffff 8px, transparent 8px) 0 0 / 100% 1.5px no-repeat,
+    linear-gradient(to bottom, #ffffff 8px, transparent 8px) 0 0 / 1.5px 100% no-repeat,
+    linear-gradient(to left, #ffffff 8px, transparent 8px) 100% 0 / 100% 1.5px no-repeat,
+    linear-gradient(to bottom, #ffffff 8px, transparent 8px) 100% 0 / 1.5px 100% no-repeat,
+    linear-gradient(to right, #ffffff 8px, transparent 8px) 0 100% / 100% 1.5px no-repeat,
+    linear-gradient(to top, #ffffff 8px, transparent 8px) 0 100% / 1.5px 100% no-repeat,
+    linear-gradient(to left, #ffffff 8px, transparent 8px) 100% 100% / 100% 1.5px no-repeat,
+    linear-gradient(to top, #ffffff 8px, transparent 8px) 100% 100% / 1.5px 100% no-repeat;
+}
+
+[data-theme="existence"] .hud-card:hover {
+  border-color: rgba(255, 255, 255, 0.65) !important;
+  background: rgba(8, 8, 10, 0.94) !important;
+}
+
+[data-theme="existence"] .hud-card:hover::after {
+  opacity: 1;
+}
+
+/* Monochrome raster scanlines & obsidian scrollbar */
+[data-theme="existence"] .scanlines {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(255, 255, 255, 0.025) 2px,
+    rgba(255, 255, 255, 0.025) 3px
+  );
+  background-size: 100% 3px;
+}
+
+[data-theme="existence"] ::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+[data-theme="existence"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 0px;
+}
+
+/* Harmonize hardcoded colored accents inside main & footer into stark silver/ivory */
+[data-theme="existence"] main [class*="text-emerald-"],
+[data-theme="existence"] main [class*="text-amber-"],
+[data-theme="existence"] main [class*="text-yellow-"],
+[data-theme="existence"] main [class*="text-sky-"],
+[data-theme="existence"] main [class*="text-cyan-"],
+[data-theme="existence"] main [class*="text-purple-"],
+[data-theme="existence"] main [class*="text-indigo-"],
+[data-theme="existence"] main [class*="text-orange-"],
+[data-theme="existence"] main [class*="text-rose-"],
+[data-theme="existence"] main [class*="text-red-"],
+[data-theme="existence"] footer [class*="text-rose-"],
+[data-theme="existence"] footer [class*="text-yellow-"] {
+  color: #e4e4ec !important;
+}
+
+[data-theme="existence"] main [class*="border-emerald-"],
+[data-theme="existence"] main [class*="border-amber-"],
+[data-theme="existence"] main [class*="border-yellow-"],
+[data-theme="existence"] main [class*="border-sky-"],
+[data-theme="existence"] main [class*="border-cyan-"],
+[data-theme="existence"] main [class*="border-purple-"],
+[data-theme="existence"] main [class*="border-indigo-"],
+[data-theme="existence"] main [class*="border-orange-"],
+[data-theme="existence"] main [class*="border-rose-"],
+[data-theme="existence"] main [class*="border-red-"] {
+  border-color: rgba(255, 255, 255, 0.28) !important;
+}
+
+[data-theme="existence"] main [class*="bg-emerald-"],
+[data-theme="existence"] main [class*="bg-amber-"],
+[data-theme="existence"] main [class*="bg-yellow-"],
+[data-theme="existence"] main [class*="bg-sky-"],
+[data-theme="existence"] main [class*="bg-cyan-"],
+[data-theme="existence"] main [class*="bg-purple-"],
+[data-theme="existence"] main [class*="bg-indigo-"],
+[data-theme="existence"] main [class*="bg-orange-"],
+[data-theme="existence"] main [class*="bg-rose-"],
+[data-theme="existence"] main [class*="bg-red-"] {
+  background-color: rgba(255, 255, 255, 0.06) !important;
 }
 
 /* Skip layout/paint for below-the-fold sections until they approach the viewport */
