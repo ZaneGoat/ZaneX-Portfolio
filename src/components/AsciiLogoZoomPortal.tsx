@@ -10,9 +10,18 @@ export interface AsciiLogoZoomPortalProps {
   onComplete: () => void;
 }
 
-// Exact 70-character cinematic ASCII ramp matching AsciiIntroOverlay & RyukAsciiOverlay
+// 70-character luminance ramp from void space to solid bright glyphs
 const RAMP = " .'`^\",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
 const RAMP_LEN = RAMP.length;
+
+// Separate outer lotus silhouette from the two inner arm-cutout subpaths so cutouts stay razor-sharp
+const CUTOUT_SPLIT_IDX = MEDITATING_LOGO_SVG_PATH.indexOf("M 7,-8");
+const OUTER_LOTUS_SVG =
+  CUTOUT_SPLIT_IDX > 0
+    ? MEDITATING_LOGO_SVG_PATH.slice(0, CUTOUT_SPLIT_IDX).trim()
+    : MEDITATING_LOGO_SVG_PATH;
+const ARM_CUTOUTS_SVG =
+  CUTOUT_SPLIT_IDX > 0 ? MEDITATING_LOGO_SVG_PATH.slice(CUTOUT_SPLIT_IDX).trim() : "";
 
 interface Star {
   x: number;
@@ -43,8 +52,9 @@ const easeInOutExpo = (x: number) => {
 };
 
 /**
- * Shared high-contrast vector renderer for the Meditating Guardian + Sacred Mandala + Chakra Core.
- * Exported so AsciiBrandLogo's live hover hologram canvas can also render the exact same shaded ASCII art!
+ * Square-pixel isotropic vector renderer for the Meditating Guardian + Sacred Mandala + Chakra Core.
+ * Both X and Y scale by the exact same `unitPx` on a square-pixel buffer `(bw, bh)`,
+ * preventing any vertical stretch or rotational shear on both phones and desktops.
  */
 export function drawShadedMeditatingGuardian(
   bctx: CanvasRenderingContext2D,
@@ -64,36 +74,34 @@ export function drawShadedMeditatingGuardian(
   bctx.fillStyle = "#040508";
   bctx.fillRect(0, 0, bw, bh);
 
-  const aspect = bw / Math.max(1, bh);
-  const normScale = aspect >= 1.0 ? 1.0 : 1.0 / Math.max(0.58, aspect);
+  // Isotropic physical scaling: 1.0 world unit = 42% of the smaller buffer dimension
+  const unitPx = Math.min(bw, bh) * 0.42;
 
   bctx.translate(bw * 0.5, bh * 0.5);
-  const baseScaleX = (bw * 0.5) / (aspect * normScale);
-  const baseScaleY = (bh * 0.5) / normScale;
-  bctx.scale(baseScaleX * zoom, baseScaleY * zoom);
+  bctx.scale(unitPx * zoom, unitPx * zoom);
   bctx.translate(-camCenterX, -camCenterY);
 
-  // Palette interpolation: Matrix (emerald/cyan/gold) <-> Existence (stark ivory/silver/obsidian)
+  // Palette interpolation: Matrix (emerald/cyan/gold) -> Existence (stark ivory/silver)
   const priR = Math.round(mix(0, 245, toExistenceMix));
   const priG = Math.round(mix(255, 245, toExistenceMix));
   const priB = Math.round(mix(158, 252, toExistenceMix));
 
-  const accR = Math.round(mix(0, 190, toExistenceMix));
-  const accG = Math.round(mix(225, 195, toExistenceMix));
-  const accB = Math.round(mix(255, 210, toExistenceMix));
+  const accR = Math.round(mix(0, 195, toExistenceMix));
+  const accG = Math.round(mix(225, 200, toExistenceMix));
+  const accB = Math.round(mix(255, 215, toExistenceMix));
 
   const hotR = 255;
-  const hotG = Math.round(mix(205, 255, toExistenceMix));
-  const hotB = Math.round(mix(80, 255, toExistenceMix));
+  const hotG = Math.round(mix(210, 255, toExistenceMix));
+  const hotB = Math.round(mix(90, 255, toExistenceMix));
 
   // 1. Rising Cosmic Embers in Background
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 28; i++) {
     const sA = Math.sin(i * 73.1 + 1.9) * 43758.5453;
     const rx = ((sA - Math.floor(sA)) * 2.0 - 1.0) * 1.15;
     const sB = Math.cos(i * 41.7 + 3.3) * 23421.631;
     const ryBase = (sB - Math.floor(sB)) * 2.0 - 1.0;
-    const ry = ((ryBase - t * (0.32 + (i % 5) * 0.08) + 4.0) % 2.0) - 1.0;
-    const rad = 0.013 + (i % 3) * 0.007;
+    const ry = ((ryBase - t * (0.30 + (i % 5) * 0.07) + 4.0) % 2.0) - 1.0;
+    const rad = 0.012 + (i % 3) * 0.006;
     bctx.fillStyle =
       i % 3 === 0
         ? `rgba(${hotR}, ${hotG}, ${hotB}, ${0.55 + 0.35 * chakraMix})`
@@ -103,134 +111,149 @@ export function drawShadedMeditatingGuardian(
     bctx.fill();
   }
 
-  // Apply barrel roll + subtle meditation levitation bob
-  const bobY = Math.sin(t * 2.8) * 0.025;
+  // Subtle levitation bob + rigid circular barrel roll
+  const bobY = Math.sin(t * 2.6) * 0.02;
   bctx.translate(0, bobY);
   bctx.rotate(rollAngle);
 
-  // 2. Counter-Rotating Sacred Mandala / Cyber Halo Rings
-  const ringAlpha = 0.42 + 0.48 * chakraMix;
+  // 2. Counter-Rotating Sacred Mandala & Cyber Halo Rings
+  const ringAlpha = 0.48 + 0.44 * chakraMix;
   bctx.save();
   bctx.rotate(t * 0.55);
-  bctx.strokeStyle = `rgba(${accR}, ${accG}, ${accB}, ${ringAlpha * 0.65})`;
-  bctx.lineWidth = 0.018;
+  bctx.strokeStyle = `rgba(${accR}, ${accG}, ${accB}, ${ringAlpha * 0.72})`;
+  bctx.lineWidth = 0.016;
   bctx.beginPath();
-  bctx.arc(0, -0.02, 0.88, 0, Math.PI * 2);
+  bctx.arc(0, 0, 0.88, 0, Math.PI * 2);
   bctx.stroke();
 
-  // 12 radial sacred geometry ticks around outer mandala
   for (let k = 0; k < 12; k++) {
     const a = (k / 12) * Math.PI * 2;
     const r0 = k % 2 === 0 ? 0.80 : 0.84;
-    const r1 = k % 2 === 0 ? 0.96 : 0.92;
+    const r1 = k % 2 === 0 ? 0.95 : 0.91;
     bctx.strokeStyle =
       k % 3 === 0
         ? `rgba(${hotR}, ${hotG}, ${hotB}, ${ringAlpha})`
-        : `rgba(${priR}, ${priG}, ${priB}, ${ringAlpha * 0.8})`;
-    bctx.lineWidth = k % 2 === 0 ? 0.022 : 0.014;
+        : `rgba(${priR}, ${priG}, ${priB}, ${ringAlpha * 0.85})`;
+    bctx.lineWidth = k % 2 === 0 ? 0.020 : 0.013;
     bctx.beginPath();
-    bctx.moveTo(Math.cos(a) * r0, -0.02 + Math.sin(a) * r0);
-    bctx.lineTo(Math.cos(a) * r1, -0.02 + Math.sin(a) * r1);
+    bctx.moveTo(Math.cos(a) * r0, Math.sin(a) * r0);
+    bctx.lineTo(Math.cos(a) * r1, Math.sin(a) * r1);
     bctx.stroke();
   }
   bctx.restore();
 
-  // Inner counter-rotating crown halo behind head & heart
+  // Inner counter-rotating dashed halo ring
   bctx.save();
-  bctx.rotate(-t * 0.85);
-  bctx.strokeStyle = `rgba(${priR}, ${priG}, ${priB}, ${ringAlpha * 0.75})`;
-  bctx.lineWidth = 0.016;
-  bctx.setLineDash([0.08, 0.05]);
+  bctx.rotate(-t * 0.82);
+  bctx.strokeStyle = `rgba(${priR}, ${priG}, ${priB}, ${ringAlpha * 0.78})`;
+  bctx.lineWidth = 0.014;
+  bctx.setLineDash([0.075, 0.048]);
   bctx.beginPath();
-  bctx.arc(0, -0.04, 0.68, 0, Math.PI * 2);
+  bctx.arc(0, 0, 0.70, 0, Math.PI * 2);
   bctx.stroke();
   bctx.setLineDash([]);
   bctx.restore();
 
-  // 3. 3D Perspective Coin-Spin + Extruded Meditating Silhouette
+  // 3. 3D Perspective Coin-Spin + Crisp Meditating Lotus Silhouette
   const cosSpin = Math.cos(spinAngle);
   const sinSpin = Math.sin(spinAngle);
-  const horizScale = Math.sign(cosSpin || 1) * Math.max(0.18, Math.abs(cosSpin));
+  const horizScale = Math.sign(cosSpin || 1) * Math.max(0.20, Math.abs(cosSpin));
 
   bctx.save();
-  // Map SVG [-100..100] coordinates into normalized [-0.78..0.78] world units (scaled down slightly on narrow portrait phones)
-  const svgToWorld = aspect < 0.75 ? 0.0064 : 0.0076;
+  const svgToWorld = 0.0073;
   bctx.scale(svgToWorld * horizScale, svgToWorld);
+  // Shift SVG midpoint (0, +10.5) to exact world origin (0, 0) = Heart Chakra Center
+  bctx.translate(0, -10.5);
 
   if (typeof Path2D !== "undefined") {
-    const logoPath = new Path2D(MEDITATING_LOGO_SVG_PATH);
+    const fullLogoPath = new Path2D(MEDITATING_LOGO_SVG_PATH);
+    const outerPath = new Path2D(OUTER_LOTUS_SVG);
+    const cutoutsPath = ARM_CUTOUTS_SVG ? new Path2D(ARM_CUTOUTS_SVG) : null;
 
-    // 3D Extruded Side Rim Offset when spinning
-    const extrudeShift = (sinSpin * 11.0) / Math.max(0.25, Math.abs(horizScale));
-    if (Math.abs(extrudeShift) > 0.6) {
+    // 3D Extruded Side Rim when spinning in 3D
+    const extrudeShift = (sinSpin * 9.5) / Math.max(0.28, Math.abs(horizScale));
+    if (Math.abs(extrudeShift) > 0.5) {
       bctx.save();
       bctx.translate(extrudeShift, 0);
-      bctx.fillStyle = `rgb(${Math.round(priR * 0.42)}, ${Math.round(priG * 0.42)}, ${Math.round(priB * 0.42)})`;
-      bctx.fill(logoPath, "evenodd");
-      bctx.strokeStyle = `rgba(${accR}, ${accG}, ${accB}, 0.85)`;
-      bctx.lineWidth = 4.2;
-      bctx.stroke(logoPath);
+      bctx.fillStyle = `rgb(${Math.round(priR * 0.38)}, ${Math.round(priG * 0.42)}, ${Math.round(priB * 0.42)})`;
+      bctx.fill(fullLogoPath, "evenodd");
+      bctx.strokeStyle = `rgba(${accR}, ${accG}, ${accB}, 0.80)`;
+      bctx.lineWidth = 2.6;
+      bctx.stroke(outerPath);
       bctx.restore();
     }
 
-    // Thick Bright Outer Aura Cutline (produces crisp @#$MW rim in 70-char ASCII!)
+    // Crisp Bright Outer Silhouette Rim (produces sharp @#$MW contour in ASCII)
     bctx.lineJoin = "round";
     bctx.lineCap = "round";
-    bctx.strokeStyle = "#f5f7ff";
-    bctx.lineWidth = 7.5;
-    bctx.stroke(logoPath);
+    bctx.strokeStyle = "#f8faff";
+    bctx.lineWidth = 4.6;
+    bctx.stroke(outerPath);
 
-    // Inner Rich Shaded Body Gradient so ASCII ramp renders sculptural 3D volume
-    const grad = bctx.createLinearGradient(0, -82, 0, 96);
+    // Rich 3D Shaded Body Fill
+    const grad = bctx.createLinearGradient(0, -76, 0, 96);
     grad.addColorStop(0.0, `rgb(${hotR}, ${hotG}, ${hotB})`);
-    grad.addColorStop(0.32, `rgb(${priR}, ${priG}, ${priB})`);
-    grad.addColorStop(0.72, `rgb(${Math.round(priR * 0.68 + accR * 0.32)}, ${Math.round(priG * 0.68 + accG * 0.32)}, ${Math.round(priB * 0.68 + accB * 0.32)})`);
-    grad.addColorStop(1.0, `rgb(${Math.round(priR * 0.35)}, ${Math.round(priG * 0.38)}, ${Math.round(priB * 0.42)})`);
+    grad.addColorStop(0.28, `rgb(${priR}, ${priG}, ${priB})`);
+    grad.addColorStop(
+      0.68,
+      `rgb(${Math.round(priR * 0.72 + accR * 0.28)}, ${Math.round(priG * 0.72 + accG * 0.28)}, ${Math.round(priB * 0.72 + accB * 0.28)})`
+    );
+    grad.addColorStop(
+      1.0,
+      `rgb(${Math.round(priR * 0.42 + 30)}, ${Math.round(priG * 0.45 + 30)}, ${Math.round(priB * 0.48 + 35)})`
+    );
     bctx.fillStyle = grad;
-    bctx.fill(logoPath, "evenodd");
+    bctx.fill(fullLogoPath, "evenodd");
 
-    // Sculptural Dark Inner Groove Line just inside the white sticker rim (Ryuk manga contrast technique!)
-    bctx.strokeStyle = "#080b12";
-    bctx.lineWidth = 2.8;
-    bctx.stroke(logoPath);
+    // Dark inner sculptural groove just inside the white rim
+    bctx.strokeStyle = "#080c16";
+    bctx.lineWidth = 1.6;
+    bctx.stroke(outerPath);
 
-    // Anatomical Chakra & Lotus Fold Highlights inside the figure
-    // A) Third-Eye Blinking Shinigami/Observatory Eye on Forehead (0, -54)
-    const eyeHalfH = 4.8 * blinkOpen;
+    // Preserve razor-sharp pitch-black arm cutouts with crisp bright inner rim
+    if (cutoutsPath) {
+      bctx.strokeStyle = `rgba(${hotR}, ${hotG}, ${hotB}, 0.85)`;
+      bctx.lineWidth = 2.4;
+      bctx.stroke(cutoutsPath);
+      bctx.fillStyle = "#040508";
+      bctx.fill(cutoutsPath);
+    }
+
+    // A) Third-Eye Blinking Observatory Eye on Forehead (0, -54)
+    const eyeHalfH = 4.4 * blinkOpen;
     if (eyeHalfH > 0.3) {
-      bctx.fillStyle = "#06080f";
+      bctx.fillStyle = "#05070e";
       bctx.beginPath();
-      bctx.ellipse(0, -54, 9.5, eyeHalfH + 1.8, 0, 0, Math.PI * 2);
+      bctx.ellipse(0, -54, 8.8, eyeHalfH + 1.6, 0, 0, Math.PI * 2);
       bctx.fill();
 
       bctx.fillStyle = chakraMix > 0.2 ? `rgb(${hotR}, ${hotG}, ${hotB})` : "#ffffff";
       bctx.beginPath();
-      bctx.ellipse(0, -54, 7.5, eyeHalfH, 0, 0, Math.PI * 2);
+      bctx.ellipse(0, -54, 6.8, eyeHalfH, 0, 0, Math.PI * 2);
       bctx.fill();
 
-      // Glowing Pupil
       bctx.fillStyle = "#ffffff";
       bctx.beginPath();
-      bctx.arc(0, -54, Math.min(3.0, eyeHalfH), 0, Math.PI * 2);
+      bctx.arc(0, -54, Math.min(2.6, eyeHalfH), 0, Math.PI * 2);
       bctx.fill();
     }
 
-    // B) Blazing Heart / Singularity Core at Chest Center (0, 6) — Camera Zoom Target!
-    const corePulse = 1.0 + 0.16 * Math.sin(t * 7.5);
-    const coreRad = (13.5 + 7.5 * chakraMix) * corePulse;
-    const coreGrad = bctx.createRadialGradient(0, 6, 1.5, 0, 6, coreRad * 1.9);
+    // B) Blazing Heart Singularity Core at (0, 10.5) == World Origin (0, 0)
+    const corePulse = 1.0 + 0.15 * Math.sin(t * 7.2);
+    const coreRad = (11.5 + 6.5 * chakraMix) * corePulse;
+    const coreGrad = bctx.createRadialGradient(0, 10.5, 1.2, 0, 10.5, coreRad * 1.85);
     coreGrad.addColorStop(0.0, "#ffffff");
     coreGrad.addColorStop(0.35, `rgba(${hotR}, ${hotG}, ${hotB}, 0.95)`);
     coreGrad.addColorStop(0.7, `rgba(${priR}, ${priG}, ${priB}, 0.55)`);
     coreGrad.addColorStop(1.0, "rgba(0, 0, 0, 0)");
     bctx.fillStyle = coreGrad;
     bctx.beginPath();
-    bctx.arc(0, 6, coreRad * 1.9, 0, Math.PI * 2);
+    bctx.arc(0, 10.5, coreRad * 1.85, 0, Math.PI * 2);
     bctx.fill();
 
     // C) Crisp Lotus Knee & Spine Energy Ridges
-    bctx.strokeStyle = "rgba(255, 255, 255, 0.72)";
-    bctx.lineWidth = 2.4;
+    bctx.strokeStyle = "rgba(255, 255, 255, 0.78)";
+    bctx.lineWidth = 2.0;
     bctx.beginPath();
     bctx.moveTo(0, -34);
     bctx.lineTo(0, 26);
@@ -273,7 +296,7 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
     setFadingOut(true);
     window.setTimeout(() => {
       onCompleteRef.current();
-    }, 520);
+    }, 480);
   }, []);
 
   useEffect(() => {
@@ -298,14 +321,12 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    // Heavy spaceship sub-bass pulse as the ASCII Guardian materializes
     sound.playEmpPulse();
     sound.haptic([35, 25, 55]);
 
     const offCanvas = document.createElement("canvas");
     const offCtx = offCanvas.getContext("2d", { willReadFrequently: true });
 
-    // Deterministic crosshair starfield for Phase 3 Cosmic Core Dive
     const stars: Star[] = [];
     let seed = 4242;
     const rand = () => {
@@ -331,24 +352,25 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
     let cellH = 13;
     let cols = 1;
     let rows = 1;
-    let aspect = 1;
+    let ssW = 240;
+    let ssH = 240;
     let fontSpec = "bold 12px 'Consolas', 'Courier New', monospace";
     let uCoords = new Float32Array(0);
     let vCoords = new Float32Array(0);
+    let sampleX = new Int32Array(0);
+    let sampleY = new Int32Array(0);
 
     const resizeGrid = () => {
       width = Math.max(1, window.innerWidth);
       height = Math.max(1, window.innerHeight);
-      aspect = width / height;
 
-      const fontSize = width < 640 ? 10 : width < 1024 ? 12 : 14;
+      const fontSize = width < 640 ? 9 : width < 1024 ? 11 : 13;
       fontSpec = `bold ${fontSize}px 'Consolas', 'Courier New', monospace`;
       ctx.font = fontSpec;
-      const charWidth = ctx.measureText("M").width || 8.4;
+      const charWidth = ctx.measureText("M").width || fontSize * 0.6;
       cellW = Math.max(5, Math.round(charWidth));
-      cellH = Math.max(8, Math.round(fontSize * 1.25));
+      cellH = Math.max(8, Math.round(fontSize * 1.22));
 
-      // 1:1 native pixel buffer for locked 60 FPS on 1080p+ monitors
       canvas.width = width;
       canvas.height = height;
       canvas.style.width = `${width}px`;
@@ -361,19 +383,31 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
       cols = Math.max(30, Math.ceil(width / cellW));
       rows = Math.max(20, Math.ceil(height / cellH));
 
-      offCanvas.width = cols;
-      offCanvas.height = rows;
+      // Square-pixel supersampled buffer matching exact physical screen aspect ratio
+      const maxBufDim = 540;
+      const bufScale = Math.min(1.0, maxBufDim / Math.max(width, height));
+      ssW = Math.max(180, Math.round(width * bufScale));
+      ssH = Math.max(180, Math.round(height * bufScale));
+      offCanvas.width = ssW;
+      offCanvas.height = ssH;
 
       uCoords = new Float32Array(cols);
       vCoords = new Float32Array(rows);
-      const normScale = aspect >= 1.0 ? 1.0 : 1.0 / Math.max(0.58, aspect);
+      sampleX = new Int32Array(cols);
+      sampleY = new Int32Array(rows);
+
+      // Exact same isotropic 0.42 scale in physical screen pixels
+      const unitScreenPx = Math.min(width, height) * 0.42;
+
       for (let c = 0; c < cols; c++) {
-        const nx = ((c + 0.5) / cols) * 2.0 - 1.0;
-        uCoords[c] = nx * aspect * normScale;
+        const px = (c + 0.5) * cellW;
+        uCoords[c] = (px - width * 0.5) / unitScreenPx;
+        sampleX[c] = clamp(Math.floor((px / width) * ssW), 0, ssW - 1);
       }
       for (let r = 0; r < rows; r++) {
-        const ny = ((r + 0.5) / rows) * 2.0 - 1.0;
-        vCoords[r] = ny * normScale;
+        const py = (r + 0.5) * cellH;
+        vCoords[r] = (py - height * 0.5) / unitScreenPx;
+        sampleY[r] = clamp(Math.floor((py / height) * ssH), 0, ssH - 1);
       }
     };
 
@@ -390,9 +424,6 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
 
     const spaceOut = { r: 0, g: 0, b: 0, lum: 0 };
 
-    /**
-     * Phase 3 & 4: Deep Dive Inside the Meditating Core -> Swirling Singularity Vortex & Crosshair Stars
-     */
     const evaluateSingularityCoreSpace = (
       u: number,
       v: number,
@@ -421,7 +452,6 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
       let bb = 8.0;
       let lum = 0.015;
 
-      // Ambient cosmic nebula
       const nebWave = Math.sin(su * 2.5 + t * 0.9) * Math.cos(sv * 2.5 - t * 0.7);
       const nebGlow = Math.exp(-Math.hypot(su * 0.85, sv * 0.85) * 1.3) * (0.5 + 0.5 * nebWave);
       if (targetExistence) {
@@ -435,7 +465,6 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
       }
       lum += nebGlow * 0.12;
 
-      // Twinkling Crosshair Stars (matching Intro & Shinigami)
       for (let i = 0; i < NUM_STARS; i++) {
         const st = stars[i];
         const dx = Math.abs(su - st.x);
@@ -467,14 +496,12 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
         }
       }
 
-      // Central Swirling Lotus Singularity / Accretion Halo
       const rad = Math.hypot(su, sv);
       const ang = Math.atan2(sv, su);
       const spiral = Math.sin(ang * 6.0 - Math.log(rad + 0.06) * 7.5 - t * 5.2);
       const petal = 0.5 + 0.5 * Math.cos(ang * 8.0 + t * 2.4);
 
       if (rad < 0.16) {
-        // Event horizon surrounded by white-hot photon ring
         const photon = smoothstep(0.09, 0.155, rad);
         rr = mix(4, 255, photon);
         gg = mix(4, 255, photon);
@@ -520,77 +547,67 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
     const renderFrame = (now: number) => {
       const t = (now - startTime) * 0.001;
 
-      // Double Third-Eye Blink & Chakra Ignition (1.35s -> 2.3s)
       let blinkOpen = 1.0;
-      if (t >= 1.35 && t <= 1.68) {
-        const bp = (t - 1.35) / 0.33;
+      if (t >= 1.25 && t <= 1.58) {
+        const bp = (t - 1.25) / 0.33;
         blinkOpen = bp < 0.5 ? 1.0 - easeInOutCubic(bp * 2.0) : easeInOutCubic((bp - 0.5) * 2.0);
-      } else if (t >= 1.78 && t <= 2.12) {
-        const bp = (t - 1.78) / 0.34;
+      } else if (t >= 1.68 && t <= 2.02) {
+        const bp = (t - 1.68) / 0.34;
         blinkOpen = bp < 0.5 ? 1.0 - easeInOutCubic(bp * 2.0) : easeInOutCubic((bp - 0.5) * 2.0);
       }
 
-      const chakraMix = smoothstep(1.5, 2.2, t);
-      if (t >= 1.55 && !radarPingedRef.current) {
+      const chakraMix = smoothstep(1.3, 2.1, t);
+      if (t >= 1.45 && !radarPingedRef.current) {
         radarPingedRef.current = true;
         sound.playRadarPing();
       }
 
-      // Smooth 360° Barrel Roll + 3D Perspective Spin (1.5s -> 4.8s)
-      const rollProgress = smoothstep(1.4, 4.8, t);
-      const rollAngle = easeInOutCubic(rollProgress) * Math.PI * 2.0;
-      const spinAngle = easeInOutCubic(smoothstep(1.2, 4.4, t)) * Math.PI * 2.0;
+      // Rigid 360° Barrel Roll + 3D Coin Spin
+      const rollAngle = easeInOutCubic(smoothstep(1.35, 4.5, t)) * Math.PI * 2.0;
+      const spinAngle = easeInOutCubic(smoothstep(1.15, 4.2, t)) * Math.PI * 2.0;
 
-      // Palette shifts smoothly from current theme to target theme
       const startExist = fromTheme === "existence" ? 1.0 : 0.0;
       const endExist = toTheme === "existence" ? 1.0 : 0.0;
-      const toExistenceMix = mix(startExist, endExist, smoothstep(1.8, 4.6, t));
+      const toExistenceMix = mix(startExist, endExist, smoothstep(1.7, 4.4, t));
 
-      // Phase 3: Exponential Camera Dive Zoom (1x -> 16x) into Chest Singularity Core (3.6s -> 6.4s)
+      // Exponential Camera Dive Zoom (1x -> 16x) straight into the Heart Chakra Origin (0, 0)
       let zoom = 1.0;
-      let camCenterX = 0.0;
-      let camCenterY = 0.0;
       let spaceMix = 0.0;
 
-      if (t > 3.6) {
-        const zNorm = clamp((t - 3.6) / (6.4 - 3.6), 0.0, 1.0);
+      if (t > 3.4) {
+        const zNorm = clamp((t - 3.4) / (6.1 - 3.4), 0.0, 1.0);
         const zEase = easeInOutExpo(zNorm);
         zoom = mix(1.0, 16.0, zEase);
-        const panEase = smoothstep(0.0, 0.45, zNorm);
-        camCenterX = 0.0;
-        camCenterY = mix(0.0, 0.045, panEase);
         spaceMix = smoothstep(0.18, 0.58, zNorm);
       }
 
-      // Flip the live DOM Universe Theme while 100% immersed inside the ASCII Singularity
-      if (t >= 5.35 && !flippedRef.current) {
+      if (t >= 5.1 && !flippedRef.current) {
         flippedRef.current = true;
         onPeakFlipRef.current();
       }
 
-      // Phase 4: Outward ASCII Character Scatter Dissolve (6.4s -> 7.8s)
       let p4Progress = 0.0;
-      if (t > 6.4) {
-        p4Progress = clamp((t - 6.4) / 1.4, 0.0, 1.0);
+      if (t > 6.1) {
+        p4Progress = clamp((t - 6.1) / 1.35, 0.0, 1.0);
       }
 
       let guardianPixels: Uint8ClampedArray | null = null;
       if (spaceMix < 0.999 && offCtx) {
         drawShadedMeditatingGuardian(
           offCtx,
-          cols,
-          rows,
+          ssW,
+          ssH,
           t,
           rollAngle,
           spinAngle,
           chakraMix,
           blinkOpen,
           zoom,
-          camCenterX,
-          camCenterY,
+          0.0,
+          0.0,
           toExistenceMix
         );
-        guardianPixels = offCtx.getImageData(0, 0, cols, rows).data;
+        guardianPixels = offCtx.getImageData(0, 0, ssW, ssH).data;
       }
 
       ctx.fillStyle = "#040508";
@@ -598,19 +615,20 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
       ctx.font = fontSpec;
 
       let lastColor = "";
-      const glitchPhase = t < 1.5 ? 1.0 - smoothstep(0.45, 1.5, t) : 0.0;
+      const glitchPhase = t < 1.35 ? 1.0 - smoothstep(0.4, 1.35, t) : 0.0;
       const targetExistence = toTheme === "existence";
 
       for (let r = 0; r < rows; r++) {
         const v = vCoords[r];
         const py = r * cellH;
+        const sy0 = sampleY[r];
+        const sy1 = sy0 + 1 < ssH ? sy0 + 1 : sy0;
 
-        // Horizontal scanline glitch wave during Phase 1 materialization
         let colShift = 0;
         if (glitchPhase > 0.01) {
           const rWave = Math.sin(r * 0.75 + t * 38.0) * Math.cos(r * 0.23 - t * 21.0);
           if (rWave > 0.72) {
-            colShift = Math.round((rWave - 0.72) * 14 * glitchPhase);
+            colShift = Math.round((rWave - 0.72) * 12 * glitchPhase);
           }
         }
 
@@ -633,7 +651,6 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
         for (let c = 0; c < cols; c++) {
           const u = uCoords[c];
 
-          // Phase 4 outward character scatter dropout (matching Intro & Shinigami)
           if (p4Progress > 0.05) {
             const cellHash = Math.sin(c * 12.9898 + r * 78.233) * 43758.5453;
             const rand01 = cellHash - Math.floor(cellHash);
@@ -650,15 +667,37 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
 
           if (spaceMix < 0.999 && guardianPixels) {
             const sc = clamp(c + colShift, 0, cols - 1);
-            const pIdx = (r * cols + sc) * 4;
-            finalR = guardianPixels[pIdx];
-            finalG = guardianPixels[pIdx + 1];
-            finalB = guardianPixels[pIdx + 2];
+            const sx0 = sampleX[sc];
+            const sx1 = sx0 + 1 < ssW ? sx0 + 1 : sx0;
+
+            // 2x2 supersampled box filter for crisp anti-aliased ASCII edges
+            const i00 = (sy0 * ssW + sx0) * 4;
+            const i10 = (sy0 * ssW + sx1) * 4;
+            const i01 = (sy1 * ssW + sx0) * 4;
+            const i11 = (sy1 * ssW + sx1) * 4;
+
+            finalR =
+              (guardianPixels[i00] +
+                guardianPixels[i10] +
+                guardianPixels[i01] +
+                guardianPixels[i11]) *
+              0.25;
+            finalG =
+              (guardianPixels[i00 + 1] +
+                guardianPixels[i10 + 1] +
+                guardianPixels[i01 + 1] +
+                guardianPixels[i11 + 1]) *
+              0.25;
+            finalB =
+              (guardianPixels[i00 + 2] +
+                guardianPixels[i10 + 2] +
+                guardianPixels[i01 + 2] +
+                guardianPixels[i11 + 2]) *
+              0.25;
             finalLum = (0.299 * finalR + 0.587 * finalG + 0.114 * finalB) / 255.0;
 
-            // Terminal spark materialization during first 0.7s
-            if (t < 0.7) {
-              const matProgress = smoothstep(0.0, 0.7, t);
+            if (t < 0.65) {
+              const matProgress = smoothstep(0.0, 0.65, t);
               const noiseHash =
                 Math.sin((c + Math.floor(t * 28.0)) * 37.17 + r * 91.3) * 43758.5453;
               const n01 = noiseHash - Math.floor(noiseHash);
@@ -691,9 +730,9 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
           }
 
           const ch = RAMP[charIdx];
-          const qr = (finalR >> 3) << 3;
-          const qg = (finalG >> 3) << 3;
-          const qb = (finalB >> 3) << 3;
+          const qr = (Math.round(finalR) >> 3) << 3;
+          const qg = (Math.round(finalG) >> 3) << 3;
+          const qb = (Math.round(finalB) >> 3) << 3;
           const colorStr = `rgb(${qr},${qg},${qb})`;
 
           if (
@@ -712,7 +751,7 @@ export const AsciiLogoZoomPortal: React.FC<AsciiLogoZoomPortalProps> = ({
         flushBatch();
       }
 
-      if (t >= 7.8) {
+      if (t >= 7.45) {
         finishPortal();
         return;
       }

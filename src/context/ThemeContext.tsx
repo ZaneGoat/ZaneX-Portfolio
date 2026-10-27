@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { sound } from "@/lib/sound";
 import { AsciiLogoZoomPortal } from "@/components/AsciiLogoZoomPortal";
 
@@ -34,7 +34,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return "matrix";
   });
 
-  const [shutterActive, setShutterActive] = useState(false);
+  const themeRef = useRef<UniverseTheme>(theme);
+  themeRef.current = theme;
+
   const [zoomPortal, setZoomPortal] = useState<{
     active: boolean;
     fromTheme: UniverseTheme;
@@ -55,6 +57,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const observer = new MutationObserver(() => {
       const attr = document.documentElement.getAttribute("data-theme");
       const next: UniverseTheme = attr === "existence" ? "existence" : "matrix";
+      themeRef.current = next;
       setThemeState(prev => (prev === next ? prev : next));
     });
     observer.observe(document.documentElement, {
@@ -65,8 +68,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const setTheme = useCallback((next: UniverseTheme) => {
-    setShutterActive(true);
-    window.setTimeout(() => setShutterActive(false), 220);
+    themeRef.current = next;
+    if (next === "matrix") {
+      setZoomPortal(prev => (prev.active ? { ...prev, active: false } : prev));
+    }
 
     setThemeState(next);
     syncDomTheme(next);
@@ -74,42 +79,51 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       localStorage.setItem(STORAGE_THEME_KEY, next);
     } catch {}
 
-    sound.playBoot();
-    sound.haptic([25, 35, 25]);
+    sound.playClick();
+    sound.haptic(20);
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme(theme === "existence" ? "matrix" : "existence");
-  }, [theme, setTheme]);
+    const current =
+      typeof document !== "undefined" &&
+      document.documentElement.getAttribute("data-theme") === "existence"
+        ? "existence"
+        : themeRef.current;
+    setTheme(current === "existence" ? "matrix" : "existence");
+  }, [setTheme]);
 
   const triggerLogoThemeShift = useCallback(
     (target?: UniverseTheme) => {
-      const next: UniverseTheme =
-        target ?? (theme === "existence" ? "matrix" : "existence");
-      if (next === theme && target !== undefined) return;
+      const domIsExistence =
+        typeof document !== "undefined" &&
+        document.documentElement.getAttribute("data-theme") === "existence";
+      const current: UniverseTheme = domIsExistence ? "existence" : themeRef.current;
+      const next: UniverseTheme = target ?? (current === "existence" ? "matrix" : "existence");
 
-      // Only trigger the fullscreen ASCII animation when entering EXISTENCE;
-      // when clicking MATRIX HUD (returning to matrix), switch immediately without the animation.
-      if (next === "matrix") {
+      if (next === current && target !== undefined) return;
+
+      // Returning from EXISTENCE -> MATRIX HUD: switch immediately with NO fullscreen ASCII animation
+      if (current === "existence" || next === "matrix") {
         setTheme("matrix");
         return;
       }
 
+      // Entering EXISTENCE from MATRIX HUD: launch the Fullscreen Procedural ASCII Logo Portal
       setZoomPortal(prev => {
         if (prev.active) return prev;
         return {
           active: true,
-          fromTheme: theme,
+          fromTheme: "matrix",
           toTheme: "existence",
         };
       });
     },
-    [theme, setTheme]
+    [setTheme]
   );
 
   const handlePeakFlip = useCallback(() => {
-    setTheme(zoomPortal.toTheme);
-  }, [setTheme, zoomPortal.toTheme]);
+    setTheme("existence");
+  }, [setTheme]);
 
   const handlePortalComplete = useCallback(() => {
     setZoomPortal(prev => ({ ...prev, active: false }));
@@ -127,7 +141,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     >
       {children}
 
-      {/* Fullscreen 3D Rolling & Zooming ASCII Brand Logo Theme Portal */}
+      {/* Fullscreen 3D Rolling & Zooming ASCII Brand Logo Theme Portal (EXISTENCE entry only) */}
       <AsciiLogoZoomPortal
         active={zoomPortal.active}
         fromTheme={zoomPortal.fromTheme}
@@ -135,14 +149,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         onPeakFlip={handlePeakFlip}
         onComplete={handlePortalComplete}
       />
-
-      {/* Dimensional Shutter Flash on Universe Shift */}
-      {shutterActive && (
-        <div
-          aria-hidden="true"
-          className="fixed inset-0 z-[10050] pointer-events-none bg-white/15 mix-blend-difference animate-pulse"
-        />
-      )}
     </ThemeContext.Provider>
   );
 };

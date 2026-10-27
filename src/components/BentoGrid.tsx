@@ -72,19 +72,21 @@ export const BentoGrid = ({
     };
   }, []);
 
+  const isRedacted = isOperator && !clearance.identityUnlocked;
+
   // Operator Redactions based on clearance
-  const displayName = isOperator && !clearance.identityUnlocked ? "████████ ████████" : activeSpecs.realName;
-  const displayHandle = isOperator && !clearance.identityUnlocked ? "OPERATOR_UNKNOWN" : activeSpecs.handle;
-  const displayRole = isOperator && !clearance.identityUnlocked ? "RESTRICTED PROFILE // CLEARANCE REQUIRED" : activeSpecs.role;
-  const displayBio = isOperator && !clearance.identityUnlocked
-    ? "[RESTRICTED PROFILE: Identity and engineering background are locked behind Node 01. Complete the security challenges below or unlock via ZaneOS to view full profile.]"
+  const displayName = isRedacted ? "██████ ██████" : activeSpecs.realName;
+  const displayHandle = isRedacted ? "OPERATOR_UNKNOWN" : activeSpecs.handle;
+  const displayRole = isRedacted ? "RESTRICTED // CLEARANCE REQUIRED" : activeSpecs.role;
+  const displayBio = isRedacted
+    ? "[RESTRICTED PROFILE: Identity & engineering background locked behind Node 01. Unlock via Security Challenges or ZaneOS.]"
     : activeSpecs.bio;
-  const displayStatus = isOperator && !clearance.identityUnlocked
-    ? `RESTRICTED // CLEARANCE ${clearanceLevel}/3`
+  const displayStatus = isRedacted
+    ? `LOCKED · LVL ${clearanceLevel}/3`
     : activeSpecs.status;
   const displayLocation = isOperator && !clearance.hardwareUnlocked ? "Casablanca (Redacted)" : activeSpecs.location;
   const displayRig = isOperator && !clearance.hardwareUnlocked ? "Linux x86_64 (Locked)" : activeSpecs.os;
-  const displayStats = isOperator && !clearance.identityUnlocked
+  const displayStats = isRedacted
     ? [
         { value: "--", label: "Subcarriers" },
         { value: "--", label: "Linux Systems" },
@@ -93,49 +95,58 @@ export const BentoGrid = ({
     : activeSpecs.stats;
 
   return (
-    <section id="overview" className="relative z-10 px-3 sm:px-6 md:px-8 pt-2 sm:pt-6 pb-8 sm:pb-20 max-w-7xl mx-auto">
+    <section id="overview" className="relative z-10 px-3 sm:px-6 md:px-8 pt-1.5 sm:pt-6 pb-8 sm:pb-20 max-w-7xl mx-auto">
       {/* Compact Visitor Bar: Mode & Hardware Check */}
-      <motion.div {...fadeUp(0)} className="mb-3 sm:mb-6 flex flex-col items-center gap-1.5 sm:gap-2">
+      <motion.div {...fadeUp(0)} className="mb-2.5 sm:mb-6 flex flex-col items-center gap-1.5 sm:gap-2">
         <PersonaSwitcher variant="hero" />
         <DeviceQuestion />
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
 
-        {/* 1 — Identity (Hero) — Optimized to fit phone viewports cleanly */}
-        <motion.div {...fadeUp(0.04)} className="hud-card md:col-span-2 lg:row-span-2 p-4 sm:p-8 md:p-10 relative overflow-hidden flex flex-col justify-between">
+        {/* 1 — Identity (Hero) — Engineered to fit phone viewports cleanly above the fold */}
+        <motion.div {...fadeUp(0.04)} className="hud-card md:col-span-2 lg:row-span-2 p-3.5 sm:p-8 md:p-10 relative overflow-hidden flex flex-col justify-between min-w-0 max-w-full">
           <div className="min-w-0">
-            <div className={`inline-flex max-w-full items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-[11px] font-mono mb-2.5 sm:mb-6 border ${
-              isOperator && !clearance.identityUnlocked
-                ? "bg-red-500/10 border-red-500/30 text-red-400"
-                : "bg-primary/10 border-primary/25 text-primary"
-            }`}>
-              <span className={`inline-flex rounded-full w-1.5 h-1.5 shrink-0 ${
-                isOperator && !clearance.identityUnlocked ? "bg-red-500" : "bg-primary"
-              }`} />
-              <span className="truncate">{displayStatus}</span>
+            {/* Compact Single-Line Top Header on Mobile */}
+            <div className="flex items-center justify-between gap-2 mb-2 sm:mb-5 min-w-0">
+              <p className="font-mono text-[11px] sm:text-xs text-primary/90 font-semibold shrink-0">$ whoami</p>
+              <div className={`inline-flex max-w-[72%] items-center gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-[11px] font-mono border ${
+                isRedacted
+                  ? "bg-red-500/10 border-red-500/30 text-red-400"
+                  : "bg-primary/10 border-primary/25 text-primary"
+              }`}>
+                <span className={`inline-flex rounded-full w-1.5 h-1.5 shrink-0 ${
+                  isRedacted ? "bg-red-500" : "bg-primary"
+                }`} />
+                <span className="truncate">{displayStatus}</span>
+              </div>
             </div>
 
-            <p className="font-mono text-[11px] sm:text-xs text-muted-foreground mb-1">$ whoami</p>
-            <h1 className="text-2xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.02] sm:leading-[0.98] uppercase select-none break-words">
-              <span className="text-primary">{displayName.split(" ")[0]}</span>
-              <br />
-              <span className="text-foreground">{displayName.split(" ").slice(1).join(" ")}</span>
+            <h1
+              className={`font-black uppercase select-none max-w-full overflow-hidden ${
+                isRedacted
+                  ? "font-mono text-xl sm:text-4xl md:text-5xl tracking-tight leading-[1.08]"
+                  : "text-2xl sm:text-5xl md:text-6xl tracking-tight leading-[1.02] sm:leading-[0.98] break-words"
+              }`}
+            >
+              <span className="text-primary block truncate">{displayName.split(" ")[0]}</span>
+              <span className="text-foreground block truncate">{displayName.split(" ").slice(1).join(" ")}</span>
             </h1>
-            <p className="mt-2 sm:mt-4 font-mono text-[11px] sm:text-sm md:text-base text-foreground/85 leading-snug">
+
+            <p className="mt-1.5 sm:mt-4 font-mono text-[11px] sm:text-sm md:text-base text-foreground/85 leading-snug truncate sm:whitespace-normal">
               <span className="text-primary font-bold">{displayHandle}</span> — {displayRole}
             </p>
-            <p className="mt-2 sm:mt-3 text-muted-foreground text-[11px] sm:text-sm md:text-base leading-relaxed max-w-xl line-clamp-3 sm:line-clamp-none">
+            <p className="mt-1.5 sm:mt-3 text-muted-foreground text-[11px] sm:text-sm md:text-base leading-snug sm:leading-relaxed max-w-xl line-clamp-2 sm:line-clamp-none">
               {displayBio}
             </p>
           </div>
 
-          <div>
+          <div className="min-w-0">
             {/* Compact Stats Strip */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 my-3.5 sm:my-7 max-w-md pt-3 sm:pt-4 border-t border-white/[0.07]">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 my-2.5 sm:my-7 max-w-md pt-2.5 sm:pt-4 border-t border-white/[0.08]">
               {displayStats.map(s => (
                 <div key={s.label} className="border-l-2 border-primary/40 pl-2 sm:pl-3 min-w-0">
-                  <div className="text-lg sm:text-2xl md:text-3xl font-black text-foreground font-mono leading-tight truncate">{s.value}</div>
+                  <div className="text-base sm:text-2xl md:text-3xl font-black text-foreground font-mono leading-tight truncate">{s.value}</div>
                   <div className="text-[9px] sm:text-[11px] uppercase tracking-wider text-muted-foreground font-mono mt-0.5 truncate">{s.label}</div>
                 </div>
               ))}
@@ -145,7 +156,7 @@ export const BentoGrid = ({
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 sm:gap-2">
               <button
                 onClick={() => { sound.playBoot(); onOpenTerminal(); }}
-                className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 sm:gap-2 bg-primary text-background font-mono font-bold px-3.5 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-primary/90 active:scale-[0.98] transition-all text-[11px] sm:text-xs cursor-pointer"
+                className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 sm:gap-2 bg-primary text-background font-mono font-bold px-3 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-primary/90 active:scale-[0.98] transition-all text-[11px] sm:text-xs cursor-pointer"
               >
                 <Terminal className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                 <span>OPEN TERMINAL</span>
@@ -154,7 +165,7 @@ export const BentoGrid = ({
               {isOperator && (
                 <button
                   onClick={() => { sound.playBoot(); onOpenInfiltration?.(); }}
-                  className={`flex items-center justify-center gap-1.5 font-mono font-bold px-2.5 sm:px-3.5 py-2 sm:py-3 rounded-lg text-[11px] sm:text-xs transition-all cursor-pointer min-w-0 ${
+                  className={`flex items-center justify-center gap-1.5 font-mono font-bold px-2 sm:px-3.5 py-1.5 sm:py-3 rounded-lg text-[10px] sm:text-xs transition-all cursor-pointer min-w-0 ${
                     clearance.identityUnlocked
                       ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
                       : "border border-red-500/50 bg-red-500/10 text-red-400 hover:bg-red-500/20"
@@ -170,7 +181,7 @@ export const BentoGrid = ({
               {onOpenCtf && (
                 <button
                   onClick={() => { sound.playBoot(); onOpenCtf(); }}
-                  className="flex items-center justify-center gap-1.5 border border-amber-500/40 bg-amber-500/10 text-amber-300 font-mono font-bold px-2.5 sm:px-3.5 py-2 sm:py-3 rounded-lg hover:bg-amber-500/20 active:scale-[0.98] transition-all text-[11px] sm:text-xs cursor-pointer min-w-0"
+                  className="flex items-center justify-center gap-1.5 border border-amber-500/40 bg-amber-500/10 text-amber-300 font-mono font-bold px-2 sm:px-3.5 py-1.5 sm:py-3 rounded-lg hover:bg-amber-500/20 active:scale-[0.98] transition-all text-[10px] sm:text-xs cursor-pointer min-w-0"
                 >
                   <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate">CTF BOARD</span>
@@ -181,7 +192,7 @@ export const BentoGrid = ({
                 <>
                   <button
                     onClick={() => { sound.playBoot(); onOpenBreach(); }}
-                    className="flex items-center justify-center gap-1.5 border border-secondary/40 bg-secondary/10 text-secondary font-mono font-bold px-2.5 sm:px-3.5 py-2 sm:py-3 rounded-lg hover:bg-secondary/20 active:scale-[0.98] transition-all cursor-pointer text-[11px] sm:text-xs min-w-0"
+                    className="flex items-center justify-center gap-1.5 border border-secondary/40 bg-secondary/10 text-secondary font-mono font-bold px-2 sm:px-3.5 py-1.5 sm:py-3 rounded-lg hover:bg-secondary/20 active:scale-[0.98] transition-all cursor-pointer text-[10px] sm:text-xs min-w-0"
                   >
                     <Zap className="w-3.5 h-3.5 shrink-0" />
                     <span className="truncate">PLAY BREACH</span>
@@ -189,7 +200,7 @@ export const BentoGrid = ({
                   {onOpenCelestial && (
                     <button
                       onClick={() => onOpenCelestial()}
-                      className="flex items-center justify-center gap-1.5 border border-blue-300/35 bg-blue-400/10 text-blue-100 font-mono font-bold px-2.5 sm:px-3.5 py-2 sm:py-3 rounded-lg hover:bg-blue-400/20 active:scale-[0.98] transition-all cursor-pointer text-[11px] sm:text-xs min-w-0"
+                      className="flex items-center justify-center gap-1.5 border border-blue-300/35 bg-blue-400/10 text-blue-100 font-mono font-bold px-2 sm:px-3.5 py-1.5 sm:py-3 rounded-lg hover:bg-blue-400/20 active:scale-[0.98] transition-all cursor-pointer text-[10px] sm:text-xs min-w-0"
                     >
                       <CelestialZenLogo className="w-3.5 h-3.5 fill-white shrink-0" />
                       <span className="truncate">CELESTIAL ZEN</span>
@@ -200,7 +211,7 @@ export const BentoGrid = ({
                 <a
                   href="#pricing"
                   onClick={() => sound.playClick()}
-                  className="flex items-center justify-center gap-1.5 border border-white/15 bg-white/[0.03] text-foreground font-mono font-bold px-2.5 sm:px-3.5 py-2 sm:py-3 rounded-lg hover:border-primary/40 hover:text-primary transition-colors text-[11px] sm:text-xs"
+                  className="flex items-center justify-center gap-1.5 border border-white/15 bg-white/[0.03] text-foreground font-mono font-bold px-2 sm:px-3.5 py-1.5 sm:py-3 rounded-lg hover:border-primary/40 hover:text-primary transition-colors text-[10px] sm:text-xs"
                 >
                   <span>PLANS</span>
                 </a>
@@ -211,7 +222,7 @@ export const BentoGrid = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => sound.playClick()}
-                className="flex items-center justify-center gap-1.5 border border-white/10 sm:border-transparent text-muted-foreground hover:text-foreground font-mono font-bold px-2.5 sm:px-3 py-2 sm:py-3 rounded-lg transition-colors text-[11px] sm:text-xs"
+                className="flex items-center justify-center gap-1.5 border border-white/10 sm:border-transparent text-muted-foreground hover:text-foreground font-mono font-bold px-2 sm:px-3 py-1.5 sm:py-3 rounded-lg transition-colors text-[10px] sm:text-xs"
               >
                 <Github className="w-3.5 h-3.5" />
                 <span>GitHub</span>

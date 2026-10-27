@@ -3,6 +3,7 @@ import { usePersona } from "@/context/PersonaContext";
 import { useOperatorClearance } from "@/context/OperatorClearanceContext";
 import { useUniverseTheme } from "@/context/ThemeContext";
 import { MatrixRain } from "@/components/MatrixRain";
+import { MatrixWatchingEye } from "@/components/MatrixWatchingEye";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import { ExistenceAsciiCanvas } from "@/components/ExistenceAsciiCanvas";
 import { ExistenceWorld } from "@/components/ExistenceWorld";
@@ -99,6 +100,7 @@ const Index = () => {
         ) : (
           <>
             <MatrixRain />
+            <MatrixWatchingEye />
             <FloatingParticles />
           </>
         )

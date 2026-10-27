@@ -95,7 +95,7 @@ export const TerminalOverlay = ({
   const { persona, setPersona, telemetry, deviceChoice, setDeviceChoice, spoofActive } = usePersona();
   const { currentTrack, isPlaying, togglePlay, play, pause, nextTrack, prevTrack, playlist, selectTrack, setIsFullPlayerOpen, mood, setMood, openMoodMenu } = useMusic();
   const { clearance, clearanceLevel } = useOperatorClearance();
-  const { isExistence, triggerLogoThemeShift } = useUniverseTheme();
+  const { isExistence, setTheme, triggerLogoThemeShift } = useUniverseTheme();
   const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.operator;
   const shellUser = persona === "friend" ? "homie@zane-lounge" : (clearance.identityUnlocked ? "zane@kali" : "operator@classified");
 
@@ -1138,21 +1138,26 @@ Allow: /
         } else if (arg === "matrix" || arg === "emerald" || arg === "green" || arg === "default") {
           newLogs.push({
             type: "output",
-            content: "[◈] Launching Fullscreen ASCII Portal -> MATRIX EMERALD Cyber-HUD..."
+            content: "[◈] Switched directly to MATRIX EMERALD Cyber-HUD."
           });
-          setTimeout(() => {
-            onClose();
-            triggerLogoThemeShift("matrix");
-          }, 180);
+          setTheme("matrix");
         } else if (!arg) {
-          newLogs.push({
-            type: "output",
-            content: "[◈] Launching Fullscreen ASCII Dimensional Shift..."
-          });
-          setTimeout(() => {
-            onClose();
-            triggerLogoThemeShift();
-          }, 180);
+          if (isExistence) {
+            newLogs.push({
+              type: "output",
+              content: "[◈] Switched directly to MATRIX EMERALD Cyber-HUD."
+            });
+            setTheme("matrix");
+          } else {
+            newLogs.push({
+              type: "output",
+              content: "[Ω] Launching Fullscreen ASCII Portal -> EXISTENCE // SINGULARITY..."
+            });
+            setTimeout(() => {
+              onClose();
+              triggerLogoThemeShift("existence");
+            }, 180);
+          }
         } else {
           newLogs.push({ type: "error", content: "Usage: theme [matrix | existence]" });
         }
@@ -1168,26 +1173,30 @@ Allow: /
             <div className="my-2 p-3.5 rounded-xl border border-primary/35 bg-primary/5 space-y-2.5 font-mono text-xs">
               <div className="flex items-center justify-between gap-2 border-b border-primary/25 pb-1.5">
                 <span className="text-primary font-bold">
-                  ┌──[ Z A N E X // SUBPIXEL BRAILLE CREST ]
+                  ┌──[ Z A N E X // PROCEDURAL RGB ASCII EMBLEM ]
                 </span>
-                <span className="text-[10px] text-muted-foreground">31×16 · 8-DOT BRAILLE</span>
+                <span className="text-[10px] text-muted-foreground">70-CHAR RAMP · LIVE</span>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-4 py-1">
                 <AsciiBrandLogo size="lg" framed={false} interactive={false} />
                 <div className="space-y-2 text-[11px] text-foreground/85">
                   <p>
-                    High-density <span className="text-primary font-bold">Unicode Braille (U+2800..U+28FF)</span> rasterization of the meditating emblem (3,968 subpixels).
+                    Isotropic square-pixel <span className="text-primary font-bold">70-character RGB ASCII</span> rendering of the ZaneX meditating lotus emblem.
                   </p>
                   <button
                     type="button"
                     onClick={e => {
                       e.stopPropagation();
                       onClose();
-                      window.setTimeout(() => triggerLogoThemeShift(), 120);
+                      if (isExistence) {
+                        setTheme("matrix");
+                      } else {
+                        window.setTimeout(() => triggerLogoThemeShift("existence"), 120);
+                      }
                     }}
                     className="px-3 py-1.5 rounded-lg bg-primary text-background font-bold text-[11px] hover:bg-primary/90 active:scale-95 transition-all cursor-pointer"
                   >
-                    ◈ ROLLING 3D ZOOM → SWITCH TO {isExistence ? "MATRIX HUD" : "Ω-EXISTENCE"}
+                    {isExistence ? "◈ RETURN TO MATRIX HUD" : "◈ LAUNCH FULLSCREEN ASCII → Ω-EXISTENCE"}
                   </button>
                 </div>
               </div>

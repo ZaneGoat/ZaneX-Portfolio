@@ -5,6 +5,7 @@ import {
   Terminal, Code2, Check, Copy, AlertCircle, Pin, ChevronDown, ChevronUp, FolderGit2
 } from "lucide-react";
 import { useGitHubRepos, GitHubRepo } from "@/services/github";
+import { usePersona } from "@/context/PersonaContext";
 import { sound } from "@/lib/sound";
 
 const LANGUAGE_COLORS: Record<string, { bg: string; text: string; dot: string; border: string }> = {
@@ -33,6 +34,7 @@ const formatRelativeTime = (isoString: string): string => {
 };
 
 export const LiveRepositories: React.FC = () => {
+  const { persona } = usePersona();
   const { repos, loading, isCached, refresh } = useGitHubRepos();
   const [isExpanded, setIsExpanded] = useState(false);
   const [search, setSearch] = useState("");
@@ -105,8 +107,13 @@ export const LiveRepositories: React.FC = () => {
     });
   };
 
+  // In Operator mode, hide repositories completely until user clicks "See More — Show Projects & Repos"
+  if (persona === "operator" && !isExpanded) {
+    return <div id="repositories" className="scroll-mt-20" />;
+  }
+
   return (
-    <section id="repositories" className="py-6 sm:py-10 relative z-10 font-mono">
+    <section id="repositories" className="py-4 sm:py-8 relative z-10 font-mono">
       <div className="container mx-auto px-3.5 sm:px-6 max-w-7xl">
         {/* Compact Collapsible Trigger Card (Keeps page short & easy to skim until clicked) */}
         <div className="hud-card p-4 sm:p-6">

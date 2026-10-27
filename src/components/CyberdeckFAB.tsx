@@ -26,7 +26,7 @@ export const CyberdeckFAB = ({
   onOpenMegaCenter
 }: CyberdeckFABProps) => {
   const { persona, cyclePersona } = usePersona();
-  const { isExistence, triggerLogoThemeShift } = useUniverseTheme();
+  const { isExistence, setTheme, triggerLogoThemeShift } = useUniverseTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [sensorsEnabled, setSensorsEnabled] = useState(false);
@@ -248,7 +248,11 @@ export const CyberdeckFAB = ({
                 onClick={e => {
                   e.stopPropagation();
                   setIsOpen(false);
-                  triggerLogoThemeShift();
+                  if (isExistence) {
+                    setTheme("matrix");
+                  } else {
+                    triggerLogoThemeShift("existence");
+                  }
                 }}
                 className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border text-[10px] font-bold active:scale-95 transition-transform cursor-pointer ${
                   isExistence

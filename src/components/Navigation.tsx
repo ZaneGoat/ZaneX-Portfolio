@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Eye, Smartphone, Code2 } from "lucide-react";
 import { CelestialZenLogo } from "@/components/CelestialZenLogo";
-import { AsciiBrandLogo } from "@/components/AsciiBrandLogo";
 import { navLinks } from "@/data/portfolio";
 import { sound, AUDIO_MUTE_EVENT } from "@/lib/sound";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
@@ -25,7 +24,7 @@ export const Navigation = ({
   onReplayIntro
 }: NavigationProps) => {
   const { persona } = usePersona();
-  const { isExistence, triggerLogoThemeShift } = useUniverseTheme();
+  const { isExistence, setTheme, triggerLogoThemeShift } = useUniverseTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
 
@@ -74,14 +73,39 @@ export const Navigation = ({
         )}
 
         <div className="container mx-auto px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 flex justify-between items-center">
-          {/* Logo / Brand: Top-Left Menu Meditating Logo + Live ASCII Hover Hologram + Click Fullscreen ASCII Zoom */}
+          {/* Top-Left Brand Picture Logo (Clean SVG Emblem, NOT ASCII) */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <AsciiBrandLogo
-              variant="navbar"
-              withPopover
-              interactive
-              label="ZaneX Brand Logo — Hover for Live ASCII Hologram · Click for Fullscreen ASCII Shift"
-            />
+            <a
+              href="#overview"
+              onClick={() => sound.playClick()}
+              className="flex items-center gap-2 sm:gap-2.5 group font-mono shrink-0"
+              aria-label="ZaneX Home"
+            >
+              {isExistence ? (
+                <>
+                  <span className="w-7 h-7 sm:w-8 sm:h-8 border border-white/60 bg-black flex items-center justify-center group-hover:bg-white transition-colors shrink-0">
+                    <CelestialZenLogo className="w-4 h-4 sm:w-5 sm:h-5 fill-white group-hover:fill-black transition-colors" />
+                  </span>
+                  <span className="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight border border-white/50 px-2 py-0.5 bg-black group-hover:bg-white group-hover:text-black transition-colors">
+                    [ZANEX<span className="hidden sm:inline">::Ω-EXISTENCE</span><span className="sm:hidden">::Ω</span>]
+                  </span>
+                </>
+              ) : (
+                <>
+                  <img
+                    src="/logo.svg"
+                    alt="ZaneX Emblem"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-white/30 group-hover:border-primary/80 shadow-[0_0_14px_rgba(255,255,255,0.22)] group-hover:scale-105 transition-all shrink-0 object-contain bg-[#050816]"
+                  />
+                  <span className="text-base sm:text-xl md:text-2xl font-black text-primary tracking-tighter group-hover:scale-105 transition-transform">
+                    ZANE<span className="text-secondary">X</span>
+                  </span>
+                  <span className="hidden sm:inline-block text-[10px] bg-primary/10 text-primary border border-primary/30 px-2 py-0.5 rounded-full font-bold">
+                    v6.0
+                  </span>
+                </>
+              )}
+            </a>
 
             {/* Desktop Compact Persona Switcher */}
             <PersonaSwitcher variant="compact" className="hidden xl:inline-flex" />
@@ -112,12 +136,16 @@ export const Navigation = ({
 
           {/* Header Controls: Clean & uncluttered on mobile */}
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Total-Conversion Universe Theme Button (Phone & Desktop Top Bar) */}
+            {/* Total-Conversion Universe Theme Button (Triggers Fullscreen ASCII ONLY when entering EXISTENCE) */}
             <button
               type="button"
               onClick={e => {
                 e.stopPropagation();
-                triggerLogoThemeShift();
+                if (isExistence) {
+                  setTheme("matrix");
+                } else {
+                  triggerLogoThemeShift("existence");
+                }
               }}
               className={
                 isExistence
@@ -267,7 +295,7 @@ export const Navigation = ({
                     onClick={e => {
                       e.stopPropagation();
                       setIsMenuOpen(false);
-                      triggerLogoThemeShift("matrix");
+                      setTheme("matrix");
                     }}
                     className={`py-2 px-2.5 rounded-lg border text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                       !isExistence
