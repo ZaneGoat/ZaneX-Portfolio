@@ -1126,41 +1126,33 @@ Allow: /
         break;
 
       case "theme": {
-        const currentAttr = document.documentElement.getAttribute("data-theme");
         if (arg === "existence" || arg === "ascii" || arg === "singularity" || arg === "mono") {
-          document.documentElement.setAttribute("data-theme", "existence");
-          localStorage.setItem("zanex_theme", "existence");
-          sound.playSuccess();
           newLogs.push({
             type: "output",
-            content: "[Ω] Dimensional shift complete: EXISTENCE // SINGULARITY (8x Braille Subpixel & Stark Monochrome TUI)."
+            content: "[Ω] Launching Fullscreen ASCII Portal -> EXISTENCE // SINGULARITY..."
           });
+          setTimeout(() => {
+            onClose();
+            triggerLogoThemeShift("existence");
+          }, 180);
         } else if (arg === "matrix" || arg === "emerald" || arg === "green" || arg === "default") {
-          document.documentElement.removeAttribute("data-theme");
-          localStorage.setItem("zanex_theme", "matrix");
-          sound.playSuccess();
           newLogs.push({
             type: "output",
-            content: "[◈] Dimensional shift complete: MATRIX EMERALD Cyber-HUD."
+            content: "[◈] Launching Fullscreen ASCII Portal -> MATRIX EMERALD Cyber-HUD..."
           });
+          setTimeout(() => {
+            onClose();
+            triggerLogoThemeShift("matrix");
+          }, 180);
         } else if (!arg) {
-          if (currentAttr === "existence") {
-            document.documentElement.removeAttribute("data-theme");
-            localStorage.setItem("zanex_theme", "matrix");
-            sound.playSuccess();
-            newLogs.push({
-              type: "output",
-              content: "[◈] Toggled universe -> MATRIX EMERALD Cyber-HUD."
-            });
-          } else {
-            document.documentElement.setAttribute("data-theme", "existence");
-            localStorage.setItem("zanex_theme", "existence");
-            sound.playSuccess();
-            newLogs.push({
-              type: "output",
-              content: "[Ω] Toggled universe -> EXISTENCE // SINGULARITY Monochrome ASCII TUI."
-            });
-          }
+          newLogs.push({
+            type: "output",
+            content: "[◈] Launching Fullscreen ASCII Dimensional Shift..."
+          });
+          setTimeout(() => {
+            onClose();
+            triggerLogoThemeShift();
+          }, 180);
         } else {
           newLogs.push({ type: "error", content: "Usage: theme [matrix | existence]" });
         }

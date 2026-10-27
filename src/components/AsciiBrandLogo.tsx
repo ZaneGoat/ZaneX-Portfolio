@@ -1,6 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { MEDITATING_LOGO_SVG_PATH } from "@/components/CelestialZenLogo";
+import { drawShadedMeditatingGuardian } from "@/components/AsciiLogoZoomPortal";
 import { useUniverseTheme } from "@/context/ThemeContext";
+import { sound } from "@/lib/sound";
 
 export type AsciiLogoSize = "micro" | "sm" | "md" | "lg";
 
@@ -13,17 +16,19 @@ interface AsciiBrandLogoProps {
   label?: string;
 }
 
+const HOLO_RAMP = " .'`^\",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+const HOLO_RAMP_LEN = HOLO_RAMP.length;
+
 const SIZE_PRESETS: Record<
   AsciiLogoSize,
   { cols: number; rows: number; fontPx: number; linePx: number }
 > = {
-  micro: { cols: 13, rows: 7, fontPx: 5.1, linePx: 5.3 },
+  micro: { cols: 13, rows: 7, fontPx: 5.2, linePx: 5.4 },
   sm: { cols: 17, rows: 9, fontPx: 6.2, linePx: 6.5 },
   md: { cols: 21, rows: 11, fontPx: 7.4, linePx: 7.8 },
   lg: { cols: 31, rows: 16, fontPx: 10.0, linePx: 10.6 },
 };
 
-// Standard ISO/Unicode 8-dot Braille subpixel bit positions within a 2x4 cell
 const BRAILLE_BITS: readonly [number, number, number][] = [
   [0, 0, 0x01],
   [0, 1, 0x02],
@@ -66,7 +71,6 @@ export function rasterizeMeditatingBraille(cols: number, rows: number): string {
 
   ctx.clearRect(0, 0, subW, subH);
   ctx.save();
-  // Map SVG [-98..98] x [-80..98] cleanly into the subpixel grid
   const scaleX = subW / 198;
   const scaleY = subH / 184;
   const scale = Math.min(scaleX, scaleY);
@@ -95,7 +99,6 @@ export function rasterizeMeditatingBraille(cols: number, rows: number): string {
           mask |= bit;
         }
       }
-      // U+2800 (Braille Blank) ensures identical glyph width with U+2801..U+28FF across all OS fonts
       rowStr += String.fromCharCode(0x2800 | mask);
     }
     lines.push(rowStr);
@@ -106,26 +109,245 @@ export function rasterizeMeditatingBraille(cols: number, rows: number): string {
   return result;
 }
 
+/**
+ * Live 60-FPS Procedural RGB 70-Char ASCII Hologram Canvas rendered on Logo Hover
+ */
+const LiveAsciiHologramCanvas: React.FC<{ isExistence: boolean }> = ({ isExistence }) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d", { alpha: false });
+    if (!ctx) return;
+
+    const W = 288;
+    const H = 224;
+    const fontSize = 8;
+    const fontSpec = `bold ${fontSize}px 'Consolas', 'Courier New', monospace`;
+    ctx.font = fontSpec;
+    const cellW = Math.max(4, Math.round(ctx.measureText("M").width || 4.8));
+    const cellH = 9;
+    const cols = Math.ceil(W / cellW);
+    const rows = Math.ceil(H / cellH);
+
+    canvas.width = W;
+    canvas.height = H;
+    ctx.font = fontSpec;
+    ctx.textBaseline = "top";
+
+    const offCanvas = document.createElement("canvas");
+    offCanvas.width = cols;
+    offCanvas.height = rows;
+    const offCtx = offCanvas.getContext("2d", { willReadFrequently: true });
+
+    let rafId = 0;
+    const startMs = performance.now();
+
+    const render = (now: number) => {
+      const t = (now - startMs) * 0.001;
+
+      // Gentle 3D sway + periodic blink inside the live hover hologram
+      const swaySpin = Math.sin(t * 2.1) * 0.52;
+      const swayRoll = Math.sin(t * 1.3) * 0.14;
+      const blinkCycle = t % 2.6;
+      let blinkOpen = 1.0;
+      if (blinkCycle > 1.1 && blinkCycle < 1.38) {
+        const bp = (blinkCycle - 1.1) / 0.28;
+        blinkOpen = bp < 0.5 ? 1.0 - bp * 2.0 : (bp - 0.5) * 2.0;
+      }
+
+      if (offCtx) {
+        drawShadedMeditatingGuardian(
+          offCtx,
+          cols,
+          rows,
+          t,
+          swayRoll,
+          swaySpin,
+          0.92,
+          blinkOpen,
+          1.08,
+          0,
+          0,
+          isExistence ? 1.0 : 0.0
+        );
+        const pixels = offCtx.getImageData(0, 0, cols, rows).data;
+
+        ctx.fillStyle = isExistence ? "#000000" : "#040710";
+        ctx.fillRect(0, 0, W, H);
+        ctx.font = fontSpec;
+
+        let lastColor = "";
+        for (let r = 0; r < rows; r++) {
+          const py = r * cellH;
+          let batchStr = "";
+          let batchStart = -1;
+          let batchColor = "";
+
+          const flush = () => {
+            if (batchStr.length > 0 && batchColor) {
+              if (batchColor !== lastColor) {
+                ctx.fillStyle = batchColor;
+                lastColor = batchColor;
+              }
+              ctx.fillText(batchStr, batchStart * cellW, py);
+              batchStr = "";
+              batchStart = -1;
+            }
+          };
+
+          for (let c = 0; c < cols; c++) {
+            const pIdx = (r * cols + c) * 4;
+            let pr = pixels[pIdx];
+            let pg = pixels[pIdx + 1];
+            let pb = pixels[pIdx + 2];
+            let lum = (0.299 * pr + 0.587 * pg + 0.114 * pb) / 255.0;
+
+            // Brief initial scanline glitch-in when hover opens (first 0.45s)
+            if (t < 0.45) {
+              const mp = t / 0.45;
+              const h = Math.sin((c + Math.floor(t * 32)) * 29.7 + r * 73.1) * 43758.5453;
+              const n01 = h - Math.floor(h);
+              if (n01 > mp) {
+                if (n01 > 0.88) {
+                  pr = isExistence ? 255 : 0;
+                  pg = 255;
+                  pb = isExistence ? 255 : 158;
+                  lum = 0.55;
+                } else {
+                  flush();
+                  continue;
+                }
+              }
+            }
+
+            const idx = Math.min(HOLO_RAMP_LEN - 1, Math.max(0, Math.floor(lum * (HOLO_RAMP_LEN - 1))));
+            if (idx === 0) {
+              flush();
+              continue;
+            }
+
+            const ch = HOLO_RAMP[idx];
+            const colorStr = `rgb(${(pr >> 3) << 3},${(pg >> 3) << 3},${(pb >> 3) << 3})`;
+            if (batchStr.length > 0 && colorStr === batchColor && batchStart + batchStr.length === c) {
+              batchStr += ch;
+            } else {
+              flush();
+              batchColor = colorStr;
+              batchStart = c;
+              batchStr = ch;
+            }
+          }
+          flush();
+        }
+      }
+
+      rafId = requestAnimationFrame(render);
+    };
+
+    rafId = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(rafId);
+  }, [isExistence]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="block rounded-md border border-white/15 select-none"
+      style={{ width: 288, height: 224 }}
+    />
+  );
+};
+
 export const AsciiBrandLogo: React.FC<AsciiBrandLogoProps> = ({
   size = "micro",
   interactive = true,
-  withPopover = false,
+  withPopover = true,
   framed = true,
   className = "",
   label,
 }) => {
   const { isExistence, triggerLogoThemeShift } = useUniverseTheme();
   const [hovered, setHovered] = useState(false);
+  const [shimmerTick, setShimmerTick] = useState(0);
+  const [anchorPos, setAnchorPos] = useState<{ top: number; left: number }>({ top: 56, left: 12 });
+  const btnRef = useRef<HTMLButtonElement | null>(null);
+  const closeTimerRef = useRef<number | null>(null);
 
   const preset = SIZE_PRESETS[size];
-  const brailleArt = useMemo(
+  const baseBrailleArt = useMemo(
     () => rasterizeMeditatingBraille(preset.cols, preset.rows),
     [preset.cols, preset.rows]
   );
-  const hologramArt = useMemo(
-    () => (withPopover ? rasterizeMeditatingBraille(31, 16) : ""),
-    [withPopover]
-  );
+
+  // Subtle live ASCII character wave across the crest itself while hovered!
+  useEffect(() => {
+    if (!hovered) {
+      setShimmerTick(0);
+      return;
+    }
+    const id = window.setInterval(() => {
+      setShimmerTick(t => t + 1);
+    }, 65);
+    return () => window.clearInterval(id);
+  }, [hovered]);
+
+  const activeCrestArt = useMemo(() => {
+    if (!hovered || shimmerTick === 0) return baseBrailleArt;
+    const rows = baseBrailleArt.split("\n");
+    const waveRow = shimmerTick % rows.length;
+    return rows
+      .map((line, rIdx) => {
+        if (rIdx !== waveRow) return line;
+        let out = "";
+        for (let i = 0; i < line.length; i++) {
+          const code = line.charCodeAt(i);
+          out += code > 0x2800 ? "⣿" : line[i];
+        }
+        return out;
+      })
+      .join("\n");
+  }, [baseBrailleArt, hovered, shimmerTick]);
+
+  const openHover = () => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    if (!hovered) {
+      sound.playKeypress();
+    }
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      const popH = 308;
+      const top =
+        rect.bottom + popH + 12 > window.innerHeight
+          ? Math.max(8, rect.top - popH - 6)
+          : rect.bottom + 6;
+      setAnchorPos({
+        top,
+        left: Math.max(8, Math.min(rect.left, window.innerWidth - 324)),
+      });
+    }
+    setHovered(true);
+  };
+
+  const scheduleCloseHover = () => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+    }
+    closeTimerRef.current = window.setTimeout(() => {
+      setHovered(false);
+    }, 110);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!interactive) return;
@@ -144,13 +366,15 @@ export const AsciiBrandLogo: React.FC<AsciiBrandLogoProps> = ({
         fontSize: `${preset.fontPx}px`,
         lineHeight: `${preset.linePx}px`,
       }}
-      className={`font-mono font-bold tracking-normal select-none m-0 whitespace-pre transition-colors ${
+      className={`font-mono font-bold tracking-normal select-none m-0 whitespace-pre transition-all duration-200 ${
         isExistence
           ? "text-white group-hover/ascii:text-black"
-          : "text-[#00ff9e] drop-shadow-[0_0_6px_rgba(0,255,158,0.55)] group-hover/ascii:text-white"
+          : hovered
+          ? "text-white drop-shadow-[0_0_10px_rgba(0,255,158,0.95)]"
+          : "text-[#00ff9e] drop-shadow-[0_0_6px_rgba(0,255,158,0.55)]"
       }`}
     >
-      {brailleArt}
+      {activeCrestArt}
     </pre>
   );
 
@@ -158,13 +382,15 @@ export const AsciiBrandLogo: React.FC<AsciiBrandLogoProps> = ({
     return (
       <div
         onClick={interactive ? handleClick : undefined}
+        onMouseEnter={interactive ? openHover : undefined}
+        onMouseLeave={interactive ? scheduleCloseHover : undefined}
         className={`inline-flex flex-col items-center ${
           interactive ? "cursor-pointer group/ascii" : ""
         } ${className}`}
         title={
           label ||
           (interactive
-            ? `Click ASCII Emblem → 3D Rolling Zoom & Switch to ${nextUniverseName}`
+            ? `Click ASCII Emblem → Fullscreen ASCII Animation & Switch to ${nextUniverseName}`
             : undefined)
         }
       >
@@ -176,23 +402,24 @@ export const AsciiBrandLogo: React.FC<AsciiBrandLogoProps> = ({
   return (
     <div
       className={`relative inline-flex items-center ${className}`}
-      onMouseEnter={() => withPopover && setHovered(true)}
-      onMouseLeave={() => withPopover && setHovered(false)}
+      onMouseEnter={openHover}
+      onMouseLeave={scheduleCloseHover}
     >
       <button
+        ref={btnRef}
         type="button"
         onClick={handleClick}
-        onFocus={() => withPopover && setHovered(true)}
-        onBlur={() => withPopover && setHovered(false)}
+        onFocus={openHover}
+        onBlur={scheduleCloseHover}
         aria-label={
-          label || `ZaneX ASCII Emblem — Click for 3D Rolling Zoom to ${nextUniverseName}`
+          label || `ZaneX ASCII Emblem — Hover for Live ASCII Hologram · Click to Shift to ${nextUniverseName}`
         }
         title={
-          label || `Click ASCII Emblem → 3D Rolling Zoom & Switch to ${nextUniverseName}`
+          label || `Hover for Live ASCII Hologram · Click for Fullscreen ASCII Shift to ${nextUniverseName}`
         }
-        className={`group/ascii relative inline-flex flex-col items-center justify-center transition-all select-none ${
+        className={`group/ascii relative inline-flex flex-col items-center justify-center transition-all duration-200 select-none ${
           interactive ? "cursor-pointer active:scale-95" : "cursor-default"
-        } ${
+        } ${hovered ? "scale-110" : "scale-100"} ${
           size === "micro"
             ? "px-1.5 py-1"
             : size === "sm"
@@ -200,60 +427,63 @@ export const AsciiBrandLogo: React.FC<AsciiBrandLogoProps> = ({
             : "px-2.5 py-2"
         } ${
           isExistence
-            ? "bg-black border border-white/70 hover:bg-white shadow-[0_0_16px_rgba(255,255,255,0.18)]"
-            : "rounded-lg bg-[#040915]/95 border border-primary/50 hover:border-primary shadow-[0_0_16px_rgba(0,255,158,0.22)] hover:shadow-[0_0_24px_rgba(0,255,158,0.42)]"
+            ? "bg-black border border-white/75 hover:bg-white shadow-[0_0_16px_rgba(255,255,255,0.22)]"
+            : hovered
+            ? "rounded-lg bg-[#051224] border border-[#00ff9e] shadow-[0_0_28px_rgba(0,255,158,0.65)]"
+            : "rounded-lg bg-[#040915]/95 border border-primary/55 shadow-[0_0_16px_rgba(0,255,158,0.24)]"
         }`}
       >
         {preBlock}
       </button>
 
-      {/* Full-Size Glowing ASCII Hologram Popover (Desktop Hover / Focus) */}
-      {withPopover && hovered && (
-        <div
-          onClick={handleClick}
-          style={{
-            backgroundColor: isExistence ? "rgba(0, 0, 0, 0.94)" : "rgba(4, 9, 20, 0.90)",
-            backdropFilter: "blur(18px) saturate(145%)",
-            WebkitBackdropFilter: "blur(18px) saturate(145%)",
-          }}
-          className={`hidden sm:flex flex-col items-center gap-2 p-3.5 absolute left-0 top-full mt-2.5 z-[95] cursor-pointer font-mono select-none transition-all ${
-            isExistence
-              ? "border-2 border-white text-white shadow-[0_24px_60px_rgba(0,0,0,0.95)]"
-              : "rounded-xl border border-primary/70 text-white shadow-[0_24px_60px_rgba(0,0,0,0.92),0_0_32px_rgba(0,255,158,0.20)]"
-          }`}
-        >
+      {/* Portal-Mounted Live 60-FPS Procedural RGB ASCII Hologram Popover (Immune to Navbar Clipping!) */}
+      {withPopover &&
+        hovered &&
+        typeof document !== "undefined" &&
+        createPortal(
           <div
-            className={`w-full flex items-center justify-between gap-4 text-[10px] font-bold pb-1.5 border-b ${
-              isExistence ? "border-white/30 text-white" : "border-primary/30 text-primary"
-            }`}
-          >
-            <span>┌──[ Z A N E X // Ω ]</span>
-            <span className="opacity-80">▓▒░ BRAILLE_8X</span>
-          </div>
-
-          <pre
-            aria-hidden="true"
-            style={{ fontSize: "9.5px", lineHeight: "10px" }}
-            className={`font-mono font-bold whitespace-pre m-0 py-0.5 ${
+            onMouseEnter={openHover}
+            onMouseLeave={scheduleCloseHover}
+            onClick={handleClick}
+            onPointerDown={e => e.stopPropagation()}
+            style={{
+              position: "fixed",
+              top: anchorPos.top,
+              left: anchorPos.left,
+              zIndex: 99992,
+              backgroundColor: isExistence ? "rgba(0, 0, 0, 0.94)" : "rgba(4, 8, 18, 0.92)",
+              backdropFilter: "blur(18px) saturate(145%)",
+              WebkitBackdropFilter: "blur(18px) saturate(145%)",
+            }}
+            className={`flex flex-col items-center gap-2 p-3 cursor-pointer font-mono select-none ${
               isExistence
-                ? "text-white"
-                : "text-[#00ff9e] drop-shadow-[0_0_10px_rgba(0,255,158,0.55)]"
+                ? "border-2 border-white text-white shadow-[0_24px_64px_rgba(0,0,0,0.95)]"
+                : "rounded-xl border border-[#00ff9e]/80 text-white shadow-[0_24px_64px_rgba(0,0,0,0.92),0_0_36px_rgba(0,255,158,0.28)]"
             }`}
           >
-            {hologramArt}
-          </pre>
+            <div
+              className={`w-full flex items-center justify-between gap-3 text-[10px] font-bold pb-1.5 border-b ${
+                isExistence ? "border-white/30 text-white" : "border-[#00ff9e]/35 text-[#00ff9e]"
+              }`}
+            >
+              <span>┌──[ Z A N E X // LIVE ASCII ]</span>
+              <span className="text-white/80">60 FPS · RGB</span>
+            </div>
 
-          <div
-            className={`w-full text-center text-[9.5px] font-bold px-2 py-1 border ${
-              isExistence
-                ? "border-white/40 bg-white text-black"
-                : "rounded border-primary/40 bg-primary/15 text-[#00ff9e]"
-            }`}
-          >
-            ◈ CLICK → 3D ROLLING ZOOM · {nextUniverseName}
-          </div>
-        </div>
-      )}
+            <LiveAsciiHologramCanvas isExistence={isExistence} />
+
+            <div
+              className={`w-full text-center text-[10px] font-bold px-2.5 py-1.5 border ${
+                isExistence
+                  ? "border-white bg-white text-black"
+                  : "rounded-md border-[#00ff9e]/50 bg-[#00ff9e]/15 text-[#00ff9e]"
+              }`}
+            >
+              ◈ CLICK → FULLSCREEN ASCII ZOOM · {nextUniverseName}
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
