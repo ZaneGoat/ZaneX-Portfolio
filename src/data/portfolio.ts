@@ -235,6 +235,7 @@ export const terminalCommandsHelp = [
   { cmd: "curl [url]", desc: "Simulate HTTP request (e.g. curl /robots.txt)" },
   { cmd: "repo [id]", desc: "Open the GitHub repository for any project" },
   { cmd: "skills", desc: "Inspect categorized technical proficiencies" },
+  { cmd: "logo", desc: "Render Braille ASCII brand crest & 3D rolling zoom shift" },
   { cmd: "theme [matrix | existence]", desc: "Switch between Default HUD & ASCII Map View" },
   { cmd: "matrix", desc: "Unleash full-screen Matrix Construct Takeover" },
   { cmd: "breach", desc: "Launch Cyberpunk Breach Protocol hacking minigame" },

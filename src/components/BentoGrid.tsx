@@ -5,6 +5,7 @@ import {
   Radio, ShieldAlert, Lock, Key
 } from "lucide-react";
 import { CelestialZenLogo } from "@/components/CelestialZenLogo";
+import { AsciiBrandLogo } from "@/components/AsciiBrandLogo";
 import { systemSpecsByPersona } from "@/data/portfolio";
 import { usePersona } from "@/context/PersonaContext";
 import { useOperatorClearance } from "@/context/OperatorClearanceContext";
@@ -93,15 +94,25 @@ export const BentoGrid = ({
         {/* 1 — Identity (Hero) */}
         <motion.div {...fadeUp(0.04)} className="hud-card md:col-span-2 lg:row-span-2 p-5 sm:p-8 md:p-10 relative overflow-hidden flex flex-col justify-between">
           <div>
-            <div className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-[11px] font-mono mb-4 sm:mb-6 border ${
-              isOperator && !clearance.identityUnlocked
-                ? "bg-red-500/10 border-red-500/30 text-red-400"
-                : "bg-primary/10 border-primary/25 text-primary"
-            }`}>
-              <span className={`inline-flex rounded-full w-1.5 h-1.5 ${
-                isOperator && !clearance.identityUnlocked ? "bg-red-500" : "bg-primary"
-              }`} />
-              <span className="truncate">{displayStatus}</span>
+            <div className="flex items-start justify-between gap-3 mb-4 sm:mb-6">
+              <div className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-[11px] font-mono border ${
+                isOperator && !clearance.identityUnlocked
+                  ? "bg-red-500/10 border-red-500/30 text-red-400"
+                  : "bg-primary/10 border-primary/25 text-primary"
+              }`}>
+                <span className={`inline-flex rounded-full w-1.5 h-1.5 ${
+                  isOperator && !clearance.identityUnlocked ? "bg-red-500" : "bg-primary"
+                }`} />
+                <span className="truncate">{displayStatus}</span>
+              </div>
+
+              {/* Interactive Braille ASCII Meditating Crest (Click -> 3D Rolling Zoom & Theme Shift) */}
+              <AsciiBrandLogo
+                size="sm"
+                interactive
+                className="shrink-0"
+                label="Click ASCII Crest → 3D Rolling Zoom & Switch Universe Theme"
+              />
             </div>
 
             <p className="font-mono text-xs text-muted-foreground mb-1.5">$ whoami</p>

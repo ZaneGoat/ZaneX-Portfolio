@@ -2,6 +2,7 @@ import { Swords, Zap, Play, Trophy, Gamepad2, Clock, Moon } from "lucide-react";
 import { sound } from "@/lib/sound";
 import { SectionHeader } from "@/components/SectionHeader";
 import { CelestialZenLogo } from "@/components/CelestialZenLogo";
+import { AsciiBrandLogo } from "@/components/AsciiBrandLogo";
 
 interface GamesProps {
   onOpenBreach?: () => void;
@@ -49,9 +50,11 @@ export const Games = ({ onOpenBreach, onOpenCelestial }: GamesProps) => (
         <div className="hud-card p-5 sm:p-7 flex flex-col justify-between gap-6 border border-blue-300/20">
           <div>
             <div className="flex items-center justify-between mb-4 sm:mb-5">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black border border-white/30 flex items-center justify-center shadow-[0_0_14px_rgba(255,255,255,0.28)]">
-                <CelestialZenLogo className="w-6 h-6 fill-white" />
-              </div>
+              <AsciiBrandLogo
+                size="micro"
+                interactive
+                label="Click ASCII Emblem → 3D Rolling Zoom & Switch Universe Theme"
+              />
               <span className="font-mono text-[11px] text-blue-200/80 flex items-center gap-1">
                 <Moon className="w-3.5 h-3.5 text-amber-200" /> 3 Modes · Night Sky
               </span>

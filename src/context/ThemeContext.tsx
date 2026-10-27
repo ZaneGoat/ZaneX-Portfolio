@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { sound } from "@/lib/sound";
+import { AsciiLogoZoomPortal } from "@/components/AsciiLogoZoomPortal";
 
 export type UniverseTheme = "matrix" | "existence";
 
@@ -8,6 +9,7 @@ interface ThemeContextType {
   isExistence: boolean;
   setTheme: (next: UniverseTheme) => void;
   toggleTheme: () => void;
+  triggerLogoThemeShift: () => void;
 }
 
 const STORAGE_THEME_KEY = "zanex_theme";
@@ -33,6 +35,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const [shutterActive, setShutterActive] = useState(false);
+  const [zoomPortal, setZoomPortal] = useState<{
+    active: boolean;
+    fromTheme: UniverseTheme;
+    toTheme: UniverseTheme;
+  }>({
+    active: false,
+    fromTheme: "matrix",
+    toTheme: "existence",
+  });
 
   useEffect(() => {
     syncDomTheme(theme);
@@ -48,7 +59,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["data-theme"]
+      attributeFilter: ["data-theme"],
     });
     return () => observer.disconnect();
   }, []);
@@ -71,16 +82,47 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTheme(theme === "existence" ? "matrix" : "existence");
   }, [theme, setTheme]);
 
+  const triggerLogoThemeShift = useCallback(() => {
+    setZoomPortal(prev => {
+      if (prev.active) return prev;
+      const next: UniverseTheme = theme === "existence" ? "matrix" : "existence";
+      return {
+        active: true,
+        fromTheme: theme,
+        toTheme: next,
+      };
+    });
+  }, [theme]);
+
+  const handlePeakFlip = useCallback(() => {
+    setTheme(zoomPortal.toTheme);
+  }, [setTheme, zoomPortal.toTheme]);
+
+  const handlePortalComplete = useCallback(() => {
+    setZoomPortal(prev => ({ ...prev, active: false }));
+  }, []);
+
   return (
     <ThemeContext.Provider
       value={{
         theme,
         isExistence: theme === "existence",
         setTheme,
-        toggleTheme
+        toggleTheme,
+        triggerLogoThemeShift,
       }}
     >
       {children}
+
+      {/* Fullscreen 3D Rolling & Zooming ASCII Brand Logo Theme Portal */}
+      <AsciiLogoZoomPortal
+        active={zoomPortal.active}
+        fromTheme={zoomPortal.fromTheme}
+        toTheme={zoomPortal.toTheme}
+        onPeakFlip={handlePeakFlip}
+        onComplete={handlePortalComplete}
+      />
+
       {/* Dimensional Shutter Flash on Universe Shift */}
       {shutterActive && (
         <div

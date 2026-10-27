@@ -6,6 +6,8 @@ import { ZANE_YOUTUBE_PLAYLIST_URL, ZANE_JAZZ_PLAYLIST_URL, MOODS, ZanophyMood }
 import { usePersona } from "@/context/PersonaContext";
 import { useMusic } from "@/context/MusicContext";
 import { useOperatorClearance } from "@/context/OperatorClearanceContext";
+import { useUniverseTheme } from "@/context/ThemeContext";
+import { AsciiBrandLogo } from "@/components/AsciiBrandLogo";
 import { sound } from "@/lib/sound";
 
 interface TerminalOverlayProps {
@@ -58,6 +60,7 @@ export const DECK_MODULES: DeckModule[] = [
 
   // System & Intel
   { id: "neofetch", label: "Neofetch", category: "system", command: "neofetch", icon: "📊", badge: "SYS", desc: "Kali Dragon Dashboard" },
+  { id: "logo", label: "ASCII Crest", category: "system", command: "logo", icon: "◈", badge: "ASCII", desc: "Braille Brand Seal" },
   { id: "whoami", label: "Whoami", category: "system", command: "whoami", icon: "👤", badge: "BIO", desc: "Active Identity Dossier" },
   { id: "projects", label: "Git Repos", category: "system", command: "projects", icon: "💻", badge: "GIT", desc: "Live GitHub API Repos" },
   { id: "device", label: "Telemetry", category: "system", command: "device", icon: "📱", badge: "HW", desc: "Hardware & Monitor Audit" },
@@ -92,6 +95,7 @@ export const TerminalOverlay = ({
   const { persona, setPersona, telemetry, deviceChoice, setDeviceChoice, spoofActive } = usePersona();
   const { currentTrack, isPlaying, togglePlay, play, pause, nextTrack, prevTrack, playlist, selectTrack, setIsFullPlayerOpen, mood, setMood, openMoodMenu } = useMusic();
   const { clearance, clearanceLevel } = useOperatorClearance();
+  const { isExistence, triggerLogoThemeShift } = useUniverseTheme();
   const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.operator;
   const shellUser = persona === "friend" ? "homie@zane-lounge" : (clearance.identityUnlocked ? "zane@kali" : "operator@classified");
 
@@ -134,9 +138,16 @@ export const TerminalOverlay = ({
 
           {/* System Specs & Telemetry */}
           <div className="space-y-1 text-xs">
-            <div className="pb-1 border-b border-primary/30">
-              <span className="text-cyan-400 font-bold text-sm">{shellUser}</span>
-              <p className="text-muted-foreground text-[10px]">--------------------------------</p>
+            <div className="pb-1 border-b border-primary/30 flex items-center justify-between gap-3">
+              <div>
+                <span className="text-cyan-400 font-bold text-sm">{shellUser}</span>
+                <p className="text-muted-foreground text-[10px]">--------------------------------</p>
+              </div>
+              <AsciiBrandLogo
+                size="micro"
+                interactive
+                label="Click ASCII Crest → 3D Rolling Zoom & Shift Universe"
+              />
             </div>
             <p><span className="text-primary font-bold">OS:</span> Kali GNU/Linux Rolling [x86_64]</p>
             <p><span className="text-primary font-bold">Host:</span> MSI GF63 Thin (EC Hardware Governed)</p>
@@ -1155,6 +1166,43 @@ Allow: /
         }
         break;
       }
+
+      case "logo":
+      case "emblem":
+      case "ascii":
+        newLogs.push({
+          type: "output",
+          content: (
+            <div className="my-2 p-3.5 rounded-xl border border-primary/35 bg-primary/5 space-y-2.5 font-mono text-xs">
+              <div className="flex items-center justify-between gap-2 border-b border-primary/25 pb-1.5">
+                <span className="text-primary font-bold">
+                  ┌──[ Z A N E X // SUBPIXEL BRAILLE CREST ]
+                </span>
+                <span className="text-[10px] text-muted-foreground">31×16 · 8-DOT BRAILLE</span>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-4 py-1">
+                <AsciiBrandLogo size="lg" framed={false} interactive={false} />
+                <div className="space-y-2 text-[11px] text-foreground/85">
+                  <p>
+                    High-density <span className="text-primary font-bold">Unicode Braille (U+2800..U+28FF)</span> rasterization of the meditating emblem (3,968 subpixels).
+                  </p>
+                  <button
+                    type="button"
+                    onClick={e => {
+                      e.stopPropagation();
+                      onClose();
+                      window.setTimeout(() => triggerLogoThemeShift(), 120);
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-primary text-background font-bold text-[11px] hover:bg-primary/90 active:scale-95 transition-all cursor-pointer"
+                  >
+                    ◈ ROLLING 3D ZOOM → SWITCH TO {isExistence ? "MATRIX HUD" : "Ω-EXISTENCE"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        });
+        break;
 
       case "breach":
       case "ice":

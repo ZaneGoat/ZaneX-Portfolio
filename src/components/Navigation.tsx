@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Eye, Smartphone, Code2 } from "lucide-react";
 import { CelestialZenLogo } from "@/components/CelestialZenLogo";
+import { AsciiBrandLogo } from "@/components/AsciiBrandLogo";
 import { navLinks } from "@/data/portfolio";
 import { sound, AUDIO_MUTE_EVENT } from "@/lib/sound";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
@@ -73,37 +74,14 @@ export const Navigation = ({
         )}
 
         <div className="container mx-auto px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 flex justify-between items-center">
-          {/* Logo / Brand */}
+          {/* Logo / Brand: Solo Braille ASCII Meditating Emblem + Hover Hologram + Click 3D Rolling Zoom */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <a
-              href="#overview"
-              onClick={() => sound.playClick()}
-              className="flex items-center gap-2 sm:gap-2.5 group font-mono shrink-0"
-              aria-label="ZaneX Home"
-            >
-              {isExistence ? (
-                <>
-                  <span className="w-7 h-7 sm:w-8 sm:h-8 border border-white/60 bg-black flex items-center justify-center group-hover:bg-white transition-colors shrink-0">
-                    <CelestialZenLogo className="w-4 h-4 sm:w-5 sm:h-5 fill-white group-hover:fill-black transition-colors" />
-                  </span>
-                  <span className="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight border border-white/50 px-2 py-0.5 bg-black group-hover:bg-white group-hover:text-black transition-colors">
-                    [ZANEX<span className="hidden sm:inline">::Ω-EXISTENCE</span><span className="sm:hidden">::Ω</span>]
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/95 border border-white/30 group-hover:border-primary/70 flex items-center justify-center shadow-[0_0_14px_rgba(255,255,255,0.22)] group-hover:scale-105 transition-all shrink-0">
-                    <CelestialZenLogo className="w-5 h-5 sm:w-[22px] sm:h-[22px] fill-white group-hover:fill-primary transition-colors" />
-                  </span>
-                  <span className="text-base sm:text-xl md:text-2xl font-black text-primary tracking-tighter group-hover:scale-105 transition-transform">
-                    ZANE<span className="text-secondary">X</span>
-                  </span>
-                  <span className="hidden sm:inline-block text-[10px] bg-primary/10 text-primary border border-primary/30 px-2 py-0.5 rounded-full font-bold">
-                    v6.0
-                  </span>
-                </>
-              )}
-            </a>
+            <AsciiBrandLogo
+              size="micro"
+              withPopover
+              interactive
+              label="ZaneX ASCII Emblem — Hover for Hologram · Click for 3D Rolling Zoom & Theme Shift"
+            />
 
             {/* Desktop Compact Persona Switcher */}
             <PersonaSwitcher variant="compact" className="hidden xl:inline-flex" />
