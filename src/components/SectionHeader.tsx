@@ -13,15 +13,15 @@ export const SectionHeader = ({ index, kicker, title, subtitle }: SectionHeaderP
 
   if (isExistence) {
     return (
-      <div className="max-w-7xl mx-auto mb-6 sm:mb-10 md:mb-12 reveal font-mono">
-        <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-white/70 mb-2.5 select-none overflow-hidden">
+      <div className="max-w-7xl mx-auto mb-12 reveal font-mono">
+        <div className="flex items-center gap-2 text-[11px] text-white/70 mb-3 select-none overflow-hidden">
           <span className="text-white font-bold shrink-0">┌──[ {index} :: {kicker.toUpperCase()} ]</span>
           <span className="flex-1 border-t border-white/25" />
-          <span className="text-white/80 shrink-0 tracking-widest">──┐</span>
+          <span className="text-white/80 shrink-0 tracking-widest">╡ Ψ · Ω · ∞ ╞──┐</span>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2.5 sm:gap-4 pl-3 border-l-2 border-white">
-          <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white uppercase tracking-tight leading-tight">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 pl-3 border-l-2 border-white">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white uppercase tracking-tight">
             {title}
           </h2>
           {subtitle && (

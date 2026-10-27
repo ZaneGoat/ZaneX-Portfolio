@@ -117,7 +117,7 @@ const Index = () => {
         onOpenMegaCenter={openMegaCenter}
       />
 
-      <main className={isExistence ? "relative z-10 pt-16 sm:pt-24" : "relative z-10 pt-14 sm:pt-16"}>
+      <main className={isExistence ? "relative z-10 pt-20 sm:pt-28" : "relative z-10 pt-14 sm:pt-16"}>
         {isExistence ? (
           /* ASCII universe: a completely different, game-style layout */
           <ExistenceWorld
@@ -198,7 +198,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left text-muted-foreground">
           <div>
             <p className="text-foreground font-bold">
-              {isExistence ? "[ ZANEX :: ASCII WORLD ]" : "ZANEX v6.0"}
+              {isExistence ? "[ ZANEX :: Ω-EXISTENCE // SINGULARITY ARCHIVE ]" : "ZANEX v6.0"}
             </p>
             <p>&copy; {new Date().getFullYear()} Aziz Maaizate (Zane Goat)</p>
           </div>

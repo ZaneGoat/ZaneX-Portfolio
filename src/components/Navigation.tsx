@@ -120,31 +120,31 @@ export const Navigation = ({
               className={
                 isExistence
                   ? "px-2 sm:px-2.5 py-1.5 bg-white text-black hover:bg-white/85 border border-white font-mono text-[10px] sm:text-xs font-bold flex items-center gap-1 cursor-pointer active:scale-95 transition-all"
-                  : "px-2 sm:px-2.5 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] border border-white/20 text-foreground rounded-lg font-mono text-[10px] sm:text-xs font-bold flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all"
+                  : "px-2 sm:px-2.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/40 text-white rounded-lg font-mono text-[10px] sm:text-xs font-bold flex items-center gap-1 cursor-pointer active:scale-95 transition-all"
               }
               title={
                 isExistence
-                  ? "Return to Standard Interface"
-                  : "Switch to ASCII World Map Mode"
+                  ? "Return to Matrix Emerald Cyber-HUD"
+                  : "Transform Entire Site into EXISTENCE Monochrome ASCII Universe"
               }
-              aria-label="Toggle ASCII Mode"
+              aria-label="Toggle Total-Conversion Universe Theme"
             >
               {isExistence ? (
                 <>
-                  <span>[01]</span>
-                  <span className="sm:hidden">STD</span>
-                  <span className="hidden sm:inline">STANDARD UI</span>
+                  <span>◈</span>
+                  <span className="sm:hidden">GREEN</span>
+                  <span className="hidden sm:inline">MATRIX HUD</span>
                 </>
               ) : (
                 <>
-                  <Code2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <Code2 className="w-3.5 h-3.5 text-white shrink-0" />
                   <span className="sm:hidden">ASCII</span>
-                  <span className="hidden sm:inline">ASCII MODE</span>
+                  <span className="hidden sm:inline">EXISTENCE</span>
                 </>
               )}
             </button>
 
-            {/* Replay Procedural ASCII Intro Button (Desktop/Tablet so phone topbar stays clean) */}
+            {/* Replay Procedural ASCII Intro Button */}
             {onReplayIntro && (
               <button
                 onClick={() => {
@@ -153,10 +153,10 @@ export const Navigation = ({
                 }}
                 className={
                   isExistence
-                    ? "hidden sm:flex p-1.5 sm:p-2 bg-black border border-white/35 text-white hover:bg-white hover:text-black transition-all items-center gap-1.5 font-mono text-xs font-bold cursor-pointer active:scale-95"
-                    : "hidden sm:flex p-1.5 sm:p-2 bg-white/[0.04] border border-white/15 text-foreground/80 hover:text-foreground hover:border-white/30 rounded-lg transition-all items-center gap-1.5 font-mono text-xs font-bold cursor-pointer active:scale-95"
+                    ? "p-1.5 sm:p-2 bg-black border border-white/35 text-white hover:bg-white hover:text-black transition-all flex items-center gap-1.5 font-mono text-xs font-bold cursor-pointer active:scale-95"
+                    : "p-1.5 sm:p-2 bg-rose-500/15 border border-rose-500/40 text-rose-400 hover:bg-rose-500/25 rounded-lg transition-all flex items-center gap-1.5 font-mono text-xs font-bold cursor-pointer active:scale-95"
                 }
-                title="Replay ASCII Boot Sequence"
+                title="Replay Procedural RGB ASCII Art Intro"
               >
                 <Eye className="w-4 h-4" />
                 <span className="hidden xl:inline">INTRO</span>
@@ -243,10 +243,10 @@ export const Navigation = ({
           >
             <div className="flex flex-col gap-3">
               {/* Total-Conversion Universe Switcher in Mobile Drawer */}
-              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 space-y-2">
-                <div className="flex items-center justify-between text-[10px] text-muted-foreground font-bold tracking-wider px-0.5">
-                  <span>INTERFACE MODE</span>
-                  <span className="text-primary">{isExistence ? "ASCII MAP" : "STANDARD"}</span>
+              <div className="p-2.5 rounded-xl bg-primary/5 border border-primary/25 space-y-2">
+                <div className="flex items-center justify-between text-[10px] text-primary/80 font-bold tracking-wider px-0.5">
+                  <span>UNIVERSE ARCHITECTURE</span>
+                  <span>{isExistence ? "Ω-EXISTENCE" : "MATRIX GREEN"}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -254,12 +254,12 @@ export const Navigation = ({
                     onClick={() => setTheme("matrix")}
                     className={`py-2 px-2.5 rounded-lg border text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                       !isExistence
-                        ? "border-primary/60 bg-primary/15 text-primary"
+                        ? "border-[#00ff9e] bg-[#00ff9e]/20 text-[#00ff9e]"
                         : "border-white/20 bg-black text-white/60 hover:text-white"
                     }`}
                   >
-                    <span>[01]</span>
-                    <span>STANDARD</span>
+                    <span>◈</span>
+                    <span>MATRIX GREEN</span>
                   </button>
                   <button
                     type="button"
@@ -267,11 +267,11 @@ export const Navigation = ({
                     className={`py-2 px-2.5 rounded-lg border text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                       isExistence
                         ? "border-white bg-white text-black"
-                        : "border-white/20 bg-white/5 text-white/80 hover:bg-white/10"
+                        : "border-white/30 bg-white/5 text-white/80 hover:bg-white/15"
                     }`}
                   >
-                    <span>[02]</span>
-                    <span>ASCII MAP</span>
+                    <span>Ω</span>
+                    <span>EXISTENCE ASCII</span>
                   </button>
                 </div>
               </div>
