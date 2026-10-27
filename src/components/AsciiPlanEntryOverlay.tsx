@@ -50,13 +50,20 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
 }) => {
   const { isExistence } = useUniverseTheme();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const launchedRef = useRef(false);
   const headlinePingedRef = useRef(false);
   const shockwavesRef = useRef<ClickShockwave[]>([]);
-  const metricsRef = useRef<{ width: number; height: number; unitPixels: number }>({
+  const metricsRef = useRef<{
+    width: number;
+    height: number;
+    gemCenterY: number;
+    unitPixels: number;
+  }>({
     width: 1,
     height: 1,
-    unitPixels: 300,
+    gemCenterY: 240,
+    unitPixels: 240,
   });
 
   const [fadingOut, setFadingOut] = useState(false);
@@ -96,9 +103,9 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
 
   // Clicking/tapping the ASCII backdrop triggers a heavy-bass pulse & shockwave ring without aborting the 16s timer
   const handleBackdropPulse = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const { width, height, unitPixels } = metricsRef.current;
-    const u = (e.clientX - width * 0.5) / (unitPixels || 300);
-    const v = (e.clientY - height * 0.5) / (unitPixels || 300);
+    const { width, gemCenterY, unitPixels } = metricsRef.current;
+    const u = (e.clientX - width * 0.5) / (unitPixels || 240);
+    const v = (e.clientY - gemCenterY) / (unitPixels || 240);
     shockwavesRef.current.push({
       u,
       v,
@@ -134,7 +141,7 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
 
     const cardTimer = window.setTimeout(() => {
       setShowCard(true);
-    }, 450);
+    }, 350);
 
     const start = performance.now();
     const tick = window.setInterval(() => {
@@ -143,8 +150,8 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
       setProgress(pct);
       setSecondsLeft(Math.max(0, Math.ceil(DURATION_SEC - elapsed)));
 
-      // Decode headline smoothly between 0.55s and 2.35s
-      const decodeNorm = clamp((elapsed - 0.55) / 1.8, 0, 1);
+      // Decode headline smoothly between 0.45s and 2.25s
+      const decodeNorm = clamp((elapsed - 0.45) / 1.8, 0, 1);
       const lockedChars = Math.floor(decodeNorm * TARGET_HEADLINE.length);
       let nextStr = "";
       for (let i = 0; i < TARGET_HEADLINE.length; i++) {
@@ -153,7 +160,7 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
           nextStr += " ";
         } else if (i < lockedChars) {
           nextStr += targetCh;
-        } else if (elapsed >= 0.48) {
+        } else if (elapsed >= 0.4) {
           const idx = Math.floor((i * 7 + elapsed * 28) % CIPHER_CHARS.length);
           nextStr += CIPHER_CHARS[idx];
         }
@@ -177,7 +184,7 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
     };
   }, [tier, launchMailAndClose]);
 
-  // 60-FPS Procedural 3D ASCII Faceted Emerald Gem + Fullscreen Cascading Matrix Rain
+  // 60-FPS Procedural 3D ASCII Faceted Emerald Gem (Positioned Above Card) + Fullscreen Matrix Rain
   useEffect(() => {
     if (!tier) return;
 
@@ -196,7 +203,7 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
     let uCoords = new Float32Array(0);
     let vCoords = new Float32Array(0);
 
-    // Per-column Matrix Rain buffers (precomputed on resize for 0 per-pixel overhead)
+    // Per-column Matrix Rain buffers
     let rainActive = new Uint8Array(0);
     let rainSpeed = new Float32Array(0);
     let rainOffset = new Float32Array(0);
@@ -231,17 +238,26 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
       uCoords = new Float32Array(cols);
       vCoords = new Float32Array(rows);
 
-      const unitPixels = Math.min(width, height) * (width < 640 ? 0.44 : 0.40);
-      metricsRef.current = { width, height, unitPixels };
+      // Anchor the 3D spinning ASCII crystal directly in the stage slot right at the top of the card
+      const stageEl = stageRef.current;
+      const stageRect = stageEl ? stageEl.getBoundingClientRect() : null;
+      const gemCenterY =
+        stageRect && stageRect.height > 40
+          ? stageRect.top + stageRect.height * 0.5
+          : height * (width < 640 ? 0.25 : 0.29);
+      const unitPixels =
+        stageRect && stageRect.height > 40
+          ? Math.max(96, Math.min(width * 0.42, stageRect.height * 0.66))
+          : Math.min(width * 0.44, height * 0.27);
+      metricsRef.current = { width, height, gemCenterY, unitPixels };
 
       for (let c = 0; c < cols; c++) {
         uCoords[c] = ((c + 0.5) * cellW - width * 0.5) / unitPixels;
       }
       for (let r = 0; r < rows; r++) {
-        vCoords[r] = ((r + 0.5) * cellH - height * 0.5) / unitPixels;
+        vCoords[r] = ((r + 0.5) * cellH - gemCenterY) / unitPixels;
       }
 
-      // Initialize dense, visible Matrix Rain streams across ALL columns from frame 1
       rainActive = new Uint8Array(cols);
       rainSpeed = new Float32Array(cols);
       rainOffset = new Float32Array(cols);
@@ -252,7 +268,6 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
       for (let c = 0; c < cols; c++) {
         const h1 = fract(Math.sin(c * 12.9898 + 4.1414) * 43758.5453);
         const h2 = fract(Math.sin(c * 78.233 + 1.732) * 19432.17);
-        // ~72% of columns carry active Matrix rain streams for rich classic cascade
         rainActive[c] = c % 2 === 0 || h1 > 0.45 ? 1 : 0;
         rainSpeed[c] = 8.5 + h1 * 12.5;
         const period = rows + 14 + Math.floor(h2 * 22);
@@ -276,7 +291,6 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
     let rafId = 0;
     const startMs = performance.now();
 
-    // Directional light normalized
     const lx = -0.48;
     const ly = -0.62;
     const lz = 0.62;
@@ -285,12 +299,10 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
       const nowSec = now * 0.001;
       const t = (now - startMs) * 0.001;
 
-      // Clear background
       ctx.fillStyle = isExistence ? "#000000" : "#04070e";
       ctx.fillRect(0, 0, width, height);
       ctx.font = fontSpec;
 
-      // Update per-column Matrix rain head positions once per frame
       const glyphTick = Math.floor(t * 14);
       for (let c = 0; c < cols; c++) {
         if (rainActive[c]) {
@@ -298,7 +310,6 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
         }
       }
 
-      // Prune expired interactive click shockwaves
       const waves = shockwavesRef.current;
       for (let w = waves.length - 1; w >= 0; w--) {
         if (nowSec - waves[w].bornAt > 1.8) {
@@ -306,11 +317,9 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
         }
       }
 
-      // Smooth scale-in & breathing of the 3D ASCII gem across 16s
       const introScale = clamp(t / 0.55, 0.15, 1.0);
-      const gemRadius = 0.58 * (1.0 + 0.045 * Math.sin(t * 3.2)) * introScale;
+      const gemRadius = 0.62 * (1.0 + 0.045 * Math.sin(t * 3.2)) * introScale;
 
-      // 3D rotation angles (steady Y spin + evolving X/Z orbital tilt)
       const ay = t * 1.85;
       const ax = 0.42 + 0.22 * Math.sin(t * 1.15);
       const cosY = Math.cos(ay);
@@ -318,7 +327,6 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
       const cosX = Math.cos(ax);
       const sinX = Math.sin(ax);
 
-      // Rotate all 8 octahedron plane normals into world space once per frame
       const worldNormals: [number, number, number][] = new Array(8);
       for (let i = 0; i < 8; i++) {
         const [sx, sy, sz] = OCT_SIGNS[i];
@@ -370,8 +378,8 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
           let cb = 0;
           let overrideChar = "";
 
-          // Evaluate central 3D gem, orbital ring & shockwaves inside central bounding box
-          if (absU <= 1.65 && absV <= 1.45) {
+          // Central 3D ASCII Gem + Orbital Ring in upper viewport right above the card
+          if (absU <= 1.75 && absV <= 1.45) {
             const rad2D = Math.hypot(u, v);
 
             // 1. Analytic 3D Orthographic Ray vs Convex Octahedron
@@ -408,17 +416,17 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
                 const ridgeDist = zFar - zNear;
                 const edgeBoost = ridgeDist < 0.14 ? (1.0 - ridgeDist / 0.14) * 0.55 : 0;
                 const spec = Math.pow(Math.max(0, fnz), 6) * 0.45;
-                lum = clamp(0.24 + diff * 0.58 + spec + edgeBoost, 0.15, 1.0);
+                lum = clamp(0.26 + diff * 0.58 + spec + edgeBoost, 0.18, 1.0);
 
                 if (isExistence) {
-                  const vGray = Math.round(clamp(70 + lum * 185, 0, 255));
+                  const vGray = Math.round(clamp(75 + lum * 180, 0, 255));
                   cr = vGray;
                   cg = vGray;
                   cb = vGray;
                 } else {
                   cr = Math.round(clamp(edgeBoost * 240 + spec * 220, 0, 255));
-                  cg = Math.round(clamp(90 + lum * 165, 0, 255));
-                  cb = Math.round(clamp(65 + lum * 105 + edgeBoost * 40, 0, 255));
+                  cg = Math.round(clamp(95 + lum * 160, 0, 255));
+                  cb = Math.round(clamp(68 + lum * 105 + edgeBoost * 40, 0, 255));
                 }
 
                 if (edgeBoost > 0.36) {
@@ -432,33 +440,32 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
               const ru = u * cosRing - v * sinRing;
               const rv = (u * sinRing + v * cosRing) * 2.35;
               const ringR = Math.hypot(ru, rv);
-              const ringDist = Math.abs(ringR - 0.9 * introScale);
+              const ringDist = Math.abs(ringR - 0.96 * introScale);
 
-              if (ringDist < 0.058) {
+              if (ringDist < 0.062) {
                 const theta = Math.atan2(rv, ru) - t * 2.0;
                 const wave = 0.55 + 0.45 * Math.cos(theta * 6.0);
-                lum = (1.0 - ringDist / 0.058) * wave * 0.94;
+                lum = (1.0 - ringDist / 0.062) * wave * 0.95;
                 if (Math.cos(theta * 4.0) > 0.92) {
                   overrideChar = "$";
                 } else if (Math.sin(theta * 4.0) > 0.92) {
                   overrideChar = "◈";
                 }
                 if (isExistence) {
-                  const g = Math.round(clamp(95 + lum * 160, 0, 255));
+                  const g = Math.round(clamp(100 + lum * 155, 0, 255));
                   cr = g;
                   cg = g;
                   cb = g;
                 } else {
-                  cr = Math.round(clamp(185 + lum * 70, 0, 255));
-                  cg = Math.round(clamp(145 + lum * 85, 0, 255));
+                  cr = Math.round(clamp(190 + lum * 65, 0, 255));
+                  cg = Math.round(clamp(150 + lum * 85, 0, 255));
                   cb = Math.round(clamp(35 + lum * 55, 0, 255));
                 }
               } else {
-                // Ambient concentric pulse rings
                 const pulsePhase = rad2D * 3.0 - t * 1.75;
                 const pulseRing = Math.sin(pulsePhase * Math.PI);
-                if (rad2D > 0.64 && rad2D < 1.55 && pulseRing > 0.89) {
-                  const fade = (1.55 - rad2D) / 0.91;
+                if (rad2D > 0.68 && rad2D < 1.55 && pulseRing > 0.89) {
+                  const fade = (1.55 - rad2D) / 0.87;
                   lum = ((pulseRing - 0.89) / 0.11) * fade * 0.46;
                   if (isExistence) {
                     const g = Math.round(clamp(55 + lum * 150, 0, 255));
@@ -475,7 +482,7 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
             }
           }
 
-          // Interactive click shockwave rings anywhere on screen
+          // Interactive click shockwave rings
           if (lum < 0.85 && waves.length > 0) {
             for (let w = 0; w < waves.length; w++) {
               const age = nowSec - waves[w].bornAt;
@@ -521,12 +528,10 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
                 cg = gray;
                 cb = gray;
               } else if (isTip) {
-                // Bright white-mint leading Matrix rain drop
                 cr = 216;
                 cg = 255;
                 cb = 236;
               } else {
-                // Vivid Matrix Emerald cascading trail (#00ff9e -> deep emerald)
                 cr = 0;
                 cg = Math.round(48 + fade * 207);
                 cb = Math.round(28 + fade * 126);
@@ -589,44 +594,56 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
   return createPortal(
     <div
       onClick={handleBackdropPulse}
-      className={`fixed inset-0 z-[130] flex items-center justify-center p-4 font-mono select-none cursor-crosshair transition-opacity duration-500 ${
+      className={`fixed inset-0 z-[130] flex flex-col items-center justify-center px-3.5 sm:px-4 py-3 sm:py-6 font-mono select-none cursor-crosshair transition-opacity duration-500 ${
         fadingOut ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       role="dialog"
       aria-modal="true"
       aria-label="Plan Initiation ASCII Sequence"
     >
-      {/* Fullscreen 60-FPS Procedural 3D ASCII Gem + Cascading Matrix Rain Canvas */}
+      {/* Fullscreen 60-FPS Procedural 3D ASCII Gem (Top of Card) + Cascading Matrix Rain Canvas */}
       <canvas ref={canvasRef} className="fixed inset-0 block w-full h-full" />
 
-      {/* Centered Terminal ASCII Message Box */}
+      {/* Dedicated Top Stage Slot Directly Above the Card for the 3D Spinning ASCII Crystal */}
+      <div
+        ref={stageRef}
+        aria-hidden="true"
+        className="relative z-10 w-full max-w-lg flex-1 min-h-[155px] sm:min-h-[210px] max-h-[265px] pointer-events-none"
+      />
+
+      {/* Frosted Blurred Terminal Card Docked Cleanly Under the Top 3D ASCII Crystal */}
       <div
         onClick={e => e.stopPropagation()}
-        className={`relative z-10 w-full max-w-lg transition-all duration-300 cursor-default ${
+        style={{
+          backgroundColor: isExistence ? "rgba(0, 0, 0, 0.80)" : "rgba(5, 10, 22, 0.78)",
+          backdropFilter: "blur(16px) saturate(140%)",
+          WebkitBackdropFilter: "blur(16px) saturate(140%)",
+        }}
+        className={`relative z-10 w-full max-w-lg transition-all duration-300 cursor-default overflow-hidden ${
           showCard ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-2"
         } ${
           isExistence
-            ? "bg-black/88 border-2 border-white text-white"
-            : "bg-[#040812]/88 border border-primary/70 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.85)]"
+            ? "border-2 border-white text-white shadow-[0_24px_64px_rgba(0,0,0,0.95)]"
+            : "rounded-xl border border-primary/70 text-white shadow-[0_24px_64px_rgba(0,0,0,0.92),0_0_32px_rgba(0,255,158,0.12)]"
         }`}
       >
         {/* Top ASCII Frame Header */}
         <div
           className={`flex items-center justify-between gap-2 px-3.5 py-2 border-b text-[10px] sm:text-[11px] ${
             isExistence
-              ? "border-white/30 bg-white/[0.04] text-white/80"
-              : "border-primary/25 bg-primary/[0.06] text-primary"
+              ? "border-white/30 bg-white/10 text-white"
+              : "border-primary/30 bg-black/55 text-primary"
           }`}
         >
           <span className="font-bold truncate">
             ┌──[ PLAN {tier.index} :: {tier.name.toUpperCase()} ]
           </span>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-[10px] opacity-80">T-{secondsLeft}s</span>
+            <span className="text-[10px] font-bold text-white">T-{secondsLeft}s</span>
             <button
               type="button"
               onClick={cancelOverlay}
-              className="px-1.5 py-0.5 border border-current/30 hover:bg-white/10 text-[10px] font-bold cursor-pointer"
+              className="px-1.5 py-0.5 border border-white/35 hover:bg-white/15 text-white text-[10px] font-bold cursor-pointer"
               title="Cancel"
             >
               [ESC]
@@ -634,8 +651,8 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
           </div>
         </div>
 
-        {/* ASCII Body & Message */}
-        <div className="p-5 sm:p-7 text-center space-y-4">
+        {/* High-Contrast Readable Message Body */}
+        <div className="p-4 sm:p-6 text-center space-y-3 sm:space-y-3.5">
           {/* Compact ASCII Price Tag Art */}
           <pre
             aria-hidden="true"
@@ -649,43 +666,47 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
           </pre>
 
           <h3
-            className={`text-xl sm:text-3xl font-black tracking-tight leading-snug min-h-[2.5rem] ${
-              isExistence ? "text-white" : "text-primary"
+            className={`text-xl sm:text-2xl md:text-3xl font-black tracking-tight leading-snug min-h-[2.25rem] drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] ${
+              isExistence ? "text-white" : "text-[#00ff9e]"
             }`}
           >
             {decodedHeadline || " "}
           </h3>
 
-          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
+          <p className="text-xs sm:text-sm text-slate-100 leading-relaxed max-w-md mx-auto">
             No agency markup, no middlemen—just direct engineering. Outlook will open automatically in{" "}
-            <span className={isExistence ? "text-white font-bold" : "text-primary font-bold"}>
+            <span className={isExistence ? "text-white font-bold" : "text-[#00ff9e] font-bold"}>
               {secondsLeft}s
             </span>
             .
           </p>
 
           {/* ASCII Routing Progress Bar & Live Stage */}
-          <div className="pt-1 space-y-1.5">
-            <div className="text-[10px] sm:text-[11px] text-primary/90 truncate">
+          <div className="pt-0.5 space-y-1">
+            <div
+              className={`text-[10px] sm:text-[11px] font-semibold truncate ${
+                isExistence ? "text-white/90" : "text-emerald-300"
+              }`}
+            >
               {stageLabel}
             </div>
-            <div className="text-[11px] tracking-widest text-foreground/85">
+            <div className="text-[11px] font-bold tracking-widest text-white">
               [{asciiProgressBar}] {Math.round(progress * 100)}%
             </div>
-            <div className="text-[10px] text-muted-foreground truncate">
+            <div className="text-[10px] text-slate-300 truncate">
               → mailto:azizmaaizat@outlook.com
             </div>
           </div>
 
           {/* Explicit Skip Trigger */}
-          <div className="pt-2">
+          <div className="pt-1.5">
             <button
               type="button"
               onClick={launchMailAndClose}
               className={`w-full sm:w-auto px-5 py-2.5 text-xs font-bold tracking-wider transition-all cursor-pointer active:scale-95 ${
                 isExistence
                   ? "bg-white text-black hover:bg-white/85"
-                  : "bg-primary text-background rounded-lg hover:bg-primary/90"
+                  : "bg-primary text-slate-950 rounded-lg hover:bg-primary/90"
               }`}
             >
               OPEN OUTLOOK MESSAGE NOW →
