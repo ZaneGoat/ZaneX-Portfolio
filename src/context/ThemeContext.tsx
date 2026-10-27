@@ -30,7 +30,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem(STORAGE_THEME_KEY);
       if (saved === "existence") return "existence";
-    } catch {}
+    } catch { /* ignore */ }
     return "matrix";
   });
 
@@ -77,7 +77,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     syncDomTheme(next);
     try {
       localStorage.setItem(STORAGE_THEME_KEY, next);
-    } catch {}
+    } catch { /* ignore */ }
 
     sound.playClick();
     sound.haptic(20);

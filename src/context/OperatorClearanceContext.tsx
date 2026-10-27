@@ -34,7 +34,7 @@ export const OperatorClearanceProvider: React.FC<{ children: React.ReactNode }> 
       if (saved) {
         return { ...DEFAULT_CLEARANCE, ...JSON.parse(saved) };
       }
-    } catch {}
+    } catch { /* ignore */ }
     return DEFAULT_CLEARANCE;
   });
 
@@ -42,7 +42,7 @@ export const OperatorClearanceProvider: React.FC<{ children: React.ReactNode }> 
     setClearance(newState);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
-    } catch {}
+    } catch { /* ignore */ }
   }, []);
 
   const unlockNode = useCallback((node: keyof ClearanceState) => {

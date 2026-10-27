@@ -101,7 +101,7 @@ class SoundManager {
       for (const node of nodes) {
         try {
           node.disconnect();
-        } catch {}
+        } catch { /* ignore */ }
       }
     };
   }
@@ -169,7 +169,7 @@ class SoundManager {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       try {
         navigator.vibrate(pattern);
-      } catch {}
+      } catch { /* ignore */ }
     }
   }
 
@@ -226,7 +226,7 @@ class SoundManager {
       // 3. Subtle pneumatic airlock micro-transient
       this.playThrusterBurst(t, 0.032, 0.11, 310, 85, 2.0);
       this.haptic(14);
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   // Deep cushioned starship cockpit relay keystroke
@@ -276,7 +276,7 @@ class SoundManager {
       this.bindCleanup(relayOsc, [relayOsc, relayFilter, relayGain]);
       relayOsc.start(t);
       relayOsc.stop(t + 0.045);
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   // Deep starship telemetry bass pulse (transposes shrill frequencies down into heavy deck register)
@@ -329,7 +329,7 @@ class SoundManager {
       this.bindCleanup(toneOsc, [toneOsc, filter, toneGain]);
       toneOsc.start(t);
       toneOsc.stop(t + dur + 0.01);
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   // Spaceship fusion reactor & sub-thruster ignition swell
@@ -397,7 +397,7 @@ class SoundManager {
 
       // 3. Pressurized sub-thruster exhaust rumble
       this.playThrusterBurst(t, 0.52, 0.22, 260, 75, 2.2);
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   // Heavy airlock seal & hyperdrive lock bass chord
@@ -478,7 +478,7 @@ class SoundManager {
 
       this.playThrusterBurst(t, 0.28, 0.14, 300, 90, 1.8);
       this.haptic([50, 40, 90]);
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   // Heavy bulkhead warning / reactor stall sub-bass growl
@@ -536,7 +536,7 @@ class SoundManager {
       });
 
       this.haptic([100, 50, 100]);
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   // Capital-ship orbital warp jump / tectonic sub-bass drop
@@ -600,7 +600,7 @@ class SoundManager {
       // 3. Sub-thruster decompression boom
       this.playThrusterBurst(t, 0.65, 0.28, 380, 55, 2.4);
       this.haptic([120, 60, 160]);
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   // Deep-space seismic charge / gravity-wave bass shockwave (Throttled)
@@ -659,7 +659,7 @@ class SoundManager {
 
       this.playThrusterBurst(t, 0.2, 0.2, 280, 65, 2.2);
       this.haptic([40, 20, 70]);
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   // Deep-space starship hull sonar pulse (sub-bass resonance + warm low-mid hull echo)
@@ -719,7 +719,7 @@ class SoundManager {
       });
 
       this.haptic(18);
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   // Hyperdrive singularity bass swell
@@ -788,7 +788,7 @@ class SoundManager {
 
       this.playThrusterBurst(t, 0.62, 0.22, 320, 70, 2.0);
       this.haptic([40, 30, 60, 30, 80]);
-    } catch {}
+    } catch { /* ignore */ }
   }
 }
 

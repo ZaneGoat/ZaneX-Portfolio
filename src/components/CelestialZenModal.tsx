@@ -185,7 +185,7 @@ class CelestialAudioEngine {
         try {
           osc1.disconnect();
           gain1.disconnect();
-        } catch {}
+        } catch { /* ignore */ }
       };
       osc1.start(t);
       osc1.stop(t + duration + 0.02);
@@ -209,12 +209,12 @@ class CelestialAudioEngine {
           try {
             osc2.disconnect();
             gain2.disconnect();
-          } catch {}
+          } catch { /* ignore */ }
         };
         osc2.start(t);
         osc2.stop(t + shimmerDur + 0.02);
       }
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   // Serene 3-note lunar harp welcome
@@ -271,11 +271,11 @@ class CelestialAudioEngine {
           osc.disconnect();
           filter.disconnect();
           gain.disconnect();
-        } catch {}
+        } catch { /* ignore */ }
       };
       osc.start(t);
       osc.stop(t + 0.3);
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   // Lunar paddle & soft wall reflections
@@ -327,12 +327,12 @@ class CelestialAudioEngine {
           try {
             osc.disconnect();
             gain.disconnect();
-          } catch {}
+          } catch { /* ignore */ }
         };
         osc.start(t);
         osc.stop(t + 0.6);
       });
-    } catch {}
+    } catch { /* ignore */ }
   }
 
   // Peaceful twilight cadence when drifting off-screen
@@ -518,7 +518,7 @@ export const CelestialZenModal: React.FC<CelestialZenModalProps> = ({ isOpen, on
         setBestScores(updated);
         try {
           localStorage.setItem(`celestial_zen_best_${activeMode}`, String(nextScore));
-        } catch {}
+        } catch { /* ignore */ }
       }
     };
 

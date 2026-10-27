@@ -107,7 +107,10 @@ export const ZaneMegaCenterModal = ({ isOpen, onClose }: ZaneMegaCenterModalProp
     }
 
     try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) return;
       const ctx = new AudioCtx();
       audioCtxRef.current = ctx;
 
@@ -159,7 +162,7 @@ export const ZaneMegaCenterModal = ({ isOpen, onClose }: ZaneMegaCenterModalProp
 
       oscNodeRef.current = osc;
       oscGainRef.current = oscGain;
-    } catch {}
+    } catch { /* ignore */ }
 
     return () => {
       if (audioCtxRef.current) {
@@ -182,7 +185,7 @@ export const ZaneMegaCenterModal = ({ isOpen, onClose }: ZaneMegaCenterModalProp
         oscGainRef.current.gain.setTargetAtTime(0.06 + rpmRatio * 0.12, ctx.currentTime, 0.1);
         noiseGainRef.current.gain.setTargetAtTime(0.05 + rpmRatio * 0.14, ctx.currentTime, 0.1);
       }
-    } catch {}
+    } catch { /* ignore */ }
   }, [cpuRPM, gpuRPM, turbineAudio]);
 
   // Handle Dragging Fan Curve Points

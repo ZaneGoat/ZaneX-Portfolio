@@ -1,6 +1,6 @@
 import {
   Shield, Mail, Github, Globe,
-  Database, Cpu, Server
+  Database, Cpu, Server, LucideIcon
 } from "lucide-react";
 
 export type Persona = "operator" | "friend";
@@ -21,7 +21,7 @@ export interface Project {
 
 export interface SkillCategory {
   title: string;
-  icon: any;
+  icon: LucideIcon;
   description: string;
   skills: { name: string; level: number; tag: string }[];
 }

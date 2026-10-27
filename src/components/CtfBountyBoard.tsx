@@ -84,14 +84,14 @@ export const CtfBountyBoard = ({
       if (saved) {
         setSolvedFlags(JSON.parse(saved));
       }
-    } catch {}
+    } catch { /* ignore */ }
   }, [isOpen]);
 
   const saveSolved = (newSolved: string[]) => {
     setSolvedFlags(newSolved);
     try {
       localStorage.setItem("zanex_ctf_solved", JSON.stringify(newSolved));
-    } catch {}
+    } catch { /* ignore */ }
   };
 
   const handleFlagSubmit = (e?: React.FormEvent) => {

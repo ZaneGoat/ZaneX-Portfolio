@@ -301,14 +301,14 @@ export const BentoGrid = ({
           <div className="text-xs space-y-1 text-foreground/85 bg-black/50 border border-white/[0.06] rounded-lg p-3">
             <p>
               <span className="text-primary">
-                {persona === "friend" ? "friend@zane" : clearance.identityUnlocked ? "zane@kali" : "guest@node"}
+                {persona === "friend" ? "friend@zane" : clearance.identityUnlocked ? "zane@kali" : "operator@node"}
               </span>
               :~$ csi --scan
             </p>
             <p className="text-muted-foreground">Doppler +3.8Hz · 64 subcarriers</p>
             <p>
               <span className="text-primary">
-                {persona === "friend" ? "friend@zane" : clearance.identityUnlocked ? "zane@kali" : "guest@node"}
+                {persona === "friend" ? "friend@zane" : clearance.identityUnlocked ? "zane@kali" : "operator@node"}
               </span>
               :~$ <span className="inline-block w-1.5 h-3.5 bg-primary align-middle animate-pulse" />
             </p>

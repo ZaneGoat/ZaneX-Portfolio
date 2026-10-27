@@ -94,7 +94,6 @@ export const AsciiIntroOverlay: React.FC<AsciiIntroOverlayProps> = ({
     let cellH = 13;
     let cols = 0;
     let rows = 0;
-    let aspect = 1;
     let uCoords = new Float32Array(0);
     let vCoords = new Float32Array(0);
 

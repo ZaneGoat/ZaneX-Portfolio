@@ -322,9 +322,10 @@ export const useGitHubRepos = () => {
       } else {
         setRepos(sortAndFilterRepos(FALLBACK_REPOS));
       }
-    } catch (err: any) {
-      console.warn("GitHub fetch failed, using fallback repos:", err?.message);
-      setError(err?.message || "Failed to load latest repositories");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to load latest repositories";
+      console.warn("GitHub fetch failed, using fallback repos:", msg);
+      setError(msg);
       setRepos(prev => (prev.length > 0 ? sortAndFilterRepos(prev) : sortAndFilterRepos(FALLBACK_REPOS)));
     } finally {
       setLoading(false);

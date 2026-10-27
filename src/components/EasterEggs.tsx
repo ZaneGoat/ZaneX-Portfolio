@@ -17,6 +17,8 @@ interface ClickParticle {
   char: string;
 }
 
+const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+
 export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover, disabled = false }: EasterEggsProps) => {
   const [clickCount, setClickCount] = useState(0);
   const [showClickExploit, setShowClickExploit] = useState(false);
@@ -48,8 +50,6 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover, disabled = fa
   const konamiIndexRef = useRef(0);
   const lastShakeTimeRef = useRef(0);
   const lastAccRef = useRef({ x: 0, y: 0, z: 0 });
-
-  const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
 
   // Motion processor
   const handleMotion = useCallback((e: DeviceMotionEvent) => {
@@ -138,10 +138,10 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover, disabled = fa
     const handleKeyDown = (e: KeyboardEvent) => {
       if (disabledRef.current) return;
       const idx = konamiIndexRef.current;
-      if (e.key === konamiCode[idx]) {
+      if (e.key === KONAMI_CODE[idx]) {
         konamiIndexRef.current = idx + 1;
         sound.playKeypress();
-        if (konamiIndexRef.current === konamiCode.length) {
+        if (konamiIndexRef.current === KONAMI_CODE.length) {
           sound.playMatrixDrop();
           onOpenMatrixTakeover();
           setShowHint(false);

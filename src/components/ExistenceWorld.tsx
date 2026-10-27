@@ -191,7 +191,7 @@ export const ExistenceWorld: React.FC<ExistenceWorldProps> = ({
     try {
       const raw = localStorage.getItem(VISITED_KEY);
       if (raw) return new Set(JSON.parse(raw));
-    } catch {}
+    } catch { /* ignore */ }
     return new Set(["origin"]);
   });
   const [showAchievement, setShowAchievement] = useState(false);
@@ -202,16 +202,16 @@ export const ExistenceWorld: React.FC<ExistenceWorldProps> = ({
   useEffect(() => {
     try {
       localStorage.setItem(VISITED_KEY, JSON.stringify([...visited]));
-    } catch {}
+    } catch { /* ignore */ }
     if (visited.size >= zones.length) {
       let celebrated = false;
       try {
         celebrated = localStorage.getItem(CELEBRATED_KEY) === "1";
-      } catch {}
+      } catch { /* ignore */ }
       if (!celebrated) {
         try {
           localStorage.setItem(CELEBRATED_KEY, "1");
-        } catch {}
+        } catch { /* ignore */ }
         setShowAchievement(true);
         sound.playSuccess();
         sound.haptic([40, 30, 60]);

@@ -2,10 +2,45 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { Track, ZanophyMood, RANDOM_PLAYLIST, JAZZ_PLAYLIST, ZANOPHY_PLAYLIST, extractYouTubeVideoId } from "@/data/playlist";
 import { sound } from "@/lib/sound";
 
+interface YouTubePlayerInstance {
+  playVideo: () => void;
+  pauseVideo: () => void;
+  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
+  setVolume: (volume: number) => void;
+  mute: () => void;
+  unMute: () => void;
+  loadVideoById?: (videoId: string) => void;
+  cueVideoById?: (videoId: string) => void;
+  getCurrentTime?: () => number;
+  getDuration?: () => number;
+  getIframe?: () => HTMLIFrameElement;
+  destroy?: () => void;
+}
+
+interface YouTubePlayerEvent {
+  target: YouTubePlayerInstance;
+  data?: number;
+}
+
 // Extend window for YouTube API
 declare global {
   interface Window {
-    YT?: any;
+    YT?: {
+      Player: new (
+        elementId: string | HTMLElement,
+        options: {
+          height?: string | number;
+          width?: string | number;
+          videoId?: string;
+          playerVars?: Record<string, unknown>;
+          events?: {
+            onReady?: (event: YouTubePlayerEvent) => void;
+            onStateChange?: (event: YouTubePlayerEvent) => void;
+            onError?: (err: unknown) => void;
+          };
+        }
+      ) => YouTubePlayerInstance;
+    };
     onYouTubeIframeAPIReady?: () => void;
   }
 }
@@ -56,7 +91,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const saved = localStorage.getItem(STORAGE_MOOD_KEY);
       if (saved === "jazz" || saved === "random") return saved;
-    } catch {}
+    } catch { /* ignore */ }
     return "random";
   });
 
@@ -72,7 +107,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           return [...baseList, ...parsed];
         }
       }
-    } catch {}
+    } catch { /* ignore */ }
     return baseList;
   });
 
@@ -102,10 +137,10 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  const playerRef = useRef<any>(null);
+  const playerRef = useRef<YouTubePlayerInstance | null>(null);
   const isApiReadyRef = useRef<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const pollTimerRef = useRef<any>(null);
+  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const volumeRef = useRef<number>(volume);
   const isMutedRef = useRef<boolean>(isMuted);
   const handleTrackEndedRef = useRef<() => void>(() => {});
@@ -134,7 +169,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           if (typeof p.setVolume === "function") p.setVolume(effectiveVol);
         }
       }
-    } catch {}
+    } catch { /* ignore */ }
 
     // Direct postMessage fallback to YouTube iframe contentWindow
     try {
@@ -149,7 +184,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           win.postMessage(JSON.stringify({ event: "command", func: "setVolume", args: [effectiveVol] }), "*");
         }
       }
-    } catch {}
+    } catch { /* ignore */ }
   }, []);
 
   const currentTrack = playlist[currentTrackIndex] || playlist[0];
@@ -180,13 +215,13 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               origin: typeof window !== "undefined" ? window.location.origin : undefined
             },
             events: {
-              onReady: (event: any) => {
+              onReady: (event: YouTubePlayerEvent) => {
                 if (event?.target) {
                   playerRef.current = event.target;
                 }
                 syncPlayerVolume(volumeRef.current, isMutedRef.current);
               },
-              onStateChange: (event: any) => {
+              onStateChange: (event: YouTubePlayerEvent) => {
                 if (event?.target) {
                   playerRef.current = event.target;
                 }
@@ -204,7 +239,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                   handleTrackEndedRef.current();
                 }
               },
-              onError: (err: any) => {
+              onError: (err: unknown) => {
                 console.warn("[Zanophy] YouTube player error, auto-skipping:", err);
                 // On restricted or blocked video, skip to next after 1 second
                 setTimeout(() => nextTrackRef.current(), 1000);
@@ -239,6 +274,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => {
       if (pollTimerRef.current) clearInterval(pollTimerRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Poll current time & duration when playing
@@ -268,7 +304,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         playerRef.current.playVideo();
         setIsPlaying(true);
         sound.haptic(25);
-      } catch {}
+      } catch { /* ignore */ }
     }
   }, []);
 
@@ -278,7 +314,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         playerRef.current.pauseVideo();
         setIsPlaying(false);
         sound.haptic(20);
-      } catch {}
+      } catch { /* ignore */ }
     }
   }, []);
 
@@ -323,6 +359,17 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [isShuffle, playlist.length, currentTrackIndex, selectTrack]);
 
+  const seekTo = useCallback((seconds: number) => {
+    if (playerRef.current && typeof playerRef.current.seekTo === "function") {
+      try {
+        playerRef.current.seekTo(seconds, true);
+        setCurrentTime(seconds);
+      } catch {
+        /* ignore player error */
+      }
+    }
+  }, []);
+
   const prevTrack = useCallback(() => {
     sound.playClick();
     if (currentTime > 5) {
@@ -331,7 +378,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     const prevIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
     selectTrack(prevIndex);
-  }, [currentTime, currentTrackIndex, playlist.length, selectTrack]);
+  }, [currentTime, currentTrackIndex, playlist.length, seekTo, selectTrack]);
 
   const handleTrackEnded = useCallback(() => {
     if (isLoop) {
@@ -340,21 +387,12 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } else {
       nextTrack();
     }
-  }, [isLoop, play, nextTrack]);
+  }, [isLoop, play, nextTrack, seekTo]);
 
   useEffect(() => {
     handleTrackEndedRef.current = handleTrackEnded;
     nextTrackRef.current = nextTrack;
   }, [handleTrackEnded, nextTrack]);
-
-  const seekTo = useCallback((seconds: number) => {
-    if (playerRef.current && typeof playerRef.current.seekTo === "function") {
-      try {
-        playerRef.current.seekTo(seconds, true);
-        setCurrentTime(seconds);
-      } catch {}
-    }
-  }, []);
 
   const setVolume = useCallback((vol: number) => {
     const clamped = Math.max(0, Math.min(100, Math.round(vol)));
@@ -362,7 +400,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     volumeRef.current = clamped;
     try {
       localStorage.setItem(STORAGE_VOLUME_KEY, String(clamped));
-    } catch {}
+    } catch { /* ignore */ }
 
     const shouldMute = clamped === 0;
     if (shouldMute !== isMutedRef.current) {
@@ -416,7 +454,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         const customs = next.filter(t => t.isCustom);
         localStorage.setItem(STORAGE_PLAYLIST_KEY, JSON.stringify(customs));
-      } catch {}
+      } catch { /* ignore */ }
       return next;
     });
 
@@ -436,7 +474,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setMoodState(newMood);
     try {
       localStorage.setItem(STORAGE_MOOD_KEY, newMood);
-    } catch {}
+    } catch { /* ignore */ }
 
     const targetList = newMood === "jazz" ? JAZZ_PLAYLIST : RANDOM_PLAYLIST;
     setPlaylist(targetList);
@@ -448,7 +486,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         playerRef.current.cueVideoById(firstTrack.videoId);
         setCurrentTime(0);
-      } catch {}
+      } catch { /* ignore */ }
     }
   }, [isPlaying, loadAndPlayTrack]);
 

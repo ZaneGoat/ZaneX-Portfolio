@@ -107,11 +107,6 @@ export const LiveRepositories: React.FC = () => {
     });
   };
 
-  // In Operator mode, hide repositories completely until user clicks "See More — Show Projects & Repos"
-  if (persona === "operator" && !isExpanded) {
-    return <div id="repositories" className="scroll-mt-20" />;
-  }
-
   return (
     <section id="repositories" className="py-4 sm:py-8 relative z-10 font-mono">
       <div className="container mx-auto px-3.5 sm:px-6 max-w-7xl">

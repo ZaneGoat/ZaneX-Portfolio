@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Terminal,
@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { CelestialZenLogo } from "@/components/CelestialZenLogo";
 import { MatrixWatchingEye } from "@/components/MatrixWatchingEye";
-import { navLinks } from "@/data/portfolio";
 import { sound, AUDIO_MUTE_EVENT } from "@/lib/sound";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
 import { usePersona } from "@/context/PersonaContext";
@@ -65,24 +64,27 @@ export const Navigation = ({
   }, []);
 
   // Strict physical top-to-bottom DOM section order matching Index.tsx
-  const activeNavLinks =
-    persona === "friend"
-      ? [
-          { name: "Overview", href: "#overview" },
-          { name: "Lounge", href: "#friend-lounge" },
-          { name: "Notes", href: "#philosophy" },
-          { name: "Pricing", href: "#pricing" },
-          { name: "Arena", href: "#games" },
-          { name: "Contact", href: "#contact" },
-        ]
-      : [
-          { name: "Overview", href: "#overview" },
-          { name: "Repositories", href: "#repositories" },
-          { name: "Principles", href: "#philosophy" },
-          { name: "Pricing", href: "#pricing" },
-          { name: "Arena", href: "#games" },
-          { name: "Contact", href: "#contact" },
-        ];
+  const activeNavLinks = useMemo(
+    () =>
+      persona === "friend"
+        ? [
+            { name: "Overview", href: "#overview" },
+            { name: "Lounge", href: "#friend-lounge" },
+            { name: "Notes", href: "#philosophy" },
+            { name: "Pricing", href: "#pricing" },
+            { name: "Arena", href: "#games" },
+            { name: "Contact", href: "#contact" },
+          ]
+        : [
+            { name: "Overview", href: "#overview" },
+            { name: "Repositories", href: "#repositories" },
+            { name: "Principles", href: "#philosophy" },
+            { name: "Pricing", href: "#pricing" },
+            { name: "Arena", href: "#games" },
+            { name: "Contact", href: "#contact" },
+          ],
+    [persona]
+  );
 
   // Robust scroll spy: selects section closest to probe line, never falsely overridden
   useEffect(() => {

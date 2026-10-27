@@ -127,7 +127,7 @@ const Index = () => {
         onOpenMegaCenter={openMegaCenter}
       />
 
-      <main className={isExistence ? "relative z-10 pt-20 sm:pt-28" : "relative z-10 pt-[68px] sm:pt-20"}>
+      <main className={isExistence ? "relative z-10 pt-20 sm:pt-28" : "relative z-10 pt-20 sm:pt-24"}>
         {isExistence ? (
           /* ASCII universe: a completely different, game-style layout */
           <ExistenceWorld

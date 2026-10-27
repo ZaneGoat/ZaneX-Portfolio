@@ -194,16 +194,19 @@ export const TerminalOverlay = ({
   useEffect(() => {
     if (isOpen) {
       sound.playBoot();
-      if (logs.length === 0) {
-        setLogs([
-          {
-            type: "system",
-            content: renderNeofetch()
-          }
-        ]);
-      }
+      setLogs(prev =>
+        prev.length === 0
+          ? [
+              {
+                type: "system",
+                content: renderNeofetch()
+              }
+            ]
+          : prev
+      );
       setTimeout(() => inputRef.current?.focus(), 100);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   useEffect(() => {
@@ -575,7 +578,7 @@ export const TerminalOverlay = ({
                 ))}
                 <div className="flex gap-2">
                   <span className="text-primary font-bold w-24 shrink-0">persona</span>
-                  <span className="text-muted-foreground text-[11px]">Switch persona: guest, friend, or operator</span>
+                  <span className="text-muted-foreground text-[11px]">Switch persona: operator or friend</span>
                 </div>
                 <div className="flex gap-2">
                   <span className="text-primary font-bold w-24 shrink-0">device</span>
@@ -837,7 +840,9 @@ export const TerminalOverlay = ({
               if (!current.includes(flagId)) {
                 localStorage.setItem("zanex_ctf_solved", JSON.stringify([...current, flagId]));
               }
-            } catch {}
+            } catch {
+              /* ignore storage error */
+            }
             newLogs.push({
               type: "output",
               content: (
@@ -863,7 +868,9 @@ export const TerminalOverlay = ({
           let solvedFlags: string[] = [];
           try {
             solvedFlags = JSON.parse(localStorage.getItem("zanex_ctf_solved") || "[]");
-          } catch {}
+          } catch {
+            /* ignore storage error */
+          }
           newLogs.push({
             type: "output",
             content: (
@@ -928,15 +935,16 @@ Allow: /
         break;
 
       case "fortune":
-      case "quote":
+      case "quote": {
         const quote = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
         newLogs.push({
           type: "output",
           content: <p className="italic text-primary/90 my-2">"{quote}"</p>
         });
         break;
+      }
 
-      case "cowsay":
+      case "cowsay": {
         const cowMsg = arg || "ZaneOS: Breaking Things & Fixing Them!";
         const borderLine = "-".repeat(cowMsg.length + 2);
         newLogs.push({
@@ -955,8 +963,9 @@ Allow: /
           )
         });
         break;
+      }
 
-      case "ping":
+      case "ping": {
         const targetHost = arg || "kali.box";
         newLogs.push({
           type: "output",
@@ -971,6 +980,7 @@ Allow: /
           )
         });
         break;
+      }
 
       case "skills":
         newLogs.push({
@@ -1034,7 +1044,7 @@ Allow: /
         });
         break;
 
-      case "cat":
+      case "cat": {
         if (arg === ".radio_secret" || arg === ".controler_secret" || arg === "secret" || arg === "secret.txt" || arg === ".secret" || arg === ".robin_secret") {
           handleCommand("controler --investigate");
           return;
@@ -1073,8 +1083,9 @@ Allow: /
           });
         }
         break;
+      }
 
-      case "repo":
+      case "repo": {
         const repoTarget = projectsData.find(p => p.id === arg || p.title.toLowerCase().includes(arg));
         if (repoTarget && repoTarget.github) {
           window.open(repoTarget.github, "_blank");
@@ -1089,6 +1100,7 @@ Allow: /
           });
         }
         break;
+      }
 
       case "pricing":
       case "contracts":

@@ -44,14 +44,14 @@ export const FriendLoungeCard: React.FC = () => {
       if (saved) {
         setShoutouts(JSON.parse(saved));
       }
-    } catch {}
+    } catch { /* ignore */ }
   }, []);
 
   const saveShoutouts = (newShoutouts: Shoutout[]) => {
     setShoutouts(newShoutouts);
     try {
       localStorage.setItem("zanex_friend_shoutouts", JSON.stringify(newShoutouts));
-    } catch {}
+    } catch { /* ignore */ }
   };
 
   const handlePostShoutout = (e: React.FormEvent) => {

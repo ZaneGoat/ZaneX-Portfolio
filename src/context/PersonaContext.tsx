@@ -41,14 +41,14 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (savedDevice && (savedDevice === "auto" || savedDevice === "phone" || savedDevice === "desktop")) {
         setDeviceChoiceState(savedDevice);
       }
-    } catch {}
+    } catch { /* ignore */ }
   }, []);
 
   const setPersona = (next: Persona) => {
     setPersonaState(next);
     try {
       localStorage.setItem(PERSONA_STORAGE_KEY, next);
-    } catch {}
+    } catch { /* ignore */ }
     sound.playClick();
     sound.haptic(next === "friend" ? [25, 40] : [50, 30]);
   };
@@ -64,7 +64,7 @@ export const PersonaProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setDeviceChoiceState(choice);
     try {
       localStorage.setItem(DEVICE_STORAGE_KEY, choice);
-    } catch {}
+    } catch { /* ignore */ }
 
     const isMatch =
       choice === "auto" ||
