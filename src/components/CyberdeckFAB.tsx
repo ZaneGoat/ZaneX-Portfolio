@@ -194,7 +194,7 @@ export const CyberdeckFAB = ({
                 <span className="text-[10px] text-primary/60 font-mono">FX</span>
               </button>
 
-              {/* Shinigami Eye Deal (Ryuk ASCII) */}
+              {/* Crimson ASCII FX */}
               <button
                 onClick={() => {
                   sound.playBoot();
@@ -205,10 +205,10 @@ export const CyberdeckFAB = ({
                 className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-[#ff112b]/15 border border-[#ff112b]/50 hover:bg-[#ff112b]/25 text-[#ff4d6d] active:scale-95 transition-all text-left"
               >
                 <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-[#ff112b] animate-pulse" />
-                  <span className="font-bold">Shinigami Eye Deal</span>
+                  <Eye className="w-4 h-4 text-[#ff112b]" />
+                  <span className="font-bold">Crimson ASCII</span>
                 </div>
-                <span className="text-[10px] text-[#ff112b] font-mono">RYUK</span>
+                <span className="text-[10px] text-[#ff112b] font-mono">FX</span>
               </button>
             </div>
 

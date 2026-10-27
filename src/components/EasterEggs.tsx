@@ -329,39 +329,34 @@ export const EasterEggs = ({ onOpenTerminal, onOpenMatrixTakeover }: EasterEggsP
                 <Eye className="w-7 h-7 text-[#ff112b] animate-pulse" />
               </div>
 
-              <div className="font-mono text-[10px] tracking-[0.28em] uppercase text-[#ff112b] mb-1.5">
-                MSI GF63 // 15-CLICK OVERCLOCK
+              <div className="font-mono text-[10px] tracking-[0.24em] uppercase text-[#ff112b] mb-2">
+                HIDDEN SEQUENCE // 15 INPUTS
               </div>
 
               <h3
-                style={{ fontFamily: "'Cinzel', 'Georgia', 'Times New Roman', serif" }}
-                className="text-xl sm:text-2xl font-black tracking-[0.14em] text-[#f0f0f5] uppercase mb-3 drop-shadow-[0_0_12px_rgba(255,17,43,0.5)]"
+                className="font-mono text-lg sm:text-xl font-black tracking-[0.12em] text-[#f0f0f5] uppercase mb-2.5"
               >
-                SHINIGAMI REALM DETECTED
+                CRIMSON ASCII CONSTRUCT
               </h3>
 
-              <p className="text-[#f0f0f5]/90 text-sm leading-relaxed mb-2 font-serif italic">
-                &ldquo;You have knocked 15 times. Do you wish to make the Shinigami Eye Deal?&rdquo;
-              </p>
-
-              <p className="text-[#686875] font-mono text-[11px] mb-6">
-                [+] &quot;Wow u good at clicking like me u clicked 15 times&quot; · Cookie &amp; Ryuk Sticker Construct Ready
+              <p className="text-[#a8a8b6] font-mono text-xs leading-relaxed mb-6">
+                Hidden sequence unlocked. Launch the fullscreen ASCII animation?
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
                   onClick={makeShinigamiDeal}
-                  className="flex-1 py-3 px-4 rounded-xl bg-[#ff112b] hover:bg-[#ff2940] text-[#f0f0f5] font-mono font-bold text-xs uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_28px_rgba(255,17,43,0.55)] cursor-pointer"
+                  className="flex-1 py-3 px-4 rounded-xl bg-[#ff112b] hover:bg-[#ff2940] text-[#f0f0f5] font-mono font-bold text-xs uppercase tracking-widest transition-all active:scale-[0.98] cursor-pointer"
                 >
-                  [ Make the Deal (Confirm) ]
+                  Launch
                 </button>
                 <button
                   type="button"
                   onClick={stepBackCancel}
                   className="py-3 px-4 rounded-xl bg-transparent hover:bg-white/5 border border-[#686875]/50 hover:border-[#f0f0f5]/60 text-[#686875] hover:text-[#f0f0f5] font-mono font-bold text-xs uppercase tracking-widest transition-all cursor-pointer"
                 >
-                  [ Step Back (Cancel) ]
+                  Cancel
                 </button>
               </div>
             </motion.div>
