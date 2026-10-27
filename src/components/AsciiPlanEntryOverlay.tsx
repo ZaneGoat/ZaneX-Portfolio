@@ -10,10 +10,20 @@ interface AsciiPlanEntryOverlayProps {
   onClose: () => void;
 }
 
+interface ClickShockwave {
+  u: number;
+  v: number;
+  bornAt: number;
+}
+
 const RAMP = " .·:;+*%#@$";
 const RAMP_LEN = RAMP.length;
 const CIPHER_CHARS = "$#01◈+=*<>[]{}";
-const DURATION_SEC = 3.25;
+const MATRIX_GLYPHS = "01$◈ZANEXアイウエオカキクケコサシスセソタチツテトナニヌネノ";
+const MATRIX_LEN = MATRIX_GLYPHS.length;
+
+// At least 15 seconds full ASCII showcase before auto-opening Outlook
+const DURATION_SEC = 16.0;
 
 // 8 face normals of a unit octahedron (|x| + |y| + |z| <= R), normalized by 1/sqrt(3)
 const INV_SQRT3 = 0.577350269;
@@ -29,6 +39,7 @@ const OCT_SIGNS: [number, number, number][] = [
 ];
 
 const clamp = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v);
+const fract = (x: number) => x - Math.floor(x);
 
 const TARGET_HEADLINE = "It's way cheaper than you think.";
 
@@ -40,8 +51,17 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
   const { isExistence } = useUniverseTheme();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const launchedRef = useRef(false);
+  const headlinePingedRef = useRef(false);
+  const shockwavesRef = useRef<ClickShockwave[]>([]);
+  const metricsRef = useRef<{ width: number; height: number; unitPixels: number }>({
+    width: 1,
+    height: 1,
+    unitPixels: 300,
+  });
+
   const [fadingOut, setFadingOut] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [secondsLeft, setSecondsLeft] = useState(Math.ceil(DURATION_SEC));
   const [decodedHeadline, setDecodedHeadline] = useState("");
   const [showCard, setShowCard] = useState(false);
 
@@ -74,34 +94,57 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
     [onClose]
   );
 
-  // Cipher-decode the headline & update progress bar
+  // Clicking/tapping the ASCII backdrop triggers a heavy-bass pulse & shockwave ring without aborting the 16s timer
+  const handleBackdropPulse = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const { width, height, unitPixels } = metricsRef.current;
+    const u = (e.clientX - width * 0.5) / (unitPixels || 300);
+    const v = (e.clientY - height * 0.5) / (unitPixels || 300);
+    shockwavesRef.current.push({
+      u,
+      v,
+      bornAt: performance.now() * 0.001,
+    });
+    if (shockwavesRef.current.length > 4) {
+      shockwavesRef.current.shift();
+    }
+    sound.playEmpPulse();
+  }, []);
+
+  // Cipher-decode the headline & run the 16-second countdown before opening Outlook
   useEffect(() => {
     if (!tier) {
       launchedRef.current = false;
+      headlinePingedRef.current = false;
+      shockwavesRef.current = [];
       setFadingOut(false);
       setProgress(0);
+      setSecondsLeft(Math.ceil(DURATION_SEC));
       setDecodedHeadline("");
       setShowCard(false);
       return;
     }
 
     launchedRef.current = false;
+    headlinePingedRef.current = false;
+    shockwavesRef.current = [];
     setFadingOut(false);
     setProgress(0);
+    setSecondsLeft(Math.ceil(DURATION_SEC));
     setDecodedHeadline("");
 
     const cardTimer = window.setTimeout(() => {
       setShowCard(true);
-    }, 420);
+    }, 450);
 
     const start = performance.now();
     const tick = window.setInterval(() => {
       const elapsed = (performance.now() - start) * 0.001;
       const pct = clamp(elapsed / DURATION_SEC, 0, 1);
       setProgress(pct);
+      setSecondsLeft(Math.max(0, Math.ceil(DURATION_SEC - elapsed)));
 
-      // Decode headline between 0.45s and 1.55s
-      const decodeNorm = clamp((elapsed - 0.45) / 1.05, 0, 1);
+      // Decode headline smoothly between 0.55s and 2.35s
+      const decodeNorm = clamp((elapsed - 0.55) / 1.8, 0, 1);
       const lockedChars = Math.floor(decodeNorm * TARGET_HEADLINE.length);
       let nextStr = "";
       for (let i = 0; i < TARGET_HEADLINE.length; i++) {
@@ -110,18 +153,23 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
           nextStr += " ";
         } else if (i < lockedChars) {
           nextStr += targetCh;
-        } else if (elapsed >= 0.42) {
-          const idx = Math.floor((i * 7 + elapsed * 32) % CIPHER_CHARS.length);
+        } else if (elapsed >= 0.48) {
+          const idx = Math.floor((i * 7 + elapsed * 28) % CIPHER_CHARS.length);
           nextStr += CIPHER_CHARS[idx];
         }
       }
       setDecodedHeadline(nextStr);
 
+      if (decodeNorm >= 1 && !headlinePingedRef.current) {
+        headlinePingedRef.current = true;
+        sound.playRadarPing();
+      }
+
       if (elapsed >= DURATION_SEC) {
         window.clearInterval(tick);
         launchMailAndClose();
       }
-    }, 33);
+    }, 40);
 
     return () => {
       window.clearTimeout(cardTimer);
@@ -129,7 +177,7 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
     };
   }, [tier, launchMailAndClose]);
 
-  // 60-FPS Procedural 3D ASCII Faceted Emerald Gem + Orbiting Currency Seal Canvas
+  // 60-FPS Procedural 3D ASCII Faceted Emerald Gem + Fullscreen Cascading Matrix Rain
   useEffect(() => {
     if (!tier) return;
 
@@ -147,6 +195,14 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
     let fontSpec = "bold 12px 'IBM Plex Mono', 'Consolas', monospace";
     let uCoords = new Float32Array(0);
     let vCoords = new Float32Array(0);
+
+    // Per-column Matrix Rain buffers (precomputed on resize for 0 per-pixel overhead)
+    let rainActive = new Uint8Array(0);
+    let rainSpeed = new Float32Array(0);
+    let rainOffset = new Float32Array(0);
+    let rainPeriod = new Float32Array(0);
+    let rainTrail = new Float32Array(0);
+    let rainHeadRow = new Float32Array(0);
 
     const resizeGrid = () => {
       width = Math.max(1, window.innerWidth);
@@ -176,11 +232,33 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
       vCoords = new Float32Array(rows);
 
       const unitPixels = Math.min(width, height) * (width < 640 ? 0.44 : 0.40);
+      metricsRef.current = { width, height, unitPixels };
+
       for (let c = 0; c < cols; c++) {
         uCoords[c] = ((c + 0.5) * cellW - width * 0.5) / unitPixels;
       }
       for (let r = 0; r < rows; r++) {
         vCoords[r] = ((r + 0.5) * cellH - height * 0.5) / unitPixels;
+      }
+
+      // Initialize dense, visible Matrix Rain streams across ALL columns from frame 1
+      rainActive = new Uint8Array(cols);
+      rainSpeed = new Float32Array(cols);
+      rainOffset = new Float32Array(cols);
+      rainPeriod = new Float32Array(cols);
+      rainTrail = new Float32Array(cols);
+      rainHeadRow = new Float32Array(cols);
+
+      for (let c = 0; c < cols; c++) {
+        const h1 = fract(Math.sin(c * 12.9898 + 4.1414) * 43758.5453);
+        const h2 = fract(Math.sin(c * 78.233 + 1.732) * 19432.17);
+        // ~72% of columns carry active Matrix rain streams for rich classic cascade
+        rainActive[c] = c % 2 === 0 || h1 > 0.45 ? 1 : 0;
+        rainSpeed[c] = 8.5 + h1 * 12.5;
+        const period = rows + 14 + Math.floor(h2 * 22);
+        rainPeriod[c] = period;
+        rainOffset[c] = h2 * period;
+        rainTrail[c] = 10 + Math.floor(h1 * 10);
       }
     };
 
@@ -191,9 +269,6 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
       if (e.key === "Escape") {
         e.preventDefault();
         cancelOverlay();
-      } else if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        launchMailAndClose();
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -207,6 +282,7 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
     const lz = 0.62;
 
     const renderFrame = (now: number) => {
+      const nowSec = now * 0.001;
       const t = (now - startMs) * 0.001;
 
       // Clear background
@@ -214,13 +290,29 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
       ctx.fillRect(0, 0, width, height);
       ctx.font = fontSpec;
 
-      // Smooth scale-in of the 3D ASCII gem
-      const introScale = clamp(t / 0.45, 0.15, 1.0);
-      const gemRadius = 0.56 * (1.0 + 0.04 * Math.sin(t * 4.5)) * introScale;
+      // Update per-column Matrix rain head positions once per frame
+      const glyphTick = Math.floor(t * 14);
+      for (let c = 0; c < cols; c++) {
+        if (rainActive[c]) {
+          rainHeadRow[c] = (t * rainSpeed[c] + rainOffset[c]) % rainPeriod[c];
+        }
+      }
 
-      // 3D rotation angles (Y spin + gentle X tilt)
-      const ay = t * 2.35;
-      const ax = 0.42 + 0.18 * Math.sin(t * 1.5);
+      // Prune expired interactive click shockwaves
+      const waves = shockwavesRef.current;
+      for (let w = waves.length - 1; w >= 0; w--) {
+        if (nowSec - waves[w].bornAt > 1.8) {
+          waves.splice(w, 1);
+        }
+      }
+
+      // Smooth scale-in & breathing of the 3D ASCII gem across 16s
+      const introScale = clamp(t / 0.55, 0.15, 1.0);
+      const gemRadius = 0.58 * (1.0 + 0.045 * Math.sin(t * 3.2)) * introScale;
+
+      // 3D rotation angles (steady Y spin + evolving X/Z orbital tilt)
+      const ay = t * 1.85;
+      const ax = 0.42 + 0.22 * Math.sin(t * 1.15);
       const cosY = Math.cos(ay);
       const sinY = Math.sin(ay);
       const cosX = Math.cos(ax);
@@ -233,16 +325,17 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
         const nx0 = sx * INV_SQRT3;
         const ny0 = sy * INV_SQRT3;
         const nz0 = sz * INV_SQRT3;
-        // Rotate around Y
         const nx1 = nx0 * cosY + nz0 * sinY;
         const nz1 = -nx0 * sinY + nz0 * cosY;
-        // Rotate around X
         const ny2 = ny0 * cosX - nz1 * sinX;
         const nz2 = ny0 * sinX + nz1 * cosX;
         worldNormals[i] = [nx1, ny2, nz2];
       }
 
       const dPlane = gemRadius * INV_SQRT3;
+      const ringAng = -0.32 + 0.08 * Math.sin(t * 0.7);
+      const cosRing = Math.cos(ringAng);
+      const sinRing = Math.sin(ringAng);
 
       let lastColor = "";
 
@@ -271,144 +364,172 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
           const u = uCoords[c];
           const absU = Math.abs(u);
 
-          // Early geometric rejection outside field
-          if (absU > 1.65 || absV > 1.45) {
-            // Subtle vertical ASCII matrix ticks in outer margin
-            const streamHash = Math.sin(c * 19.31) * 437.58;
-            const colSpeed = 2.5 + (streamHash - Math.floor(streamHash)) * 3.0;
-            const drop = (v + t * colSpeed + streamHash) % 2.4;
-            if (drop > 0 && drop < 0.14 && (c % 3 === 0)) {
-              const ch = (c + r) % 2 === 0 ? "$" : "·";
-              const colStr = isExistence ? "rgb(64,64,72)" : "rgb(0,88,56)";
-              if (batchStr.length > 0 && colStr === batchColor && batchStartCol + batchStr.length === c) {
-                batchStr += ch;
-              } else {
-                flushBatch();
-                batchColor = colStr;
-                batchStartCol = c;
-                batchStr = ch;
-              }
-            } else {
-              flushBatch();
-            }
-            continue;
-          }
-
-          const rad2D = Math.hypot(u, v);
           let lum = 0;
           let cr = 0;
           let cg = 0;
           let cb = 0;
           let overrideChar = "";
 
-          // 1. Analytic 3D Orthographic Ray vs Convex Octahedron (8 half-space slab intersection)
-          if (rad2D < gemRadius * 1.05) {
-            let zNear = -1e6;
-            let zFar = 1e6;
-            let hitFace = -1;
-            let valid = true;
+          // Evaluate central 3D gem, orbital ring & shockwaves inside central bounding box
+          if (absU <= 1.65 && absV <= 1.45) {
+            const rad2D = Math.hypot(u, v);
 
-            for (let i = 0; i < 8; i++) {
-              const [nx, ny, nz] = worldNormals[i];
-              const rhs = dPlane - nx * u - ny * v;
-              if (Math.abs(nz) < 1e-5) {
-                if (rhs < 0) {
-                  valid = false;
-                  break;
-                }
-              } else {
-                const zHit = rhs / nz;
-                if (nz > 0) {
-                  // Front-facing plane (normal points toward +Z viewer): z <= zHit -> wait:
-                  // For viewer at +Z looking toward -Z, front surface has larger Z!
-                  // Inside condition: nx*u + ny*v + nz*z <= dPlane.
-                  // If nz > 0 -> z <= rhs / nz (upper bound on Z = front surface!)
-                  if (zHit < zFar) {
-                    zFar = zHit;
-                    hitFace = i;
+            // 1. Analytic 3D Orthographic Ray vs Convex Octahedron
+            if (rad2D < gemRadius * 1.05) {
+              let zNear = -1e6;
+              let zFar = 1e6;
+              let hitFace = -1;
+              let valid = true;
+
+              for (let i = 0; i < 8; i++) {
+                const [nx, ny, nz] = worldNormals[i];
+                const rhs = dPlane - nx * u - ny * v;
+                if (Math.abs(nz) < 1e-5) {
+                  if (rhs < 0) {
+                    valid = false;
+                    break;
                   }
                 } else {
-                  // Back-facing plane (nz < 0) -> z >= rhs / nz (lower bound on Z)
-                  if (zHit > zNear) {
+                  const zHit = rhs / nz;
+                  if (nz > 0) {
+                    if (zHit < zFar) {
+                      zFar = zHit;
+                      hitFace = i;
+                    }
+                  } else if (zHit > zNear) {
                     zNear = zHit;
                   }
                 }
               }
-            }
 
-            if (valid && zFar >= zNear && hitFace !== -1) {
-              const [fnx, fny, fnz] = worldNormals[hitFace];
-              const diff = Math.max(0.08, -(fnx * lx + fny * ly + fnz * lz));
-              // Edge wireframe highlight near ridge boundaries
-              const ridgeDist = zFar - zNear;
-              const edgeBoost = ridgeDist < 0.14 ? (1.0 - ridgeDist / 0.14) * 0.55 : 0;
-              const spec = Math.pow(Math.max(0, fnz), 6) * 0.45;
-              lum = clamp(0.24 + diff * 0.58 + spec + edgeBoost, 0.15, 1.0);
+              if (valid && zFar >= zNear && hitFace !== -1) {
+                const [fnx, fny, fnz] = worldNormals[hitFace];
+                const diff = Math.max(0.08, -(fnx * lx + fny * ly + fnz * lz));
+                const ridgeDist = zFar - zNear;
+                const edgeBoost = ridgeDist < 0.14 ? (1.0 - ridgeDist / 0.14) * 0.55 : 0;
+                const spec = Math.pow(Math.max(0, fnz), 6) * 0.45;
+                lum = clamp(0.24 + diff * 0.58 + spec + edgeBoost, 0.15, 1.0);
 
-              if (isExistence) {
-                const vGray = Math.round(clamp(70 + lum * 185, 0, 255));
-                cr = vGray;
-                cg = vGray;
-                cb = vGray;
-              } else {
-                // Crisp Emerald + Gold ridge highlights
-                cr = Math.round(clamp(edgeBoost * 240 + spec * 220, 0, 255));
-                cg = Math.round(clamp(90 + lum * 165, 0, 255));
-                cb = Math.round(clamp(65 + lum * 105 + edgeBoost * 40, 0, 255));
-              }
-
-              if (edgeBoost > 0.36) {
-                overrideChar = "+";
-              }
-            }
-          }
-
-          // 2. Tilted 3D Orbiting Price-Slash / Value Halo Ring + Expanding Pulse Ripples
-          if (lum === 0) {
-            // Inclined ring ellipse
-            const ringAng = -0.32;
-            const ru = u * Math.cos(ringAng) - v * Math.sin(ringAng);
-            const rv = (u * Math.sin(ringAng) + v * Math.cos(ringAng)) * 2.35;
-            const ringR = Math.hypot(ru, rv);
-            const ringDist = Math.abs(ringR - 0.88 * introScale);
-
-            if (ringDist < 0.055) {
-              const theta = Math.atan2(rv, ru) - t * 2.2;
-              const wave = 0.55 + 0.45 * Math.cos(theta * 6.0);
-              lum = (1.0 - ringDist / 0.055) * wave * 0.92;
-              if (Math.cos(theta * 4.0) > 0.92) {
-                overrideChar = "$";
-              } else if (Math.sin(theta * 4.0) > 0.92) {
-                overrideChar = "◈";
-              }
-              if (isExistence) {
-                const g = Math.round(clamp(90 + lum * 165, 0, 255));
-                cr = g;
-                cg = g;
-                cb = g;
-              } else {
-                // Warm amber-gold orbit ring
-                cr = Math.round(clamp(180 + lum * 75, 0, 255));
-                cg = Math.round(clamp(140 + lum * 85, 0, 255));
-                cb = Math.round(clamp(35 + lum * 55, 0, 255));
-              }
-            } else {
-              // Concentric shockwave pulse rings expanding outward
-              const pulsePhase = (rad2D * 3.2 - t * 2.1);
-              const pulseRing = Math.sin(pulsePhase * Math.PI);
-              if (rad2D > 0.62 && rad2D < 1.55 && pulseRing > 0.88) {
-                const fade = (1.55 - rad2D) / 0.93;
-                lum = ((pulseRing - 0.88) / 0.12) * fade * 0.48;
                 if (isExistence) {
-                  const g = Math.round(clamp(50 + lum * 150, 0, 255));
+                  const vGray = Math.round(clamp(70 + lum * 185, 0, 255));
+                  cr = vGray;
+                  cg = vGray;
+                  cb = vGray;
+                } else {
+                  cr = Math.round(clamp(edgeBoost * 240 + spec * 220, 0, 255));
+                  cg = Math.round(clamp(90 + lum * 165, 0, 255));
+                  cb = Math.round(clamp(65 + lum * 105 + edgeBoost * 40, 0, 255));
+                }
+
+                if (edgeBoost > 0.36) {
+                  overrideChar = "+";
+                }
+              }
+            }
+
+            // 2. Tilted 3D Orbiting Currency Ring + Shockwaves
+            if (lum === 0) {
+              const ru = u * cosRing - v * sinRing;
+              const rv = (u * sinRing + v * cosRing) * 2.35;
+              const ringR = Math.hypot(ru, rv);
+              const ringDist = Math.abs(ringR - 0.9 * introScale);
+
+              if (ringDist < 0.058) {
+                const theta = Math.atan2(rv, ru) - t * 2.0;
+                const wave = 0.55 + 0.45 * Math.cos(theta * 6.0);
+                lum = (1.0 - ringDist / 0.058) * wave * 0.94;
+                if (Math.cos(theta * 4.0) > 0.92) {
+                  overrideChar = "$";
+                } else if (Math.sin(theta * 4.0) > 0.92) {
+                  overrideChar = "◈";
+                }
+                if (isExistence) {
+                  const g = Math.round(clamp(95 + lum * 160, 0, 255));
                   cr = g;
                   cg = g;
                   cb = g;
                 } else {
-                  cr = 0;
-                  cg = Math.round(clamp(85 + lum * 170, 0, 255));
-                  cb = Math.round(clamp(55 + lum * 110, 0, 255));
+                  cr = Math.round(clamp(185 + lum * 70, 0, 255));
+                  cg = Math.round(clamp(145 + lum * 85, 0, 255));
+                  cb = Math.round(clamp(35 + lum * 55, 0, 255));
                 }
+              } else {
+                // Ambient concentric pulse rings
+                const pulsePhase = rad2D * 3.0 - t * 1.75;
+                const pulseRing = Math.sin(pulsePhase * Math.PI);
+                if (rad2D > 0.64 && rad2D < 1.55 && pulseRing > 0.89) {
+                  const fade = (1.55 - rad2D) / 0.91;
+                  lum = ((pulseRing - 0.89) / 0.11) * fade * 0.46;
+                  if (isExistence) {
+                    const g = Math.round(clamp(55 + lum * 150, 0, 255));
+                    cr = g;
+                    cg = g;
+                    cb = g;
+                  } else {
+                    cr = 0;
+                    cg = Math.round(clamp(90 + lum * 165, 0, 255));
+                    cb = Math.round(clamp(58 + lum * 105, 0, 255));
+                  }
+                }
+              }
+            }
+          }
+
+          // Interactive click shockwave rings anywhere on screen
+          if (lum < 0.85 && waves.length > 0) {
+            for (let w = 0; w < waves.length; w++) {
+              const age = nowSec - waves[w].bornAt;
+              const waveRad = age * 1.45;
+              const dist = Math.abs(Math.hypot(u - waves[w].u, v - waves[w].v) - waveRad);
+              if (dist < 0.065) {
+                const wLum = (1 - dist / 0.065) * Math.max(0, 1 - age / 1.8) * 0.9;
+                if (wLum > lum) {
+                  lum = wLum;
+                  overrideChar = "*";
+                  if (isExistence) {
+                    const g = Math.round(clamp(120 + wLum * 135, 0, 255));
+                    cr = g;
+                    cg = g;
+                    cb = g;
+                  } else {
+                    cr = Math.round(wLum * 120);
+                    cg = Math.round(clamp(160 + wLum * 95, 0, 255));
+                    cb = Math.round(clamp(120 + wLum * 110, 0, 255));
+                  }
+                }
+              }
+            }
+          }
+
+          // 3. Fullscreen Cascading Matrix Rain across all unoccluded background cells
+          if (lum <= 0.05 && rainActive[c]) {
+            const period = rainPeriod[c];
+            let dist = rainHeadRow[c] - r;
+            if (dist < 0) dist += period;
+            const trail = rainTrail[c];
+
+            if (dist >= 0 && dist < trail) {
+              const isTip = dist < 1.15;
+              const fade = 1 - dist / trail;
+              const gIdx = (c * 13 + r * 7 + (isTip ? glyphTick : 0)) % MATRIX_LEN;
+              overrideChar = MATRIX_GLYPHS[gIdx];
+              lum = isTip ? 0.96 : clamp(fade * 0.78, 0.12, 0.85);
+
+              if (isExistence) {
+                const gray = isTip ? 248 : Math.round(40 + fade * 150);
+                cr = gray;
+                cg = gray;
+                cb = gray;
+              } else if (isTip) {
+                // Bright white-mint leading Matrix rain drop
+                cr = 216;
+                cg = 255;
+                cb = 236;
+              } else {
+                // Vivid Matrix Emerald cascading trail (#00ff9e -> deep emerald)
+                cr = 0;
+                cg = Math.round(48 + fade * 207);
+                cb = Math.round(28 + fade * 126);
               }
             }
           }
@@ -447,26 +568,35 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
       window.removeEventListener("resize", resizeGrid);
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [tier, isExistence, cancelOverlay, launchMailAndClose]);
+  }, [tier, isExistence, cancelOverlay]);
 
   if (!tier || typeof document === "undefined") return null;
 
-  const totalBars = 18;
+  const totalBars = 20;
   const filledBars = Math.round(progress * totalBars);
   const asciiProgressBar =
     "▓".repeat(filledBars) + "░".repeat(Math.max(0, totalBars - filledBars));
 
+  const stageLabel =
+    progress < 0.25
+      ? `[01/04] STRIPPING AGENCY MARKUP & MIDDLEMEN...`
+      : progress < 0.55
+      ? `[02/04] LOCKING DIRECT ENGINEER RATE :: ${tier.price} ${tier.period}`
+      : progress < 0.85
+      ? `[03/04] COMPILING PROJECT BRIEF & OUTLOOK PAYLOAD...`
+      : `[04/04] HANDSHAKE VERIFIED — LAUNCHING OUTLOOK...`;
+
   return createPortal(
     <div
-      onClick={launchMailAndClose}
-      className={`fixed inset-0 z-[130] flex items-center justify-center p-4 font-mono select-none cursor-pointer transition-opacity duration-500 ${
+      onClick={handleBackdropPulse}
+      className={`fixed inset-0 z-[130] flex items-center justify-center p-4 font-mono select-none cursor-crosshair transition-opacity duration-500 ${
         fadingOut ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       role="dialog"
       aria-modal="true"
       aria-label="Plan Initiation ASCII Sequence"
     >
-      {/* Fullscreen 60-FPS Procedural 3D ASCII Gem & Shockwave Canvas */}
+      {/* Fullscreen 60-FPS Procedural 3D ASCII Gem + Cascading Matrix Rain Canvas */}
       <canvas ref={canvasRef} className="fixed inset-0 block w-full h-full" />
 
       {/* Centered Terminal ASCII Message Box */}
@@ -476,8 +606,8 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
           showCard ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-2"
         } ${
           isExistence
-            ? "bg-black/92 border-2 border-white text-white"
-            : "bg-[#040812]/92 border border-primary/70 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.85)]"
+            ? "bg-black/88 border-2 border-white text-white"
+            : "bg-[#040812]/88 border border-primary/70 text-foreground shadow-[0_20px_60px_rgba(0,0,0,0.85)]"
         }`}
       >
         {/* Top ASCII Frame Header */}
@@ -491,14 +621,17 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
           <span className="font-bold truncate">
             ┌──[ PLAN {tier.index} :: {tier.name.toUpperCase()} ]
           </span>
-          <button
-            type="button"
-            onClick={cancelOverlay}
-            className="px-1.5 py-0.5 border border-current/30 hover:bg-white/10 text-[10px] font-bold cursor-pointer shrink-0"
-            title="Cancel"
-          >
-            [ESC]
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-[10px] opacity-80">T-{secondsLeft}s</span>
+            <button
+              type="button"
+              onClick={cancelOverlay}
+              className="px-1.5 py-0.5 border border-current/30 hover:bg-white/10 text-[10px] font-bold cursor-pointer"
+              title="Cancel"
+            >
+              [ESC]
+            </button>
+          </div>
         </div>
 
         {/* ASCII Body & Message */}
@@ -524,11 +657,18 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
           </h3>
 
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
-            No agency markup, no middlemen—just direct engineering. Opening your Outlook message now...
+            No agency markup, no middlemen—just direct engineering. Outlook will open automatically in{" "}
+            <span className={isExistence ? "text-white font-bold" : "text-primary font-bold"}>
+              {secondsLeft}s
+            </span>
+            .
           </p>
 
-          {/* ASCII Routing Progress Bar */}
+          {/* ASCII Routing Progress Bar & Live Stage */}
           <div className="pt-1 space-y-1.5">
+            <div className="text-[10px] sm:text-[11px] text-primary/90 truncate">
+              {stageLabel}
+            </div>
             <div className="text-[11px] tracking-widest text-foreground/85">
               [{asciiProgressBar}] {Math.round(progress * 100)}%
             </div>
@@ -537,7 +677,7 @@ export const AsciiPlanEntryOverlay: React.FC<AsciiPlanEntryOverlayProps> = ({
             </div>
           </div>
 
-          {/* Instant Skip / Continue Trigger */}
+          {/* Explicit Skip Trigger */}
           <div className="pt-2">
             <button
               type="button"

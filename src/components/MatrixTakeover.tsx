@@ -61,16 +61,25 @@ export const MatrixTakeover = ({ isOpen, onClose }: MatrixTakeoverProps) => {
     let height = (canvas.height = window.innerHeight);
 
     const fontSize = 16;
-    let columns = Math.floor(width / fontSize);
-    let drops: number[] = Array.from({ length: columns }, () => Math.random() * -100);
+    let columns = Math.max(1, Math.floor(width / fontSize));
+    const initDropsForHeight = (cols: number, h: number) => {
+      const maxRows = Math.max(20, Math.ceil(h / fontSize));
+      return Array.from({ length: cols }, () => Math.floor(Math.random() * maxRows));
+    };
+    let drops: number[] = initDropsForHeight(columns, height);
     const chars = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンZANEXG0AT";
     const forceRadiusSq = 140 * 140;
+
+    ctx.fillStyle = "#050816";
+    ctx.fillRect(0, 0, width, height);
 
     const handleResize = () => {
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
-      columns = Math.floor(width / fontSize);
-      drops = Array.from({ length: columns }, () => Math.random() * -100);
+      columns = Math.max(1, Math.floor(width / fontSize));
+      drops = initDropsForHeight(columns, height);
+      ctx.fillStyle = "#050816";
+      ctx.fillRect(0, 0, width, height);
     };
 
     window.addEventListener("resize", handleResize);
