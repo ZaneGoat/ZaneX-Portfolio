@@ -111,26 +111,29 @@ export const ZaneMegaCenterModal = ({ isOpen, onClose }: ZaneMegaCenterModalProp
       const ctx = new AudioCtx();
       audioCtxRef.current = ctx;
 
-      // 1. White Noise generator for fan airflow rush
+      // 1. Brownian-smoothed noise generator for deep pressurized thruster airflow
       const bufferSize = ctx.sampleRate * 2;
       const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const output = noiseBuffer.getChannelData(0);
+      let last = 0;
       for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
+        const white = Math.random() * 2 - 1;
+        last = (last + 0.06 * white) / 1.06;
+        output[i] = Math.max(-1, Math.min(1, last * 3.2));
       }
 
       const whiteNoise = ctx.createBufferSource();
       whiteNoise.buffer = noiseBuffer;
       whiteNoise.loop = true;
 
-      // Lowpass filter modeling fan blades enclosure
+      // Deep lowpass filter modeling heavy hull enclosure
       const filter = ctx.createBiquadFilter();
-      filter.type = "bandpass";
-      filter.frequency.setValueAtTime(600, ctx.currentTime);
-      filter.Q.setValueAtTime(1.8, ctx.currentTime);
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(190, ctx.currentTime);
+      filter.Q.setValueAtTime(2.2, ctx.currentTime);
 
       const noiseGain = ctx.createGain();
-      noiseGain.gain.setValueAtTime(0.04, ctx.currentTime);
+      noiseGain.gain.setValueAtTime(0.08, ctx.currentTime);
       noiseGainRef.current = noiseGain;
 
       whiteNoise.connect(filter);
@@ -138,14 +141,19 @@ export const ZaneMegaCenterModal = ({ isOpen, onClose }: ZaneMegaCenterModalProp
       noiseGain.connect(ctx.destination);
       whiteNoise.start();
 
-      // 2. Low-frequency turbine rumble oscillator
+      // 2. Heavy sub-bass reactor/turbine rumble oscillator through warm lowpass
       const osc = ctx.createOscillator();
+      const oscFilter = ctx.createBiquadFilter();
       const oscGain = ctx.createGain();
       osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(110, ctx.currentTime);
-      oscGain.gain.setValueAtTime(0.02, ctx.currentTime);
+      osc.frequency.setValueAtTime(48, ctx.currentTime);
+      oscFilter.type = "lowpass";
+      oscFilter.frequency.setValueAtTime(180, ctx.currentTime);
+      oscFilter.Q.setValueAtTime(3.0, ctx.currentTime);
+      oscGain.gain.setValueAtTime(0.08, ctx.currentTime);
 
-      osc.connect(oscGain);
+      osc.connect(oscFilter);
+      oscFilter.connect(oscGain);
       oscGain.connect(ctx.destination);
       osc.start();
 
@@ -170,9 +178,9 @@ export const ZaneMegaCenterModal = ({ isOpen, onClose }: ZaneMegaCenterModalProp
       const rpmRatio = Math.max(0.1, avgRPM / 5800);
 
       if (oscNodeRef.current && oscGainRef.current && noiseGainRef.current) {
-        oscNodeRef.current.frequency.setTargetAtTime(80 + rpmRatio * 180, ctx.currentTime, 0.1);
-        oscGainRef.current.gain.setTargetAtTime(0.015 + rpmRatio * 0.04, ctx.currentTime, 0.1);
-        noiseGainRef.current.gain.setTargetAtTime(0.02 + rpmRatio * 0.07, ctx.currentTime, 0.1);
+        oscNodeRef.current.frequency.setTargetAtTime(42 + rpmRatio * 56, ctx.currentTime, 0.1);
+        oscGainRef.current.gain.setTargetAtTime(0.06 + rpmRatio * 0.12, ctx.currentTime, 0.1);
+        noiseGainRef.current.gain.setTargetAtTime(0.05 + rpmRatio * 0.14, ctx.currentTime, 0.1);
       }
     } catch {}
   }, [cpuRPM, gpuRPM, turbineAudio]);

@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal, Volume2, VolumeX, Zap, Menu, X, ShieldAlert, Eye, Smartphone, Code2 } from "lucide-react";
 import { navLinks } from "@/data/portfolio";
-import { sound } from "@/lib/sound";
+import { sound, AUDIO_MUTE_EVENT } from "@/lib/sound";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
 import { usePersona } from "@/context/PersonaContext";
 import { useUniverseTheme } from "@/context/ThemeContext";
@@ -24,6 +24,15 @@ export const Navigation = ({
   const { isExistence, setTheme, toggleTheme } = useUniverseTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
+
+  useEffect(() => {
+    const syncMute = (e: Event) => {
+      const custom = e as CustomEvent<boolean>;
+      setIsMuted(typeof custom.detail === "boolean" ? custom.detail : sound.isMuted());
+    };
+    window.addEventListener(AUDIO_MUTE_EVENT, syncMute);
+    return () => window.removeEventListener(AUDIO_MUTE_EVENT, syncMute);
+  }, []);
 
   const activeNavLinks = persona === "friend"
     ? [

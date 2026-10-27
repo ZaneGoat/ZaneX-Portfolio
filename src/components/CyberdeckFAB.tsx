@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal, Zap, Radio, Volume2, VolumeX, X, Cpu, ShieldAlert, Wind, UserCheck, Smartphone, Eye, Code2 } from "lucide-react";
-import { sound } from "@/lib/sound";
+import { sound, AUDIO_MUTE_EVENT } from "@/lib/sound";
 import { usePersona } from "@/context/PersonaContext";
 import { useUniverseTheme } from "@/context/ThemeContext";
 
@@ -27,6 +27,15 @@ export const CyberdeckFAB = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [sensorsEnabled, setSensorsEnabled] = useState(false);
+
+  useEffect(() => {
+    const syncMute = (e: Event) => {
+      const custom = e as CustomEvent<boolean>;
+      setIsMuted(typeof custom.detail === "boolean" ? custom.detail : sound.isMuted());
+    };
+    window.addEventListener(AUDIO_MUTE_EVENT, syncMute);
+    return () => window.removeEventListener(AUDIO_MUTE_EVENT, syncMute);
+  }, []);
 
   const handleEnableMotionSensors = () => {
     sound.playClick();
