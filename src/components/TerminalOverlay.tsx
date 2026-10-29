@@ -46,31 +46,31 @@ export const DECK_CATEGORIES = [
 
 export const DECK_MODULES: DeckModule[] = [
   // Flagships (Zane's 3 Signature Projects)
-  { id: "megacenter", label: "ZaneMegaCenter", category: "flagship", command: "hardware", icon: "⚡", badge: "EC", desc: "MSI EC Fan Governor" },
-  { id: "csi", label: "CSI Radar", category: "flagship", command: "csi", icon: "📡", badge: "RF", desc: "Wi-Fi Doppler Sensor" },
-  { id: "controler", label: "Controler-space", category: "flagship", command: "controler", icon: "🎮", badge: "HID", desc: "DualSense Latency Suite" },
+  { id: "megacenter", label: "ZaneMegaCenter", category: "flagship", command: "hardware", icon: "EC", badge: "EC", desc: "MSI EC Fan Governor" },
+  { id: "csi", label: "CSI Radar", category: "flagship", command: "csi", icon: "RF", badge: "RF", desc: "Wi-Fi Doppler Sensor" },
+  { id: "controler", label: "Controler-space", category: "flagship", command: "controler", icon: "HID", badge: "HID", desc: "DualSense Latency Suite" },
 
   // Operations & Security
-  { id: "breach", label: "Breach ICE", category: "ops", command: "breach", icon: "🔓", badge: "HEX", desc: "ICE Breaker Minigame" },
-  { id: "celestial", label: "Celestial Zen", category: "ops", command: "celestial", icon: "🌙", badge: "ZEN", desc: "Night Mode Arcade" },
-  { id: "ctf", label: "CTF Bounties", category: "ops", command: "ctf", icon: "🛡️", badge: "QUEST", desc: "Cyber Bounties & Flags" },
-  { id: "clearance", label: "Clearance", category: "ops", command: "clearance", icon: "🔒", badge: "LVL", desc: "Operator Security Vault" },
-  { id: "matrix", label: "Matrix Construct", category: "ops", command: "matrix", icon: "🟢", badge: "FX", desc: "Rain & Particle Takeover" },
-  { id: "shinigami", label: "Shinigami Deal", category: "ops", command: "shinigami", icon: "👁️", badge: "RYUK", desc: "Death Note Eye Deal" },
+  { id: "breach", label: "Breach ICE", category: "ops", command: "breach", icon: "HEX", badge: "HEX", desc: "ICE Breaker Minigame" },
+  { id: "celestial", label: "Celestial Zen", category: "ops", command: "celestial", icon: "ZEN", badge: "ZEN", desc: "Night Mode Arcade" },
+  { id: "ctf", label: "CTF Bounties", category: "ops", command: "ctf", icon: "CTF", badge: "QUEST", desc: "Cyber Bounties & Flags" },
+  { id: "clearance", label: "Clearance", category: "ops", command: "clearance", icon: "SEC", badge: "LVL", desc: "Operator Security Vault" },
+  { id: "matrix", label: "Matrix Construct", category: "ops", command: "matrix", icon: "MTRX", badge: "FX", desc: "Rain & Particle Takeover" },
+  { id: "shinigami", label: "Shinigami Deal", category: "ops", command: "shinigami", icon: "EYE", badge: "RYUK", desc: "Death Note Eye Deal" },
 
   // System & Intel
-  { id: "neofetch", label: "Neofetch", category: "system", command: "neofetch", icon: "📊", badge: "SYS", desc: "Kali Dragon Dashboard" },
+  { id: "neofetch", label: "Neofetch", category: "system", command: "neofetch", icon: "SYS", badge: "SYS", desc: "Kali Dragon Dashboard" },
   { id: "logo", label: "ASCII Crest", category: "system", command: "logo", icon: "◈", badge: "ASCII", desc: "Braille Brand Seal" },
-  { id: "whoami", label: "Whoami", category: "system", command: "whoami", icon: "👤", badge: "BIO", desc: "Active Identity Dossier" },
-  { id: "projects", label: "Git Repos", category: "system", command: "projects", icon: "💻", badge: "GIT", desc: "Live GitHub API Repos" },
-  { id: "device", label: "Telemetry", category: "system", command: "device", icon: "📱", badge: "HW", desc: "Hardware & Monitor Audit" },
+  { id: "whoami", label: "Whoami", category: "system", command: "whoami", icon: "BIO", badge: "BIO", desc: "Active Identity Dossier" },
+  { id: "projects", label: "Git Repos", category: "system", command: "projects", icon: "GIT", badge: "GIT", desc: "Live GitHub API Repos" },
+  { id: "device", label: "Telemetry", category: "system", command: "device", icon: "DVC", badge: "HW", desc: "Hardware & Monitor Audit" },
 
   // Tools & Audio
-  { id: "music", label: "Zanophy Audio", category: "tool", command: "music", icon: "🎵", badge: "3AM", desc: "Music Player Deck" },
-  { id: "mood", label: "Audio Mood", category: "tool", command: "mood", icon: "🎭", badge: "VIBE", desc: "Random vs They are Jazz Mood Matrix" },
-  { id: "playlist", label: "YT Playlist", category: "tool", command: "playlist", icon: "▶️", badge: "YT", desc: "Zane's 3 AM YouTube Playlist" },
-  { id: "help", label: "Help", category: "tool", command: "help", icon: "❓", badge: "CLI", desc: "Commands Manual" },
-  { id: "clear", label: "Clear", category: "tool", command: "clear", icon: "🧹", badge: "CLS", desc: "Wipe Console History" },
+  { id: "music", label: "Zanophy Audio", category: "tool", command: "music", icon: "SND", badge: "3AM", desc: "Music Player Deck" },
+  { id: "mood", label: "Audio Mood", category: "tool", command: "mood", icon: "VIBE", badge: "VIBE", desc: "Random vs They are Jazz Mood Matrix" },
+  { id: "playlist", label: "YT Playlist", category: "tool", command: "playlist", icon: "YT", badge: "YT", desc: "Zane's 3 AM YouTube Playlist" },
+  { id: "help", label: "Help", category: "tool", command: "help", icon: "MAN", badge: "CLI", desc: "Commands Manual" },
+  { id: "clear", label: "Clear", category: "tool", command: "clear", icon: "CLS", badge: "CLS", desc: "Wipe Console History" },
 ];
 
 const FORTUNES = [
@@ -402,13 +402,13 @@ export const TerminalOverlay = ({
                       onClick={() => openMoodMenu()}
                       className="px-2.5 py-1 bg-white/5 text-emerald-300 border border-emerald-500/30 font-bold text-[10px] rounded hover:bg-white/10"
                     >
-                      🎭 CHOOSE MOOD
+                      CHOOSE MOOD
                     </button>
                     <button
                       onClick={() => handleCommand("music list")}
                       className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400/80 border border-emerald-500/20 font-bold text-[10px] rounded hover:bg-emerald-500/20"
                     >
-                      📜 TRACKS
+                      TRACKS
                     </button>
                   </div>
                 </div>
@@ -423,13 +423,13 @@ export const TerminalOverlay = ({
             setMood("random");
             newLogs.push({
               type: "output",
-              content: `🎲 Zanophy Mood switched to [RANDOM] — 3 AM Midnight Radio (13 Tracks loaded).`
+              content: `[RANDOM] Zanophy Mood switched to [RANDOM] — 3 AM Midnight Radio (13 Tracks loaded).`
             });
           } else if (arg === "jazz" || arg === "they are jazz" || arg === "theyarejazz") {
             setMood("jazz");
             newLogs.push({
               type: "output",
-              content: `🎷 Zanophy Mood switched to [THEY ARE JAZZ] — Noir Sax & Midnight Smoke (6 Tracks loaded).`
+              content: `[JAZZ] Zanophy Mood switched to [THEY ARE JAZZ] — Noir Sax & Midnight Smoke (6 Tracks loaded).`
             });
           } else if (arg === "gui" || arg === "open" || arg === "menu") {
             openMoodMenu();
@@ -470,7 +470,7 @@ export const TerminalOverlay = ({
                       }`}
                     >
                       <p className="font-bold flex items-center justify-between text-xs">
-                        <span>🎲 1. RANDOM</span>
+                        <span>[1] RANDOM</span>
                         <span className="text-[10px] text-emerald-400 font-normal">13 Tracks</span>
                       </p>
                       <p className="text-[10px] text-muted-foreground mt-0.5">3 AM Midnight Radio (Phonk, Dream Pop, Sufi)</p>
@@ -488,7 +488,7 @@ export const TerminalOverlay = ({
                       }`}
                     >
                       <p className="font-bold flex items-center justify-between text-xs">
-                        <span>🎷 2. THEY ARE JAZZ</span>
+                        <span>[2] THEY ARE JAZZ</span>
                         <span className="text-[10px] text-amber-400 font-normal">6 Tracks</span>
                       </p>
                       <p className="text-[10px] text-muted-foreground mt-0.5">Noir Sax & Midnight Smoke (We Are Jazz)</p>
@@ -545,7 +545,7 @@ export const TerminalOverlay = ({
                         targetMood === "random" ? "bg-emerald-500/20 border-emerald-400 text-emerald-300" : "border-white/10 text-muted-foreground hover:text-white"
                       }`}
                     >
-                      🎲 Random
+                      Random
                     </button>
                     <button
                       onClick={() => handleCommand("playlist jazz")}
@@ -553,7 +553,7 @@ export const TerminalOverlay = ({
                         targetMood === "jazz" ? "bg-amber-500/20 border-amber-400 text-amber-300" : "border-white/10 text-muted-foreground hover:text-white"
                       }`}
                     >
-                      🎷 They are Jazz
+                      They are Jazz
                     </button>
                   </div>
                 </div>
@@ -611,7 +611,7 @@ export const TerminalOverlay = ({
             <div className={`p-3 rounded-xl my-2 space-y-1 text-xs font-mono border ${
               isOp ? "bg-primary/5 border-primary/20" : "bg-emerald-500/5 border-emerald-500/25"
             }`}>
-              <p><span className={isOp ? "text-primary font-bold" : "text-emerald-400 font-bold"}>PROFILE:</span> [{persona.toUpperCase()}] {isOp ? "" : "— Welcome Homie! 🍵"}</p>
+              <p><span className={isOp ? "text-primary font-bold" : "text-emerald-400 font-bold"}>PROFILE:</span> [{persona.toUpperCase()}] {isOp ? "" : "— Welcome Homie!"}</p>
               <p><span className={isOp ? "text-primary font-bold" : "text-emerald-400 font-bold"}>{isOp ? "OPERATOR:" : "CREATOR:"}</span> {opLocked ? "████████ ████████ (OPERATOR_UNKNOWN)" : `${activeSpecs.realName} (${activeSpecs.handle})`}</p>
               <p><span className={isOp ? "text-primary font-bold" : "text-emerald-400 font-bold"}>VIBE:</span> {opLocked ? "[CLASSIFIED LEVEL 99 // ENCRYPTED]" : activeSpecs.role}</p>
               <p><span className={isOp ? "text-primary font-bold" : "text-emerald-400 font-bold"}>STATUS:</span> {opLocked ? `CLASSIFIED BLACK-SITE // CLEARANCE LVL ${clearanceLevel}/3` : activeSpecs.status}</p>
@@ -898,9 +898,9 @@ export const TerminalOverlay = ({
                   )}
                 </div>
                 <div className="space-y-1 text-[11px] text-yellow-300/90 p-2 bg-black/60 rounded border border-yellow-500/20">
-                  <p>• Challenge 01 (DOM Recon): {solvedFlags.includes("flag1") ? "✔ SOLVED (+100 pts)" : "🔒 LOCKED (inspect robots.txt / DOM)"}</p>
-                  <p>• Challenge 02 (Subcarrier RF Leak): {solvedFlags.includes("flag2") ? "✔ SOLVED (+250 pts)" : "🔒 LOCKED (investigate Controler buffer)"}</p>
-                  <p>• Challenge 03 (ICE Hex Breaker): {solvedFlags.includes("flag3") ? "✔ SOLVED (+500 pts)" : "🔒 LOCKED (breach Arasaka subnet)"}</p>
+                  <p>• Challenge 01 (DOM Recon): {solvedFlags.includes("flag1") ? "[SOLVED] (+100 pts)" : "[LOCKED] (inspect robots.txt / DOM)"}</p>
+                  <p>• Challenge 02 (Subcarrier RF Leak): {solvedFlags.includes("flag2") ? "[SOLVED] (+250 pts)" : "[LOCKED] (investigate Controler buffer)"}</p>
+                  <p>• Challenge 03 (ICE Hex Breaker): {solvedFlags.includes("flag3") ? "[SOLVED] (+500 pts)" : "[LOCKED] (breach Arasaka subnet)"}</p>
                 </div>
                 <p className="text-[10px] text-yellow-400/70">
                   Tip: submit flags via <code>ctf submit ZANEX&#123;...&#125;</code> or run <code>ctf gui</code>
@@ -1322,6 +1322,29 @@ Allow: /
         setLogs([]);
         setInput("");
         return;
+
+      case "discord":
+      case "chat":
+        newLogs.push({
+          type: "output",
+          content: (
+            <div className="p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-xs font-mono my-2 space-y-1">
+              <p className="text-indigo-400 font-bold">=== ZANEX OFFICIAL DISCORD SERVER ===</p>
+              <p className="text-muted-foreground">Gaming lobbies, beats swap, side projects & late-night chats:</p>
+              <p className="pt-1">
+                <a
+                  href="https://discord.gg/rVDZwx4XV"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-300 font-bold underline hover:text-white"
+                >
+                  https://discord.gg/rVDZwx4XV
+                </a>
+              </p>
+            </div>
+          )
+        });
+        break;
 
       case "sudo":
         sound.playError();

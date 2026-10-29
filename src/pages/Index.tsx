@@ -252,6 +252,16 @@ const Index = () => {
             >
               Matrix Rain
             </button>
+            <span>·</span>
+            <a
+              href="https://discord.gg/rVDZwx4XV"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-foreground/80 hover:text-[#5865F2] underline decoration-white/25 hover:decoration-[#5865F2] underline-offset-4 cursor-pointer transition-colors"
+              title="Join Official Discord Server"
+            >
+              Discord
+            </a>
           </div>
         </div>
       </footer>

@@ -1,5 +1,5 @@
 import {
-  Shield, Mail, Github, Globe,
+  Shield, Mail, Github, Globe, MessageSquare,
   Database, Cpu, Server, LucideIcon
 } from "lucide-react";
 
@@ -60,16 +60,16 @@ export const systemSpecsByPersona: Record<Persona, SystemSpecs> = {
     handle: "Zane (Aziz)",
     realName: "Aziz Maaizate",
     role: "Night Owl · Gamer · Creator · Homie",
-    location: "Casablanca, Morocco 🇲🇦",
-    status: "ONLINE · Fresh mint tea brewing · Chill beats rolling 🍵",
-    os: "Cozy Battlestation & DualSense 🎮",
+    location: "Casablanca, Morocco",
+    status: "ONLINE · Fresh mint tea brewing · Chill beats rolling",
+    os: "Cozy Battlestation & DualSense",
     shell: "Lo-Fi beats & midnight conversations",
     uptime: "Always down for good vibes",
     bio: "Welcome to my space! Grab some hot Moroccan mint tea, throw on the Zanophy playlist, and kick back. You don't need to know code, Linux terminals, or tech jargon to hang out here—just good energy, real conversations, late-night gaming, and creative ideas.",
     stats: [
-      { value: "🍵 4+", label: "Pots of Mint Tea" },
-      { value: "🎧 24/7", label: "Lo-Fi & Chill Beats" },
-      { value: "🎮 3 AM", label: "Gaming & Deep Chats" }
+      { value: "4+ Pots", label: "Mint Tea / Day" },
+      { value: "24/7", label: "Lo-Fi & Chill Beats" },
+      { value: "3 AM", label: "Gaming & Deep Chats" }
     ]
   }
 };
@@ -137,6 +137,7 @@ export const friendLoungeData = {
 };
 
 export const contactLinks = [
+  { icon: MessageSquare, label: "Discord", href: "https://discord.gg/rVDZwx4XV", display: "discord.gg/rVDZwx4XV" },
   { icon: Mail, label: "Email", href: "mailto:azizmaaizat@outlook.com", display: "azizmaaizat@outlook.com" },
   { icon: Github, label: "GitHub", href: "https://github.com/ZaneGoat", display: "github.com/ZaneGoat" },
   { icon: Globe, label: "Source Code", href: "https://github.com/ZaneGoat/ZaneX-Portfolio", display: "ZaneX-Portfolio" }

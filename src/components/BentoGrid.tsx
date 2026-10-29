@@ -113,7 +113,7 @@ export const BentoGrid = ({
             {/* Compact Single-Line Top Header on Mobile */}
             <div className="flex items-center justify-between gap-2 mb-2 sm:mb-5 min-w-0">
               <p className="font-mono text-[11px] sm:text-xs text-primary/90 font-semibold shrink-0">
-                {isOperator ? "$ whoami" : "✨ HOMIE LOUNGE"}
+                {isOperator ? "$ whoami" : "HOMIE LOUNGE"}
               </p>
               <div className={`inline-flex max-w-[72%] items-center gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-[11px] font-mono border ${
                 isRedacted
@@ -330,7 +330,7 @@ export const BentoGrid = ({
                   <Music className="w-4 h-4" /> Live Beats
                 </span>
                 <span className="text-[10px] text-emerald-300 font-bold bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded">
-                  {isPlaying ? "NOW PLAYING 🎵" : "READY TO VIBE"}
+                  {isPlaying ? "NOW PLAYING" : "READY TO VIBE"}
                 </span>
               </div>
               <div className="bg-black/50 border border-white/[0.06] rounded-lg p-3 space-y-1">
@@ -341,7 +341,7 @@ export const BentoGrid = ({
                   {currentTrack.artist}
                 </p>
                 <p className="text-[10px] text-emerald-400/80 pt-1">
-                  Mood: {mood === "jazz" ? "They are Jazz 🎷" : "3 AM Vibes 🌙"}
+                  Mood: {mood === "jazz" ? "They are Jazz" : "3 AM Vibes"}
                 </p>
               </div>
               <p className="mt-2 text-[11px] text-muted-foreground">

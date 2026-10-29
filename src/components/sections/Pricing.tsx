@@ -39,8 +39,8 @@ const friendCollabTiers: FriendCollabTier[] = [
       "Zero corporate formalities or agendas"
     ],
     idealFor: "Friends who want to game or talk past midnight",
-    cta: "Invite Zane to Game",
-    mailHref: "mailto:azizmaaizat@outlook.com?subject=Game%20Night%20or%20Discord%20Hangout!"
+    cta: "Join Discord Server",
+    mailHref: "https://discord.gg/rVDZwx4XV"
   },
   {
     id: "creative-collab",
@@ -190,6 +190,8 @@ export const Pricing: React.FC = () => {
 
                     <a
                       href={tier.mailHref}
+                      target={tier.mailHref.startsWith("http") ? "_blank" : undefined}
+                      rel={tier.mailHref.startsWith("http") ? "noopener noreferrer" : undefined}
                       onClick={() => {
                         sound.playClick();
                         sound.haptic(20);

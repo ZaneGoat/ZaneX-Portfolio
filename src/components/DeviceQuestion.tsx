@@ -22,18 +22,18 @@ export const DeviceQuestion: React.FC<DeviceQuestionProps> = ({ className = "" }
   const getStatusMessage = () => {
     if (deviceChoice === "auto") {
       return persona === "friend"
-        ? `Browsing on a ${realLabel} (${telemetry.os}) · welcome to the lounge! ✨`
+        ? `Browsing on a ${realLabel} (${telemetry.os}) · welcome to the lounge!`
         : `Client detected: ${telemetry.os} ${realLabel} (${telemetry.screenWidth}×${telemetry.screenHeight}, ${telemetry.dpr}x DPR).`;
     }
 
     if (spoofActive) {
       return persona === "friend"
-        ? `Testing ${deviceChoice} view on your ${telemetry.os} ${realLabel} ✨`
+        ? `Testing ${deviceChoice} view on your ${telemetry.os} ${realLabel}`
         : `Layout override: [${deviceChoice.toUpperCase()}] selected on physical ${telemetry.os} ${realLabel}. Emulation active.`;
     }
 
     return persona === "friend"
-      ? `Browsing on your ${realLabel} · looks cozy on this screen ✨`
+      ? `Browsing on your ${realLabel} · looks cozy on this screen`
       : `Client profile verified: ${telemetry.os} ${realLabel} matches hardware telemetry.`;
   };
 
@@ -56,7 +56,7 @@ export const DeviceQuestion: React.FC<DeviceQuestionProps> = ({ className = "" }
             {persona === "friend" ? (
               <>
                 Screen: <span className="text-foreground font-semibold">{realLabel}</span> ({telemetry.os}) ·{" "}
-                <span className="text-emerald-400 font-semibold">Cozy View ✨</span>
+                <span className="text-emerald-400 font-semibold">Cozy View</span>
               </>
             ) : (
               <>

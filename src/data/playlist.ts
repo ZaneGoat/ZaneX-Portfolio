@@ -217,7 +217,7 @@ export const MOODS: Record<ZanophyMood, MoodMeta> = {
     tagline: "3 AM MIDNIGHT RADIO",
     sub: "Phonk, Dream Pop, Desert Blues, Sufi & Neo-Classical",
     badge: "13 TRACKS",
-    icon: "🎲",
+    icon: "RD",
     color: "emerald",
     youtubeUrl: PLAYLIST_URLS.random,
     asciiArt: [
@@ -235,7 +235,7 @@ export const MOODS: Record<ZanophyMood, MoodMeta> = {
     tagline: "NOIR SAX & MIDNIGHT SMOKE",
     sub: "Velvet brass, moody piano & smooth smoky lounge jazz",
     badge: "6 TRACKS",
-    icon: "🎷",
+    icon: "JZ",
     color: "amber",
     youtubeUrl: PLAYLIST_URLS.jazz,
     asciiArt: [

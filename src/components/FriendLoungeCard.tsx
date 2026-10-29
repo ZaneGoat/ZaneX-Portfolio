@@ -10,7 +10,9 @@ import {
   CheckCircle2,
   Play,
   Pause,
-  Sparkles
+  Sparkles,
+  MessageSquare,
+  ExternalLink
 } from "lucide-react";
 import { friendLoungeData } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
@@ -27,12 +29,12 @@ const DEFAULT_SHOUTOUTS: Shoutout[] = [
   {
     id: "init-1",
     author: "Zane (Aziz)",
-    message: "Welcome to the lounge, homie! Grab some Moroccan mint tea, throw on the beats, and make yourself at home. ✨",
+    message: "Welcome to the lounge, homie! Grab some Moroccan mint tea, throw on the beats, and make yourself at home.",
     timestamp: "Pinned"
   }
 ];
 
-const QUICK_REACTIONS = ["🍵 Mint tea", "🎮 Game night", "🎧 Great beats", "✨ Pure vibes", "👋 Hey Zane!"];
+const QUICK_REACTIONS = ["Mint tea", "Game night", "Great beats", "Good vibes", "Hey Zane!"];
 
 export const FriendLoungeCard: React.FC = () => {
   const { currentTrack, isPlaying, togglePlay, mood, openMoodMenu } = useMusic();
@@ -197,6 +199,30 @@ export const FriendLoungeCard: React.FC = () => {
               <p className="text-emerald-400 font-bold mb-1">Note:</p>
               <p>{friendLoungeData.homieNote}</p>
             </div>
+
+            {/* Official Discord Server Banner */}
+            <a
+              href="https://discord.gg/rVDZwx4XV"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => sound.playClick()}
+              className="p-3 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/30 hover:border-indigo-400/60 flex items-center justify-between gap-2.5 transition-colors group cursor-pointer text-xs"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-md bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 shrink-0">
+                  <MessageSquare className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="font-bold text-foreground group-hover:text-indigo-300 transition-colors block text-xs">
+                    Official Discord Server
+                  </span>
+                  <span className="text-[11px] text-muted-foreground truncate block font-mono">
+                    discord.gg/rVDZwx4XV · Gaming, beats & chats
+                  </span>
+                </div>
+              </div>
+              <ExternalLink className="w-3.5 h-3.5 text-indigo-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
+            </a>
           </div>
         </div>
 
