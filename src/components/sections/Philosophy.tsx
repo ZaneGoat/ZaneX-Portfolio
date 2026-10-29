@@ -1,4 +1,4 @@
-import { Brain, Heart, Terminal, Zap, Coffee, ShieldAlert } from "lucide-react";
+import { Brain, Heart, Terminal, Zap, Coffee, ShieldAlert, Music, Sparkles } from "lucide-react";
 import { SectionHeader } from "@/components/SectionHeader";
 import { usePersona } from "@/context/PersonaContext";
 import { useOperatorClearance } from "@/context/OperatorClearanceContext";
@@ -18,14 +18,19 @@ const defaultPrinciples = [
 
 const friendPrinciples = [
   {
-    icon: Zap,
-    title: "The Puzzle Mindset",
-    body: "Complex bugs are just state puzzles. Instead of guessing or brute-forcing, read the trace, isolate the register, and fix the root cause.",
+    icon: Heart,
+    title: "Keep It Real & Genuine",
+    body: "Life is too short for pretension, corporate masks, or gatekeeping. Treat people with warmth, listen deeply, and keep your circle honest and supportive.",
   },
   {
     icon: Coffee,
     title: "Moroccan Mint Tea > Energy Drinks",
-    body: "Energy drink crashes ruin deep focus. Slow-brewed Moroccan mint tea late at night keeps the mind steady through long debugging sessions.",
+    body: "Energy drink crashes ruin your body. Slow-brewed Moroccan mint tea in a real pot with fresh mint and sugar is pure comfort—sweet, hot, and keeps the conversation flowing until 3 AM.",
+  },
+  {
+    icon: Music,
+    title: "Music & Late-Night Talks",
+    body: "The best ideas, funniest stories, and closest bonds always happen late at night when the noise fades, the playlist hits right, and you can just be yourself.",
   },
 ];
 
@@ -39,28 +44,30 @@ export const Philosophy = () => {
         <div className="container mx-auto px-3.5 sm:px-6">
           <SectionHeader
             index="02"
-            kicker="Notes"
-            title="Late-Night Engineering"
-            subtitle="Debugging habits, Moroccan mint tea rituals, and keeping software simple."
+            kicker="Vibe Check"
+            title="Late-Night Thoughts & Tea Rituals"
+            subtitle="No tech gatekeeping, no buzzwords. Just honest life thoughts, Moroccan mint tea, and late-night philosophy."
           />
 
-          <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-4 sm:gap-5 font-mono">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 font-mono">
             {friendPrinciples.map(({ icon: Icon, title, body }) => (
-              <div key={title} className="hud-card p-5 sm:p-7">
-                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 mb-4">
-                  <Icon className="w-5 h-5" />
+              <div key={title} className="hud-card p-5 sm:p-7 flex flex-col justify-between">
+                <div>
+                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 mb-4">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">{title}</h3>
+                  <p className="text-muted-foreground text-xs leading-relaxed">{body}</p>
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">{title}</h3>
-                <p className="text-muted-foreground text-xs leading-relaxed">{body}</p>
               </div>
             ))}
 
-            <div className="hud-card p-5 sm:p-7 relative overflow-hidden flex flex-col justify-center">
-              <Terminal className="w-5 h-5 text-secondary mb-3" />
+            <div className="hud-card p-5 sm:p-7 relative overflow-hidden flex flex-col justify-center border border-emerald-500/25 bg-emerald-500/[0.03]">
+              <Sparkles className="w-5 h-5 text-emerald-400 mb-3" />
               <p className="text-sm sm:text-base font-bold text-foreground leading-snug">
-                "Builds break and kernels panic. With patience, good music on Zanophy, and mint tea, we ship it cleaner than before."
+                &quot;You don&apos;t need to know code to create something meaningful or have great ideas. Just stay curious, be kind, and enjoy the journey.&quot;
               </p>
-              <span className="text-[11px] text-muted-foreground mt-3">— Casablanca Lab Notes</span>
+              <span className="text-[11px] text-emerald-400/80 mt-3">— Late-Night Casablanca Thoughts</span>
             </div>
           </div>
         </div>

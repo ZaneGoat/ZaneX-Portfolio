@@ -70,8 +70,8 @@ export const Navigation = ({
         ? [
             { name: "Overview", href: "#overview" },
             { name: "Lounge", href: "#friend-lounge" },
-            { name: "Notes", href: "#philosophy" },
-            { name: "Pricing", href: "#pricing" },
+            { name: "Vibes", href: "#philosophy" },
+            { name: "Collab", href: "#pricing" },
             { name: "Arena", href: "#games" },
             { name: "Contact", href: "#contact" },
           ]

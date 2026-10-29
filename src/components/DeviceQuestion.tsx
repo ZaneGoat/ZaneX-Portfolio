@@ -22,18 +22,18 @@ export const DeviceQuestion: React.FC<DeviceQuestionProps> = ({ className = "" }
   const getStatusMessage = () => {
     if (deviceChoice === "auto") {
       return persona === "friend"
-        ? `Detected ${telemetry.os} ${realLabel} (${telemetry.screenWidth}×${telemetry.screenHeight}, ${telemetry.pointerType} input).`
+        ? `Browsing on a ${realLabel} (${telemetry.os}) · welcome to the lounge! ✨`
         : `Client detected: ${telemetry.os} ${realLabel} (${telemetry.screenWidth}×${telemetry.screenHeight}, ${telemetry.dpr}x DPR).`;
     }
 
     if (spoofActive) {
       return persona === "friend"
-        ? `Override active: forcing ${deviceChoice} layout on a ${telemetry.os} ${realLabel}.`
+        ? `Testing ${deviceChoice} view on your ${telemetry.os} ${realLabel} ✨`
         : `Layout override: [${deviceChoice.toUpperCase()}] selected on physical ${telemetry.os} ${realLabel}. Emulation active.`;
     }
 
     return persona === "friend"
-      ? `Confirmed ${telemetry.os} ${realLabel} layout.`
+      ? `Browsing on your ${realLabel} · looks cozy on this screen ✨`
       : `Client profile verified: ${telemetry.os} ${realLabel} matches hardware telemetry.`;
   };
 
@@ -53,11 +53,20 @@ export const DeviceQuestion: React.FC<DeviceQuestionProps> = ({ className = "" }
         <div className="flex items-center gap-2 min-w-0">
           <Cpu className="w-3.5 h-3.5 text-primary shrink-0" />
           <span className="text-[11px] text-muted-foreground truncate">
-            Client: <span className="text-foreground font-semibold">{telemetry.os}</span> ·{" "}
-            <span>{telemetry.screenWidth}×{telemetry.screenHeight}</span> ·{" "}
-            <span className={spoofActive ? "text-amber-400 font-semibold" : "text-primary font-semibold"}>
-              {spoofActive ? `${deviceChoice.toUpperCase()} (Override)` : realLabel}
-            </span>
+            {persona === "friend" ? (
+              <>
+                Screen: <span className="text-foreground font-semibold">{realLabel}</span> ({telemetry.os}) ·{" "}
+                <span className="text-emerald-400 font-semibold">Cozy View ✨</span>
+              </>
+            ) : (
+              <>
+                Client: <span className="text-foreground font-semibold">{telemetry.os}</span> ·{" "}
+                <span>{telemetry.screenWidth}×{telemetry.screenHeight}</span> ·{" "}
+                <span className={spoofActive ? "text-amber-400 font-semibold" : "text-primary font-semibold"}>
+                  {spoofActive ? `${deviceChoice.toUpperCase()} (Override)` : realLabel}
+                </span>
+              </>
+            )}
           </span>
         </div>
         <span className="flex items-center gap-1 text-[10px] text-muted-foreground shrink-0">

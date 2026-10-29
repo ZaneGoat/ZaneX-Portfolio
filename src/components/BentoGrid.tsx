@@ -2,12 +2,14 @@ import { memo, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Terminal, Cpu, ExternalLink, Zap, Clock, MapPin, Monitor, Play, Github, Keyboard,
-  Radio, ShieldAlert, Lock, Key, ChevronDown, ChevronUp, FolderGit2
+  Radio, ShieldAlert, Lock, Key, ChevronDown, ChevronUp, FolderGit2, Music, Pause,
+  SkipForward, Coffee, Sparkles, Mail
 } from "lucide-react";
 import { CelestialZenLogo } from "@/components/CelestialZenLogo";
 import { systemSpecsByPersona } from "@/data/portfolio";
 import { usePersona } from "@/context/PersonaContext";
 import { useOperatorClearance } from "@/context/OperatorClearanceContext";
+import { useMusic } from "@/context/MusicContext";
 import { PersonaSwitcher } from "@/components/PersonaSwitcher";
 import { DeviceQuestion } from "@/components/DeviceQuestion";
 import { FriendLoungeCard } from "@/components/FriendLoungeCard";
@@ -56,6 +58,7 @@ export const BentoGrid = ({
 }: BentoGridProps) => {
   const { persona } = usePersona();
   const { clearance, clearanceLevel } = useOperatorClearance();
+  const { currentTrack, isPlaying, togglePlay, mood, openMoodMenu, nextTrack } = useMusic();
   const [showMoreProjects, setShowMoreProjects] = useState(false);
   const activeSpecs = systemSpecsByPersona[persona] || systemSpecsByPersona.operator;
 
@@ -109,14 +112,18 @@ export const BentoGrid = ({
           <div className="min-w-0">
             {/* Compact Single-Line Top Header on Mobile */}
             <div className="flex items-center justify-between gap-2 mb-2 sm:mb-5 min-w-0">
-              <p className="font-mono text-[11px] sm:text-xs text-primary/90 font-semibold shrink-0">$ whoami</p>
+              <p className="font-mono text-[11px] sm:text-xs text-primary/90 font-semibold shrink-0">
+                {isOperator ? "$ whoami" : "✨ HOMIE LOUNGE"}
+              </p>
               <div className={`inline-flex max-w-[72%] items-center gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[9px] sm:text-[11px] font-mono border ${
                 isRedacted
                   ? "bg-red-500/10 border-red-500/30 text-red-400"
-                  : "bg-primary/10 border-primary/25 text-primary"
+                  : isOperator
+                  ? "bg-primary/10 border-primary/25 text-primary"
+                  : "bg-emerald-500/10 border-emerald-500/25 text-emerald-400"
               }`}>
                 <span className={`inline-flex rounded-full w-1.5 h-1.5 shrink-0 ${
-                  isRedacted ? "bg-red-500" : "bg-primary"
+                  isRedacted ? "bg-red-500" : isOperator ? "bg-primary" : "bg-emerald-400"
                 }`} />
                 <span className="truncate">{displayStatus}</span>
               </div>
@@ -154,49 +161,70 @@ export const BentoGrid = ({
 
             {/* Action Buttons: Clean 2-col grid on phones, inline flex on desktop */}
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 sm:gap-2">
-              <button
-                onClick={() => { sound.playBoot(); onOpenTerminal(); }}
-                className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 sm:gap-2 bg-primary text-background font-mono font-bold px-3 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-primary/90 active:scale-[0.98] transition-all text-[11px] sm:text-xs cursor-pointer"
-              >
-                <Terminal className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                <span>OPEN TERMINAL</span>
-              </button>
-
-              {isOperator && (
-                <button
-                  onClick={() => { sound.playBoot(); onOpenInfiltration?.(); }}
-                  className={`flex items-center justify-center gap-1.5 font-mono font-bold px-2 sm:px-3.5 py-1.5 sm:py-3 rounded-lg text-[10px] sm:text-xs transition-all cursor-pointer min-w-0 ${
-                    clearance.identityUnlocked
-                      ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
-                      : "border border-red-500/50 bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                  }`}
-                >
-                  <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">
-                    {clearance.identityUnlocked ? `LVL ${clearanceLevel}/3` : `UNLOCK (${clearanceLevel}/3)`}
-                  </span>
-                </button>
-              )}
-
-              {onOpenCtf && (
-                <button
-                  onClick={() => { sound.playBoot(); onOpenCtf(); }}
-                  className="flex items-center justify-center gap-1.5 border border-amber-500/40 bg-amber-500/10 text-amber-300 font-mono font-bold px-2 sm:px-3.5 py-1.5 sm:py-3 rounded-lg hover:bg-amber-500/20 active:scale-[0.98] transition-all text-[10px] sm:text-xs cursor-pointer min-w-0"
-                >
-                  <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">CTF BOARD</span>
-                </button>
-              )}
-
-              {persona === "friend" ? (
+              {isOperator ? (
                 <>
                   <button
-                    onClick={() => { sound.playBoot(); onOpenBreach(); }}
-                    className="flex items-center justify-center gap-1.5 border border-secondary/40 bg-secondary/10 text-secondary font-mono font-bold px-2 sm:px-3.5 py-1.5 sm:py-3 rounded-lg hover:bg-secondary/20 active:scale-[0.98] transition-all cursor-pointer text-[10px] sm:text-xs min-w-0"
+                    onClick={() => { sound.playBoot(); onOpenTerminal(); }}
+                    className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 sm:gap-2 bg-primary text-background font-mono font-bold px-3 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-primary/90 active:scale-[0.98] transition-all text-[11px] sm:text-xs cursor-pointer"
                   >
-                    <Zap className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">PLAY BREACH</span>
+                    <Terminal className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                    <span>OPEN TERMINAL</span>
                   </button>
+
+                  <button
+                    onClick={() => { sound.playBoot(); onOpenInfiltration?.(); }}
+                    className={`flex items-center justify-center gap-1.5 font-mono font-bold px-2 sm:px-3.5 py-1.5 sm:py-3 rounded-lg text-[10px] sm:text-xs transition-all cursor-pointer min-w-0 ${
+                      clearance.identityUnlocked
+                        ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                        : "border border-red-500/50 bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                    }`}
+                  >
+                    <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">
+                      {clearance.identityUnlocked ? `LVL ${clearanceLevel}/3` : `UNLOCK (${clearanceLevel}/3)`}
+                    </span>
+                  </button>
+
+                  {onOpenCtf && (
+                    <button
+                      onClick={() => { sound.playBoot(); onOpenCtf(); }}
+                      className="flex items-center justify-center gap-1.5 border border-amber-500/40 bg-amber-500/10 text-amber-300 font-mono font-bold px-2 sm:px-3.5 py-1.5 sm:py-3 rounded-lg hover:bg-amber-500/20 active:scale-[0.98] transition-all text-[10px] sm:text-xs cursor-pointer min-w-0"
+                    >
+                      <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">CTF BOARD</span>
+                    </button>
+                  )}
+
+                  <a
+                    href="#pricing"
+                    onClick={() => sound.playClick()}
+                    className="flex items-center justify-center gap-1.5 border border-white/15 bg-white/[0.03] text-foreground font-mono font-bold px-2 sm:px-3.5 py-1.5 sm:py-3 rounded-lg hover:border-primary/40 hover:text-primary transition-colors text-[10px] sm:text-xs"
+                  >
+                    <span>PLANS</span>
+                  </a>
+
+                  <a
+                    href="https://github.com/ZaneGoat"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => sound.playClick()}
+                    className="flex items-center justify-center gap-1.5 border border-white/10 sm:border-transparent text-muted-foreground hover:text-foreground font-mono font-bold px-2 sm:px-3 py-1.5 sm:py-3 rounded-lg transition-colors text-[10px] sm:text-xs"
+                  >
+                    <Github className="w-3.5 h-3.5" />
+                    <span>GitHub</span>
+                  </a>
+                </>
+              ) : (
+                <>
+                  <a
+                    href="#friend-lounge"
+                    onClick={() => sound.playClick()}
+                    className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 sm:gap-2 bg-emerald-500 text-black font-mono font-bold px-3 sm:px-5 py-2 sm:py-3 rounded-lg hover:bg-emerald-400 active:scale-[0.98] transition-all text-[11px] sm:text-xs cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.25)]"
+                  >
+                    <Coffee className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                    <span>CHILL IN LOUNGE</span>
+                  </a>
+
                   {onOpenCelestial && (
                     <button
                       onClick={() => onOpenCelestial()}
@@ -206,27 +234,34 @@ export const BentoGrid = ({
                       <span className="truncate">CELESTIAL ZEN</span>
                     </button>
                   )}
-                </>
-              ) : (
-                <a
-                  href="#pricing"
-                  onClick={() => sound.playClick()}
-                  className="flex items-center justify-center gap-1.5 border border-white/15 bg-white/[0.03] text-foreground font-mono font-bold px-2 sm:px-3.5 py-1.5 sm:py-3 rounded-lg hover:border-primary/40 hover:text-primary transition-colors text-[10px] sm:text-xs"
-                >
-                  <span>PLANS</span>
-                </a>
-              )}
 
-              <a
-                href="https://github.com/ZaneGoat"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => sound.playClick()}
-                className="flex items-center justify-center gap-1.5 border border-white/10 sm:border-transparent text-muted-foreground hover:text-foreground font-mono font-bold px-2 sm:px-3 py-1.5 sm:py-3 rounded-lg transition-colors text-[10px] sm:text-xs"
-              >
-                <Github className="w-3.5 h-3.5" />
-                <span>GitHub</span>
-              </a>
+                  <button
+                    onClick={() => { sound.playBoot(); onOpenBreach(); }}
+                    className="flex items-center justify-center gap-1.5 border border-secondary/40 bg-secondary/10 text-secondary font-mono font-bold px-2 sm:px-3.5 py-1.5 sm:py-3 rounded-lg hover:bg-secondary/20 active:scale-[0.98] transition-all cursor-pointer text-[10px] sm:text-xs min-w-0"
+                  >
+                    <Zap className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">PLAY BREACH</span>
+                  </button>
+
+                  <a
+                    href="mailto:azizmaaizat@outlook.com?subject=Hey%20Zane!"
+                    onClick={() => sound.playClick()}
+                    className="flex items-center justify-center gap-1.5 border border-white/15 bg-white/[0.04] text-foreground font-mono font-bold px-2 sm:px-3.5 py-1.5 sm:py-3 rounded-lg hover:border-emerald-500/40 hover:text-emerald-300 transition-colors text-[10px] sm:text-xs"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>SAY HI</span>
+                  </a>
+
+                  <button
+                    onClick={() => { sound.playBoot(); onOpenTerminal(); }}
+                    className="flex items-center justify-center gap-1 border border-white/10 hover:border-primary/40 text-muted-foreground hover:text-primary font-mono font-bold px-2 sm:px-2.5 py-1.5 sm:py-3 rounded-lg transition-colors text-[10px] sm:text-xs cursor-pointer"
+                    title="Launch terminal shell"
+                  >
+                    <Terminal className="w-3 h-3" />
+                    <span>CLI</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </motion.div>
@@ -239,7 +274,7 @@ export const BentoGrid = ({
           <div className="flex items-center justify-between sm:block">
             <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase sm:mb-1">
               <Clock className="w-3.5 h-3.5 text-primary/70" />
-              <span>Local time</span>
+              <span>{isOperator ? "Local time" : "Casablanca Time"}</span>
             </div>
             <div className="text-sm sm:text-lg md:text-xl font-bold text-foreground">
               <LiveClock />
@@ -249,7 +284,7 @@ export const BentoGrid = ({
           <div className="flex items-center justify-between gap-3 pt-2.5 sm:pt-0 sm:block">
             <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase shrink-0 sm:mb-1">
               <MapPin className="w-3.5 h-3.5 text-primary/70" />
-              <span>Base</span>
+              <span>{isOperator ? "Base" : "Hometown"}</span>
             </div>
             <div className="text-xs sm:text-sm md:text-base font-bold text-foreground text-right sm:text-left truncate">
               {displayLocation}
@@ -270,8 +305,8 @@ export const BentoGrid = ({
           >
             <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase shrink-0 sm:mb-1">
               <Monitor className="w-3.5 h-3.5 text-primary/70" />
-              <span>System</span>
-              {onOpenMegaCenter && (!isOperator || clearance.hardwareUnlocked) && (
+              <span>{isOperator ? "System" : "Setup"}</span>
+              {isOperator && onOpenMegaCenter && (!isOperator || clearance.hardwareUnlocked) && (
                 <span className="text-[9px] text-primary border border-primary/30 px-1 py-0.2 rounded font-bold">
                   EC
                 </span>
@@ -283,60 +318,128 @@ export const BentoGrid = ({
           </div>
         </motion.div>
 
-        {/* 3 — Terminal Peek */}
-        <motion.button
-          {...fadeUp(0.14)}
-          onClick={() => { sound.playBoot(); onOpenTerminal(); }}
-          className="hud-card p-5 sm:p-6 text-left font-mono group cursor-pointer"
-        >
-          <div className="flex items-center justify-between text-xs text-muted-foreground mb-3.5">
-            <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-primary">
-              <Terminal className="w-4 h-4" /> Shell
-            </span>
-            <span className="hidden sm:flex items-center gap-1 text-[11px]">
-              <Keyboard className="w-3.5 h-3.5" /> press{" "}
-              <kbd className="px-1.5 py-0.5 border border-white/20 rounded text-foreground">`</kbd>
-            </span>
-          </div>
-          <div className="text-xs space-y-1 text-foreground/85 bg-black/50 border border-white/[0.06] rounded-lg p-3">
-            <p>
-              <span className="text-primary">
-                {persona === "friend" ? "friend@zane" : clearance.identityUnlocked ? "zane@kali" : "operator@node"}
-              </span>
-              :~$ csi --scan
-            </p>
-            <p className="text-muted-foreground">Doppler +3.8Hz · 64 subcarriers</p>
-            <p>
-              <span className="text-primary">
-                {persona === "friend" ? "friend@zane" : clearance.identityUnlocked ? "zane@kali" : "operator@node"}
-              </span>
-              :~$ <span className="inline-block w-1.5 h-3.5 bg-primary align-middle animate-pulse" />
-            </p>
-          </div>
-          {onOpenCsi && (!isOperator || clearance.projectsUnlocked) && (
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                sound.playBoot();
-                onOpenCsi();
-              }}
-              className="mt-3 py-1.5 px-2.5 bg-primary/10 hover:bg-primary/20 border border-primary/25 rounded-lg text-[10px] text-primary font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Radio className="w-3 h-3 text-primary" />
-              <span>OPEN CSI RADAR</span>
+        {/* 3 — Vibe Jukebox Deck (Friend) vs Terminal Peek (Operator) */}
+        {persona === "friend" ? (
+          <motion.div
+            {...fadeUp(0.14)}
+            className="hud-card p-5 sm:p-6 text-left font-mono border border-emerald-500/25 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-emerald-400">
+                  <Music className="w-4 h-4" /> Live Beats
+                </span>
+                <span className="text-[10px] text-emerald-300 font-bold bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded">
+                  {isPlaying ? "NOW PLAYING 🎵" : "READY TO VIBE"}
+                </span>
+              </div>
+              <div className="bg-black/50 border border-white/[0.06] rounded-lg p-3 space-y-1">
+                <p className="text-xs font-bold text-foreground truncate">
+                  {currentTrack.title}
+                </p>
+                <p className="text-[11px] text-muted-foreground truncate">
+                  {currentTrack.artist}
+                </p>
+                <p className="text-[10px] text-emerald-400/80 pt-1">
+                  Mood: {mood === "jazz" ? "They are Jazz 🎷" : "3 AM Vibes 🌙"}
+                </p>
+              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                No dev commands needed—hit play and vibe with the soundtrack.
+              </p>
             </div>
-          )}
-          <p className="mt-2.5 text-[11px] text-muted-foreground group-hover:text-primary transition-colors">
-            Launch interactive CLI →
-          </p>
-        </motion.button>
+
+            <div className="mt-3.5 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  togglePlay();
+                }}
+                className="flex-1 py-2 px-3 bg-emerald-500 text-black font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 active:scale-95 transition-transform cursor-pointer hover:bg-emerald-400"
+              >
+                {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current ml-0.5" />}
+                <span>{isPlaying ? "PAUSE" : "PLAY BEATS"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick();
+                  nextTrack();
+                }}
+                className="p-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 rounded-lg text-foreground active:scale-95 transition-transform cursor-pointer"
+                title="Next Track"
+              >
+                <SkipForward className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playBoot();
+                  openMoodMenu();
+                }}
+                className="px-2.5 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 rounded-lg text-[11px] font-bold text-emerald-300 active:scale-95 transition-transform cursor-pointer"
+                title="Switch Vibe Mood"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.button
+            {...fadeUp(0.14)}
+            onClick={() => { sound.playBoot(); onOpenTerminal(); }}
+            className="hud-card p-5 sm:p-6 text-left font-mono group cursor-pointer"
+          >
+            <div className="flex items-center justify-between text-xs text-muted-foreground mb-3.5">
+              <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-primary">
+                <Terminal className="w-4 h-4" /> Shell
+              </span>
+              <span className="hidden sm:flex items-center gap-1 text-[11px]">
+                <Keyboard className="w-3.5 h-3.5" /> press{" "}
+                <kbd className="px-1.5 py-0.5 border border-white/20 rounded text-foreground">`</kbd>
+              </span>
+            </div>
+            <div className="text-xs space-y-1 text-foreground/85 bg-black/50 border border-white/[0.06] rounded-lg p-3">
+              <p>
+                <span className="text-primary">
+                  {clearance.identityUnlocked ? "zane@kali" : "operator@node"}
+                </span>
+                :~$ csi --scan
+              </p>
+              <p className="text-muted-foreground">Doppler +3.8Hz · 64 subcarriers</p>
+              <p>
+                <span className="text-primary">
+                  {clearance.identityUnlocked ? "zane@kali" : "operator@node"}
+                </span>
+                :~$ <span className="inline-block w-1.5 h-3.5 bg-primary align-middle animate-pulse" />
+              </p>
+            </div>
+            {onOpenCsi && clearance.projectsUnlocked && (
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  sound.playBoot();
+                  onOpenCsi();
+                }}
+                className="mt-3 py-1.5 px-2.5 bg-primary/10 hover:bg-primary/20 border border-primary/25 rounded-lg text-[10px] text-primary font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Radio className="w-3 h-3 text-primary" />
+                <span>OPEN CSI RADAR</span>
+              </div>
+            )}
+            <p className="mt-2.5 text-[11px] text-muted-foreground group-hover:text-primary transition-colors">
+              Launch interactive CLI →
+            </p>
+          </motion.button>
+        )}
 
         {/* 4 — Breach Protocol, Celestial Zen & Upcoming Game */}
         <motion.div {...fadeUp(0.2)} className="hud-card p-5 sm:p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between gap-2 mb-2.5">
               <span className="flex items-center gap-1.5 text-secondary font-mono text-xs font-bold uppercase tracking-wider">
-                <Zap className="w-4 h-4" /> Arena
+                <Zap className="w-4 h-4" /> {persona === "friend" ? "Arcade & Chill" : "Arena"}
               </span>
               <a
                 href="#games"
@@ -347,10 +450,12 @@ export const BentoGrid = ({
               </a>
             </div>
             <h3 className="text-lg sm:text-xl font-black text-foreground uppercase mb-1">
-              Breach & Celestial Zen
+              {persona === "friend" ? "Celestial Zen & Puzzles" : "Breach & Celestial Zen"}
             </h3>
             <p className="text-muted-foreground text-xs leading-relaxed">
-              5×5 hex puzzle (35s) or 3-mode night-sky arcade. Also building a full game—takes time, if I'm still alive.
+              {persona === "friend"
+                ? "Relax under the Celestial Zen starry night sky or test your reflexes with a quick breach puzzle. Casual fun only!"
+                : "5×5 hex puzzle (35s) or 3-mode night-sky arcade. Also building a full game—takes time, if I'm still alive."}
             </p>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2">

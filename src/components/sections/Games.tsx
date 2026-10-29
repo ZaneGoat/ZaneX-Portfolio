@@ -2,21 +2,30 @@ import { Swords, Zap, Play, Trophy, Gamepad2, Clock, Moon } from "lucide-react";
 import { sound } from "@/lib/sound";
 import { SectionHeader } from "@/components/SectionHeader";
 import { CelestialZenLogo } from "@/components/CelestialZenLogo";
+import { usePersona } from "@/context/PersonaContext";
 
 interface GamesProps {
   onOpenBreach?: () => void;
   onOpenCelestial?: () => void;
 }
 
-export const Games = ({ onOpenBreach, onOpenCelestial }: GamesProps) => (
-  <section id="games" className="py-12 sm:py-16 md:py-24 relative z-10 cv-auto">
-    <div className="container mx-auto px-3.5 sm:px-6">
-      <SectionHeader
-        index="04"
-        kicker="Interactive"
-        title="Arena"
-        subtitle="Play Breach Protocol, unwind in Celestial Zen night arcade, send a chess challenge, or check on the standalone game in production."
-      />
+export const Games = ({ onOpenBreach, onOpenCelestial }: GamesProps) => {
+  const { persona } = usePersona();
+  const isFriend = persona === "friend";
+
+  return (
+    <section id="games" className="py-12 sm:py-16 md:py-24 relative z-10 cv-auto">
+      <div className="container mx-auto px-3.5 sm:px-6">
+        <SectionHeader
+          index="04"
+          kicker={isFriend ? "Arcade & Games" : "Interactive"}
+          title={isFriend ? "The Gaming Lounge" : "Arena"}
+          subtitle={
+            isFriend
+              ? "Unwind under the Celestial Zen night sky, challenge the quick puzzle, or challenge me to chess."
+              : "Play Breach Protocol, unwind in Celestial Zen night arcade, send a chess challenge, or check on the standalone game in production."
+          }
+        />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto">
         {/* 1 — Breach Protocol */}
@@ -143,4 +152,5 @@ export const Games = ({ onOpenBreach, onOpenCelestial }: GamesProps) => (
       </div>
     </div>
   </section>
-);
+  );
+};

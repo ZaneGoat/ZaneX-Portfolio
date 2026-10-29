@@ -57,19 +57,19 @@ export const systemSpecsByPersona: Record<Persona, SystemSpecs> = {
     ]
   },
   friend: {
-    handle: "Zane Goat (Aziz)",
+    handle: "Zane (Aziz)",
     realName: "Aziz Maaizate",
-    role: "Breaks Things & Fixes Them at 3 AM",
-    location: "Casablanca, Morocco",
-    status: "ONLINE · Brewing mint tea & shipping code",
-    os: "MSI GF65 (Custom EC fan governor)",
-    shell: "zsh (too many open tabs)",
-    uptime: "Powered by Mint Tea",
-    bio: "Welcome to the lab. If you know me, you know I live in Linux terminals—tuning laptop fan curves, writing ERPs from scratch, calibrating gamepads, and gaming late.",
+    role: "Night Owl · Gamer · Creator · Homie",
+    location: "Casablanca, Morocco 🇲🇦",
+    status: "ONLINE · Fresh mint tea brewing · Chill beats rolling 🍵",
+    os: "Cozy Battlestation & DualSense 🎮",
+    shell: "Lo-Fi beats & midnight conversations",
+    uptime: "Always down for good vibes",
+    bio: "Welcome to my space! Grab some hot Moroccan mint tea, throw on the Zanophy playlist, and kick back. You don't need to know code, Linux terminals, or tech jargon to hang out here—just good energy, real conversations, late-night gaming, and creative ideas.",
     stats: [
-      { value: "50+", label: "Open tabs" },
-      { value: "3 AM", label: "Peak hours" },
-      { value: "100%", label: "Handwritten" }
+      { value: "🍵 4+", label: "Pots of Mint Tea" },
+      { value: "🎧 24/7", label: "Lo-Fi & Chill Beats" },
+      { value: "🎮 3 AM", label: "Gaming & Deep Chats" }
     ]
   }
 };
@@ -130,10 +130,10 @@ export const projectsData: Project[] = [];
 
 export const friendLoungeData = {
   gamerTag: "ZaneGoat",
-  favoriteGames: ["Cyberpunk 2077", "Counter-Strike 2", "Elden Ring", "Dead Cells"],
-  vibeTrack: "Synthwave & Moroccan Lo-Fi",
-  teaIntake: "4+ Pots of Mint Tea / day",
-  homieNote: "Glad you stopped by. Drop a note on the board below—it saves locally in your browser."
+  favoriteGames: ["Cyberpunk 2077", "Counter-Strike 2", "Elden Ring", "Dead Cells", "Cozy Indies"],
+  vibeTrack: "Moroccan Lo-Fi & Smooth Jazz",
+  teaIntake: "4+ Pots of Moroccan Mint Tea / day",
+  homieNote: "Glad you stopped by! No dev knowledge required here. Drop a note on the board, vibe to the music, or challenge me in the arcade."
 };
 
 export const contactLinks = [

@@ -608,15 +608,20 @@ export const TerminalOverlay = ({
         newLogs.push({
           type: "output",
           content: (
-            <div className="bg-primary/5 border border-primary/20 p-3 rounded-xl my-2 space-y-1 text-xs font-mono">
-              <p><span className="text-primary font-bold">PROFILE:</span> [{persona.toUpperCase()}]</p>
-              <p><span className="text-primary font-bold">OPERATOR:</span> {opLocked ? "████████ ████████ (OPERATOR_UNKNOWN)" : `${activeSpecs.realName} (${activeSpecs.handle})`}</p>
-              <p><span className="text-primary font-bold">DESIGNATION:</span> {opLocked ? "[CLASSIFIED LEVEL 99 // ENCRYPTED]" : activeSpecs.role}</p>
-              <p><span className="text-primary font-bold">STATUS:</span> {opLocked ? `CLASSIFIED BLACK-SITE // CLEARANCE LVL ${clearanceLevel}/3` : activeSpecs.status}</p>
-              <p><span className="text-primary font-bold">BASE LOCATION:</span> {isOp && !clearance.hardwareUnlocked ? "GPS MASKED // TOR-HOP 3" : activeSpecs.location}</p>
-              <p><span className="text-primary font-bold">MAINFRAME:</span> {isOp && !clearance.hardwareUnlocked ? "[EC MEMORY ENCRYPTED]" : activeSpecs.os}</p>
+            <div className={`p-3 rounded-xl my-2 space-y-1 text-xs font-mono border ${
+              isOp ? "bg-primary/5 border-primary/20" : "bg-emerald-500/5 border-emerald-500/25"
+            }`}>
+              <p><span className={isOp ? "text-primary font-bold" : "text-emerald-400 font-bold"}>PROFILE:</span> [{persona.toUpperCase()}] {isOp ? "" : "— Welcome Homie! 🍵"}</p>
+              <p><span className={isOp ? "text-primary font-bold" : "text-emerald-400 font-bold"}>{isOp ? "OPERATOR:" : "CREATOR:"}</span> {opLocked ? "████████ ████████ (OPERATOR_UNKNOWN)" : `${activeSpecs.realName} (${activeSpecs.handle})`}</p>
+              <p><span className={isOp ? "text-primary font-bold" : "text-emerald-400 font-bold"}>VIBE:</span> {opLocked ? "[CLASSIFIED LEVEL 99 // ENCRYPTED]" : activeSpecs.role}</p>
+              <p><span className={isOp ? "text-primary font-bold" : "text-emerald-400 font-bold"}>STATUS:</span> {opLocked ? `CLASSIFIED BLACK-SITE // CLEARANCE LVL ${clearanceLevel}/3` : activeSpecs.status}</p>
+              <p><span className={isOp ? "text-primary font-bold" : "text-emerald-400 font-bold"}>HOMETOWN:</span> {isOp && !clearance.hardwareUnlocked ? "GPS MASKED // TOR-HOP 3" : activeSpecs.location}</p>
+              <p><span className={isOp ? "text-primary font-bold" : "text-emerald-400 font-bold"}>SETUP:</span> {isOp && !clearance.hardwareUnlocked ? "[EC MEMORY ENCRYPTED]" : activeSpecs.os}</p>
               {opLocked && (
-                <p className="text-red-400 font-bold mt-2">&gt;&gt; IDENTITY REDACTED. Run 'clearance' or launch 'maze' to unmask dossier.</p>
+                <p className="text-red-400 font-bold mt-2">&gt;&gt; IDENTITY REDACTED. Run &apos;clearance&apos; or launch &apos;maze&apos; to unmask dossier.</p>
+              )}
+              {!isOp && (
+                <p className="text-emerald-300 font-bold mt-2">&gt;&gt; No dev skills required here! Type &apos;music&apos; or &apos;playlist&apos; to vibe to tunes.</p>
               )}
             </div>
           )

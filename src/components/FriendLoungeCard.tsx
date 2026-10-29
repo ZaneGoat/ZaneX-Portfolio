@@ -9,7 +9,8 @@ import {
   Zap,
   CheckCircle2,
   Play,
-  Pause
+  Pause,
+  Sparkles
 } from "lucide-react";
 import { friendLoungeData } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
@@ -25,11 +26,13 @@ interface Shoutout {
 const DEFAULT_SHOUTOUTS: Shoutout[] = [
   {
     id: "init-1",
-    author: "Zane Goat",
-    message: "Welcome to the lounge! Grab some mint tea and check out the builds.",
+    author: "Zane (Aziz)",
+    message: "Welcome to the lounge, homie! Grab some Moroccan mint tea, throw on the beats, and make yourself at home. ✨",
     timestamp: "Pinned"
   }
 ];
+
+const QUICK_REACTIONS = ["🍵 Mint tea", "🎮 Game night", "🎧 Great beats", "✨ Pure vibes", "👋 Hey Zane!"];
 
 export const FriendLoungeCard: React.FC = () => {
   const { currentTrack, isPlaying, togglePlay, mood, openMoodMenu } = useMusic();
@@ -117,8 +120,8 @@ export const FriendLoungeCard: React.FC = () => {
           onClick={triggerFriendPulse}
           className="px-3 py-1.5 bg-white/[0.04] hover:bg-emerald-500/15 border border-white/10 hover:border-emerald-500/35 text-emerald-300 rounded-lg text-xs font-bold transition-colors active:scale-95 flex items-center gap-1.5 cursor-pointer"
         >
-          <Zap className="w-3.5 h-3.5 text-emerald-400" />
-          <span>SCANLINE PULSE</span>
+          <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+          <span>VIBE PULSE</span>
         </button>
       </div>
 
@@ -222,8 +225,25 @@ export const FriendLoungeCard: React.FC = () => {
               ))}
             </div>
 
-            {/* Responsive Mobile Form */}
+            {/* Responsive Mobile Form with Quick Reaction Chips */}
             <form onSubmit={handlePostShoutout} className="pt-2 space-y-2 border-t border-white/[0.07]">
+              <div className="flex flex-wrap items-center gap-1.5 pb-1">
+                <span className="text-[10px] text-muted-foreground mr-1">Quick Vibe:</span>
+                {QUICK_REACTIONS.map(reaction => (
+                  <button
+                    key={reaction}
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      setMessageInput(prev => (prev ? `${prev} ${reaction}` : reaction));
+                    }}
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] hover:bg-emerald-500/15 border border-white/10 hover:border-emerald-500/35 text-foreground/80 hover:text-emerald-300 transition-colors cursor-pointer"
+                  >
+                    {reaction}
+                  </button>
+                ))}
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
