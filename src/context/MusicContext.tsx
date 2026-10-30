@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
-import { Track, ZanophyMood, RANDOM_PLAYLIST, JAZZ_PLAYLIST, ZANOPHY_PLAYLIST, extractYouTubeVideoId } from "@/data/playlist";
+import { Track, ZanophyMood, RANDOM_PLAYLIST, JAZZ_PLAYLIST, extractYouTubeVideoId } from "@/data/playlist";
 import { sound } from "@/lib/sound";
 
 interface YouTubePlayerInstance {
@@ -78,13 +78,16 @@ interface MusicContextType {
   toggleShuffle: () => void;
   toggleLoop: () => void;
   addCustomTrack: (url: string, title?: string, artist?: string) => boolean;
+  removeCustomTrack: (id: string) => void;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
 const STORAGE_PLAYLIST_KEY = "zanophy_custom_tracks";
+const STORAGE_DELETED_KEY = "zanophy_deleted_tracks";
 const STORAGE_VOLUME_KEY = "zanophy_volume";
 const STORAGE_MOOD_KEY = "zanophy_active_mood";
+const PLAYLIST_BROADCAST_CHANNEL = "zanophy_playlist_sync";
 
 export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mood, setMoodState] = useState<ZanophyMood>(() => {
@@ -97,20 +100,34 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [isMoodMenuOpen, setIsMoodMenuOpen] = useState<boolean>(false);
 
-  const [playlist, setPlaylist] = useState<Track[]>(() => {
-    const baseList = mood === "jazz" ? JAZZ_PLAYLIST : RANDOM_PLAYLIST;
+  // Helper to compute active playlist with additions and exclusions applied
+  const buildPlaylistForMood = useCallback((activeMood: ZanophyMood): Track[] => {
+    const baseList = activeMood === "jazz" ? JAZZ_PLAYLIST : RANDOM_PLAYLIST;
+    let deletedIds: string[] = [];
+    let customTracks: Track[] = [];
+
     try {
-      const saved = localStorage.getItem(STORAGE_PLAYLIST_KEY);
-      if (saved && mood === "random") {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return [...baseList, ...parsed];
-        }
+      const savedDeleted = localStorage.getItem(STORAGE_DELETED_KEY);
+      if (savedDeleted) {
+        deletedIds = JSON.parse(savedDeleted);
       }
     } catch { /* ignore */ }
-    return baseList;
-  });
 
+    try {
+      const savedCustom = localStorage.getItem(STORAGE_PLAYLIST_KEY);
+      if (savedCustom) {
+        customTracks = JSON.parse(savedCustom);
+      }
+    } catch { /* ignore */ }
+
+    const filteredBase = baseList.filter(t => !deletedIds.includes(t.id));
+    const activeCustom = customTracks.filter(t => !deletedIds.includes(t.id));
+
+    // Combine base with custom
+    return [...filteredBase, ...activeCustom];
+  }, []);
+
+  const [playlist, setPlaylist] = useState<Track[]>(() => buildPlaylistForMood(mood));
   const [currentTrackIndex, setCurrentTrackIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isBuffering, setIsBuffering] = useState<boolean>(false);
@@ -139,12 +156,16 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const playerRef = useRef<YouTubePlayerInstance | null>(null);
   const isApiReadyRef = useRef<boolean>(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const volumeRef = useRef<number>(volume);
   const isMutedRef = useRef<boolean>(isMuted);
   const handleTrackEndedRef = useRef<() => void>(() => {});
   const nextTrackRef = useRef<() => void>(() => {});
+  const playlistRef = useRef<Track[]>(playlist);
+
+  useEffect(() => {
+    playlistRef.current = playlist;
+  }, [playlist]);
 
   useEffect(() => {
     volumeRef.current = volume;
@@ -153,6 +174,47 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     isMutedRef.current = isMuted;
   }, [isMuted]);
+
+  // Synchronize playlists across tabs and local events automatically
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (
+        e.key === STORAGE_PLAYLIST_KEY ||
+        e.key === STORAGE_DELETED_KEY ||
+        e.key === STORAGE_MOOD_KEY
+      ) {
+        setPlaylist(buildPlaylistForMood(mood));
+      }
+    };
+
+    let bc: BroadcastChannel | null = null;
+    try {
+      if (typeof BroadcastChannel !== "undefined") {
+        bc = new BroadcastChannel(PLAYLIST_BROADCAST_CHANNEL);
+        bc.onmessage = (event) => {
+          if (event.data?.type === "PLAYLIST_UPDATED") {
+            setPlaylist(buildPlaylistForMood(mood));
+          }
+        };
+      }
+    } catch { /* ignore */ }
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      if (bc) bc.close();
+    };
+  }, [mood, buildPlaylistForMood]);
+
+  const broadcastPlaylistUpdate = () => {
+    try {
+      if (typeof BroadcastChannel !== "undefined") {
+        const bc = new BroadcastChannel(PLAYLIST_BROADCAST_CHANNEL);
+        bc.postMessage({ type: "PLAYLIST_UPDATED", timestamp: Date.now() });
+        bc.close();
+      }
+    } catch { /* ignore */ }
+  };
 
   const syncPlayerVolume = useCallback((vol: number, muted: boolean) => {
     const p = playerRef.current;
@@ -171,7 +233,6 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     } catch { /* ignore */ }
 
-    // Direct postMessage fallback to YouTube iframe contentWindow
     try {
       const iframe = document.getElementById("zanophy-yt-player-iframe") as HTMLIFrameElement | null;
       const win = iframe?.contentWindow || p?.getIframe?.()?.contentWindow;
@@ -187,7 +248,13 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch { /* ignore */ }
   }, []);
 
-  const currentTrack = playlist[currentTrackIndex] || playlist[0];
+  const currentTrack = playlist[currentTrackIndex] || playlist[0] || {
+    id: "empty",
+    title: "Zanophy Station",
+    artist: "Aziz Maaizate",
+    videoId: "p4dI_uxXe24",
+    thumbnail: "https://img.youtube.com/vi/p4dI_uxXe24/hqdefault.jpg"
+  };
 
   // Initialize YouTube IFrame API script
   useEffect(() => {
@@ -241,7 +308,6 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               },
               onError: (err: unknown) => {
                 console.warn("[Zanophy] YouTube player error, auto-skipping:", err);
-                // On restricted or blocked video, skip to next after 1 second
                 setTimeout(() => nextTrackRef.current(), 1000);
               }
             }
@@ -350,6 +416,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const nextTrack = useCallback(() => {
     sound.playClick();
+    if (playlist.length === 0) return;
     if (isShuffle) {
       const randomIndex = Math.floor(Math.random() * playlist.length);
       selectTrack(randomIndex);
@@ -372,6 +439,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const prevTrack = useCallback(() => {
     sound.playClick();
+    if (playlist.length === 0) return;
     if (currentTime > 5) {
       seekTo(0);
       return;
@@ -434,14 +502,15 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setIsLoop(prev => !prev);
   }, []);
 
+  // Add a new track with instant autoreload
   const addCustomTrack = useCallback((url: string, title?: string, artist?: string): boolean => {
     const videoId = extractYouTubeVideoId(url);
     if (!videoId) return false;
 
     const newTrack: Track = {
       id: `custom-${Date.now()}`,
-      title: title?.trim() || `Custom Stream (${videoId})`,
-      artist: artist?.trim() || "YouTube Live Stream",
+      title: title?.trim() || `Injected Track (${videoId})`,
+      artist: artist?.trim() || "Zanophy Station",
       videoId,
       duration: "Stream",
       thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
@@ -449,24 +518,73 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       isCustom: true
     };
 
-    setPlaylist(prev => {
-      const next = [...prev, newTrack];
-      try {
-        const customs = next.filter(t => t.isCustom);
-        localStorage.setItem(STORAGE_PLAYLIST_KEY, JSON.stringify(customs));
-      } catch { /* ignore */ }
-      return next;
-    });
+    try {
+      let customs: Track[] = [];
+      const saved = localStorage.getItem(STORAGE_PLAYLIST_KEY);
+      if (saved) {
+        customs = JSON.parse(saved);
+      }
+      customs.push(newTrack);
+      localStorage.setItem(STORAGE_PLAYLIST_KEY, JSON.stringify(customs));
+    } catch { /* ignore */ }
+
+    const updated = buildPlaylistForMood(mood);
+    setPlaylist(updated);
+    broadcastPlaylistUpdate();
 
     // Immediately play the added track
-    setTimeout(() => {
-      setCurrentTrackIndex(playlist.length);
-      loadAndPlayTrack(newTrack);
-    }, 100);
+    const newIdx = updated.findIndex(t => t.id === newTrack.id);
+    if (newIdx !== -1) {
+      setTimeout(() => {
+        setCurrentTrackIndex(newIdx);
+        loadAndPlayTrack(newTrack);
+      }, 50);
+    }
 
     sound.playSuccess();
     return true;
-  }, [playlist.length, loadAndPlayTrack]);
+  }, [mood, buildPlaylistForMood, loadAndPlayTrack]);
+
+  // Delete a song with instant autoreload
+  const removeCustomTrack = useCallback((trackId: string) => {
+    sound.playClick();
+    sound.haptic(20);
+
+    try {
+      // 1. Remove from custom tracks if it exists
+      const saved = localStorage.getItem(STORAGE_PLAYLIST_KEY);
+      if (saved) {
+        const customs: Track[] = JSON.parse(saved);
+        const filtered = customs.filter(t => t.id !== trackId);
+        localStorage.setItem(STORAGE_PLAYLIST_KEY, JSON.stringify(filtered));
+      }
+
+      // 2. Add to deleted tracking list
+      let deleted: string[] = [];
+      const savedDeleted = localStorage.getItem(STORAGE_DELETED_KEY);
+      if (savedDeleted) {
+        deleted = JSON.parse(savedDeleted);
+      }
+      if (!deleted.includes(trackId)) {
+        deleted.push(trackId);
+        localStorage.setItem(STORAGE_DELETED_KEY, JSON.stringify(deleted));
+      }
+    } catch { /* ignore */ }
+
+    // 3. Autoreload playlist immediately
+    const updated = buildPlaylistForMood(mood);
+    setPlaylist(updated);
+    broadcastPlaylistUpdate();
+
+    // 4. Adjust active track pointer if deleting currently playing track
+    if (currentTrack.id === trackId && updated.length > 0) {
+      const nextIdx = Math.min(currentTrackIndex, updated.length - 1);
+      setCurrentTrackIndex(nextIdx);
+      if (isPlaying) {
+        loadAndPlayTrack(updated[nextIdx]);
+      }
+    }
+  }, [mood, currentTrack.id, currentTrackIndex, isPlaying, buildPlaylistForMood, loadAndPlayTrack]);
 
   const setMood = useCallback((newMood: ZanophyMood) => {
     sound.playClick();
@@ -476,19 +594,21 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       localStorage.setItem(STORAGE_MOOD_KEY, newMood);
     } catch { /* ignore */ }
 
-    const targetList = newMood === "jazz" ? JAZZ_PLAYLIST : RANDOM_PLAYLIST;
+    const targetList = buildPlaylistForMood(newMood);
     setPlaylist(targetList);
     setCurrentTrackIndex(0);
     const firstTrack = targetList[0];
-    if (isPlaying) {
-      loadAndPlayTrack(firstTrack);
-    } else if (playerRef.current && typeof playerRef.current.cueVideoById === "function") {
-      try {
-        playerRef.current.cueVideoById(firstTrack.videoId);
-        setCurrentTime(0);
-      } catch { /* ignore */ }
+    if (firstTrack) {
+      if (isPlaying) {
+        loadAndPlayTrack(firstTrack);
+      } else if (playerRef.current && typeof playerRef.current.cueVideoById === "function") {
+        try {
+          playerRef.current.cueVideoById(firstTrack.videoId);
+          setCurrentTime(0);
+        } catch { /* ignore */ }
+      }
     }
-  }, [isPlaying, loadAndPlayTrack]);
+  }, [isPlaying, buildPlaylistForMood, loadAndPlayTrack]);
 
   const openMoodMenu = useCallback(() => {
     sound.playBoot();
@@ -530,34 +650,16 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         toggleMute,
         toggleShuffle,
         toggleLoop,
-        addCustomTrack
+        addCustomTrack,
+        removeCustomTrack
       }}
     >
       {children}
-
-      {/* Hidden off-screen YouTube Player Embed Container */}
-      <div
-        ref={containerRef}
-        aria-hidden="true"
-        style={{
-          position: "fixed",
-          bottom: "-9999px",
-          left: "-9999px",
-          width: "1px",
-          height: "1px",
-          overflow: "hidden",
-          opacity: 0,
-          pointerEvents: "none",
-          zIndex: -1
-        }}
-      >
-        <div id="zanophy-yt-player-iframe" />
-      </div>
     </MusicContext.Provider>
   );
 };
 
-export const useMusic = (): MusicContextType => {
+export const useMusic = () => {
   const context = useContext(MusicContext);
   if (!context) {
     throw new Error("useMusic must be used within a MusicProvider");

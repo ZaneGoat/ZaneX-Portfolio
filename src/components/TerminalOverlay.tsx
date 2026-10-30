@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Terminal as TerminalIcon, X, Maximize2, Minimize2, CornerDownLeft, ExternalLink } from "lucide-react";
 import { systemSpecsByPersona, projectsData, skillsData, terminalCommandsHelp } from "@/data/portfolio";
-import { ZANE_YOUTUBE_PLAYLIST_URL, ZANE_JAZZ_PLAYLIST_URL, MOODS, ZanophyMood } from "@/data/playlist";
+import { MOODS, ZanophyMood } from "@/data/playlist";
 import { usePersona } from "@/context/PersonaContext";
 import { useMusic } from "@/context/MusicContext";
 import { useOperatorClearance } from "@/context/OperatorClearanceContext";
@@ -68,7 +68,7 @@ export const DECK_MODULES: DeckModule[] = [
   // Tools & Audio
   { id: "music", label: "Zanophy Audio", category: "tool", command: "music", icon: "SND", badge: "3AM", desc: "Music Player Deck" },
   { id: "mood", label: "Audio Mood", category: "tool", command: "mood", icon: "VIBE", badge: "VIBE", desc: "Random vs They are Jazz Mood Matrix" },
-  { id: "playlist", label: "YT Playlist", category: "tool", command: "playlist", icon: "YT", badge: "YT", desc: "Zane's 3 AM YouTube Playlist" },
+  { id: "playlist", label: "Zanophy Queue", category: "tool", command: "playlist", icon: "SND", badge: "LIST", desc: "Zanophy Active Playlist Queue" },
   { id: "help", label: "Help", category: "tool", command: "help", icon: "MAN", badge: "CLI", desc: "Commands Manual" },
   { id: "clear", label: "Clear", category: "tool", command: "clear", icon: "CLS", badge: "CLS", desc: "Wipe Console History" },
 ];
@@ -349,11 +349,10 @@ export const TerminalOverlay = ({
             return;
           } else if (arg === "yt" || arg === "youtube" || arg === "playlist") {
             sound.playClick();
-            const targetUrl = MOODS[mood].youtubeUrl;
-            window.open(targetUrl, "_blank", "noopener,noreferrer");
+            setIsFullPlayerOpen(true);
             newLogs.push({
               type: "output",
-              content: `Dispatched ${MOODS[mood].name} YouTube Playlist in a new tab: ${targetUrl}`
+              content: `Opening Zanophy Music Player deck...`
             });
           } else {
             newLogs.push({
@@ -504,44 +503,43 @@ export const TerminalOverlay = ({
           break;
 
         case "playlist":
+        case "queue":
         case "ytplaylist":
         case "youtube": {
           const targetMood = (arg === "jazz" || arg === "they are jazz") ? "jazz" : (arg === "random" ? "random" : mood);
-          const targetUrl = MOODS[targetMood].youtubeUrl;
           sound.playClick();
-          window.open(targetUrl, "_blank", "noopener,noreferrer");
           newLogs.push({
             type: "output",
             content: (
               <div className={`border p-3.5 rounded-xl my-2 space-y-2 text-xs font-mono ${
-                targetMood === "jazz" ? "bg-amber-500/10 border-amber-500/30" : "bg-red-500/10 border-red-500/30"
+                targetMood === "jazz" ? "bg-amber-500/10 border-amber-500/30" : "bg-emerald-500/10 border-emerald-500/30"
               }`}>
                 <div className="flex items-center justify-between">
-                  <p className={`font-bold flex items-center gap-2 ${targetMood === "jazz" ? "text-amber-400" : "text-red-400"}`}>
-                    <span className={`w-2 h-2 rounded-full animate-ping ${targetMood === "jazz" ? "bg-amber-400" : "bg-red-500"}`} />
-                    [{targetMood === "jazz" ? "YOUTUBE MUSIC" : "YOUTUBE PLAYLIST"}] {MOODS[targetMood].name.toUpperCase()} // {MOODS[targetMood].tagline}
+                  <p className={`font-bold flex items-center gap-2 ${targetMood === "jazz" ? "text-amber-400" : "text-emerald-400"}`}>
+                    <span className={`w-2 h-2 rounded-full animate-ping ${targetMood === "jazz" ? "bg-amber-400" : "bg-emerald-400"}`} />
+                    [ZANOPHY QUEUE] {MOODS[targetMood].name.toUpperCase()} // {MOODS[targetMood].tagline}
                   </p>
-                  <a
-                    href={targetUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`px-2.5 py-1 text-white font-bold rounded text-[11px] flex items-center gap-1 transition-colors ${
-                      targetMood === "jazz" ? "bg-amber-600 hover:bg-amber-500" : "bg-red-500 hover:bg-red-600"
+                  <button
+                    onClick={() => {
+                      setIsFullPlayerOpen(true);
+                      onClose();
+                    }}
+                    className={`px-2.5 py-1 text-black font-bold rounded text-[11px] flex items-center gap-1 transition-colors cursor-pointer ${
+                      targetMood === "jazz" ? "bg-amber-400 hover:bg-amber-300" : "bg-emerald-400 hover:bg-emerald-300"
                     }`}
                   >
-                    <span>OPEN PLAYLIST</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                    <span>OPEN PLAYER</span>
+                  </button>
                 </div>
                 <p className="text-muted-foreground text-[11px]">
-                  Direct stream link dispatched to browser: <span className="underline">{targetUrl}</span>
+                  Internal audio station with live autoreload for new and deleted songs.
                 </p>
                 <div className="p-2 bg-black/60 rounded border border-white/10 text-[11px] text-foreground/80 flex flex-wrap items-center justify-between gap-2">
                   <p>{MOODS[targetMood].sub}</p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleCommand("playlist random")}
-                      className={`text-[10px] px-2 py-0.5 rounded font-bold border transition-colors ${
+                      className={`text-[10px] px-2 py-0.5 rounded font-bold border transition-colors cursor-pointer ${
                         targetMood === "random" ? "bg-emerald-500/20 border-emerald-400 text-emerald-300" : "border-white/10 text-muted-foreground hover:text-white"
                       }`}
                     >
@@ -549,7 +547,7 @@ export const TerminalOverlay = ({
                     </button>
                     <button
                       onClick={() => handleCommand("playlist jazz")}
-                      className={`text-[10px] px-2 py-0.5 rounded font-bold border transition-colors ${
+                      className={`text-[10px] px-2 py-0.5 rounded font-bold border transition-colors cursor-pointer ${
                         targetMood === "jazz" ? "bg-amber-500/20 border-amber-400 text-amber-300" : "border-white/10 text-muted-foreground hover:text-white"
                       }`}
                     >

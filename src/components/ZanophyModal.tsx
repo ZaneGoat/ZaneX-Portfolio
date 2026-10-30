@@ -14,13 +14,13 @@ import {
   Search,
   Plus,
   Radio,
-  ExternalLink,
+  Trash2,
   Disc3,
   Music2,
   Check
 } from "lucide-react";
 import { useMusic } from "@/context/MusicContext";
-import { ZANE_YOUTUBE_PLAYLIST_URL, MOODS } from "@/data/playlist";
+import { MOODS } from "@/data/playlist";
 import { sound } from "@/lib/sound";
 
 export const ZanophyModal: React.FC = () => {
@@ -49,7 +49,8 @@ export const ZanophyModal: React.FC = () => {
     toggleMute,
     toggleShuffle,
     toggleLoop,
-    addCustomTrack
+    addCustomTrack,
+    removeCustomTrack
   } = useMusic();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -206,16 +207,10 @@ export const ZanophyModal: React.FC = () => {
                   <span>{mood === "jazz" ? "JAZZ" : "RANDOM"}</span>
                 </button>
 
-                <a
-                  href={MOODS[mood].youtubeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[11px] text-emerald-400/90 hover:text-emerald-300 flex items-center gap-1 border border-emerald-500/30 px-2 sm:px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors"
-                  title={`Open Original ${MOODS[mood].name} Playlist`}
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">YouTube Playlist</span>
-                </a>
+                <span className="text-[11px] text-emerald-400/80 font-mono hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-emerald-500/20 bg-emerald-500/5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>AUTORELOAD ACTIVE</span>
+                </span>
 
                 <button
                   type="button"
@@ -587,6 +582,19 @@ export const ZanophyModal: React.FC = () => {
                         <span className="text-[11px] text-muted-foreground font-mono shrink-0 pl-1">
                           {track.duration || "3:00"}
                         </span>
+
+                        {/* Delete Track Action (Autoreload) */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeCustomTrack(track.id);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-red-400 transition-all rounded hover:bg-red-500/10 shrink-0 cursor-pointer"
+                          title="Delete song from playlist"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     );
                   })}

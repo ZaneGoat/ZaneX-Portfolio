@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ExternalLink, Play, Check } from "lucide-react";
+import { X, Play, Check } from "lucide-react";
 import { useMusic } from "@/context/MusicContext";
 import { MOODS, ZanophyMood } from "@/data/playlist";
 import { sound } from "@/lib/sound";
@@ -119,30 +119,19 @@ export const ZanophyMoodModal: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Action Row */}
-                <div className="mt-4 pt-3 border-t border-emerald-500/15 flex items-center gap-2">
+                {/* Direct Action */}
+                <div className="mt-5 pt-3 border-t border-emerald-500/15">
                   <button
                     type="button"
-                    onClick={e => {
+                    onClick={(e) => {
                       e.stopPropagation();
                       handleChooseMood("random");
                     }}
-                    className="flex-1 py-2 px-3 rounded-lg text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    className="w-full py-2 px-3 rounded-lg text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                   >
                     <Play className="w-3.5 h-3.5 fill-current" />
                     <span>Play Random</span>
                   </button>
-
-                  <a
-                    href={MOODS.random.youtubeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={e => e.stopPropagation()}
-                    className="p-2 rounded-lg bg-white/5 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 transition-colors"
-                    title="Open Random Playlist on YouTube"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
                 </div>
               </div>
 
@@ -183,34 +172,23 @@ export const ZanophyMoodModal: React.FC = () => {
                     Noir Sax &amp; Midnight Smoke
                   </p>
                   <p className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed">
-                    Smooth piano, velvet horns &amp; smoky late-night bar jazz by We Are Jazz.
+                    Velvet brass, moody piano &amp; smooth smoky lounge jazz.
                   </p>
                 </div>
 
-                {/* Action Row */}
-                <div className="mt-4 pt-3 border-t border-amber-500/15 flex items-center gap-2">
+                {/* Direct Action */}
+                <div className="mt-5 pt-3 border-t border-amber-500/15">
                   <button
                     type="button"
-                    onClick={e => {
+                    onClick={(e) => {
                       e.stopPropagation();
                       handleChooseMood("jazz");
                     }}
-                    className="flex-1 py-2 px-3 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    className="w-full py-2 px-3 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                   >
                     <Play className="w-3.5 h-3.5 fill-current" />
                     <span>Play Jazz</span>
                   </button>
-
-                  <a
-                    href={MOODS.jazz.youtubeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={e => e.stopPropagation()}
-                    className="p-2 rounded-lg bg-white/5 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 transition-colors"
-                    title="Open They are Jazz on YouTube Music"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
                 </div>
               </div>
             </div>

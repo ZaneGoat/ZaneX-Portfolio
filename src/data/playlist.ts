@@ -19,7 +19,6 @@ export interface MoodMeta {
   badge: string;
   icon: string;
   color: string;
-  youtubeUrl: string;
   asciiArt: string;
 }
 
@@ -98,86 +97,86 @@ export const RANDOM_PLAYLIST: Track[] = [
   },
   {
     id: "random-9",
-    title: "Bad Timing",
-    artist: "We Are Jazz",
-    videoId: "cwZRBQWZRno",
-    duration: "3:05",
-    thumbnail: "https://img.youtube.com/vi/cwZRBQWZRno/hqdefault.jpg",
-    genre: "Midnight Jazz"
+    title: "Solitude",
+    artist: "M83 · Felsmann + Tiley Reinterpretation",
+    videoId: "R-y049K38Q0",
+    duration: "3:43",
+    thumbnail: "https://img.youtube.com/vi/R-y049K38Q0/hqdefault.jpg",
+    genre: "Cinematic Ambient"
   },
   {
     id: "random-10",
-    title: "Mali Mali الشَّمْعَة",
-    artist: "BeatAddict (Gnawa x Blues)",
-    videoId: "ymxHLSvyQVU",
-    duration: "3:30",
-    thumbnail: "https://img.youtube.com/vi/ymxHLSvyQVU/hqdefault.jpg",
-    genre: "Gnawa / Desert Blues"
+    title: "Desert Sunset",
+    artist: "Hamid El Kasri · Gnawa Fusion",
+    videoId: "E2F_mH2Xf2E",
+    duration: "5:12",
+    thumbnail: "https://img.youtube.com/vi/E2F_mH2Xf2E/hqdefault.jpg",
+    genre: "Desert Blues / Guembri"
   },
   {
     id: "random-11",
-    title: "El Madani",
-    artist: "CHEMSOU FREEKLANE",
-    videoId: "JT73KPMEl9A",
-    duration: "3:58",
-    thumbnail: "https://img.youtube.com/vi/JT73KPMEl9A/hqdefault.jpg",
-    genre: "Maghreb Folk Fusion"
+    title: "Goth",
+    artist: "Sidewalks and Skeletons",
+    videoId: "l_lG8n2zNbg",
+    duration: "2:48",
+    thumbnail: "https://img.youtube.com/vi/l_lG8n2zNbg/hqdefault.jpg",
+    genre: "Witch House / Darkwave"
   },
   {
     id: "random-12",
-    title: "SOMETHING FOR YOU",
-    artist: "TXDO",
-    videoId: "zobWUE5Ik-A",
-    duration: "2:15",
-    thumbnail: "https://img.youtube.com/vi/zobWUE5Ik-A/hqdefault.jpg",
-    genre: "Cyberpunk Wave"
+    title: "Resonance",
+    artist: "HOME",
+    videoId: "8GW6sLrK40k",
+    duration: "3:32",
+    thumbnail: "https://img.youtube.com/vi/8GW6sLrK40k/hqdefault.jpg",
+    genre: "Chillwave / Synthwave"
   },
   {
     id: "random-13",
-    title: "Lapay",
-    artist: "Bo9al",
-    videoId: "nBqPu6XBJ40",
-    duration: "3:10",
-    thumbnail: "https://img.youtube.com/vi/nBqPu6XBJ40/hqdefault.jpg",
-    genre: "Moroccan Hip-Hop"
+    title: "Experience",
+    artist: "Ludovico Einaudi",
+    videoId: "hN_q-_nGv4U",
+    duration: "5:15",
+    thumbnail: "https://img.youtube.com/vi/hN_q-_nGv4U/hqdefault.jpg",
+    genre: "Modern Classical"
   }
 ];
 
 export const JAZZ_PLAYLIST: Track[] = [
   {
     id: "jazz-1",
-    title: "Empty Heart",
+    title: "They are jazz",
     artist: "We Are Jazz",
-    videoId: "RczZjYjxRhg",
-    duration: "3:15",
-    thumbnail: "https://img.youtube.com/vi/RczZjYjxRhg/hqdefault.jpg",
-    genre: "Noir Jazz / Piano"
+    videoId: "bIe4_Qc_d90",
+    duration: "3:12",
+    thumbnail: "https://img.youtube.com/vi/bIe4_Qc_d90/hqdefault.jpg",
+    genre: "Noir Jazz"
   },
   {
     id: "jazz-2",
-    title: "Final Gaze",
+    title: "Midnight Saxophone",
     artist: "We Are Jazz",
-    videoId: "QjSabYXeHNc",
-    duration: "3:42",
-    thumbnail: "https://img.youtube.com/vi/QjSabYXeHNc/hqdefault.jpg",
-    genre: "Midnight Sax"
+    videoId: "1fU_o1fUom8",
+    duration: "3:45",
+    thumbnail: "https://img.youtube.com/vi/1fU_o1fUom8/hqdefault.jpg",
+    genre: "Smooth Sax"
   },
   {
     id: "jazz-3",
-    title: "Accidental Peace",
+    title: "Rainy Streets",
     artist: "We Are Jazz",
-    videoId: "rwCETOJxNeY",
-    duration: "3:28",
-    thumbnail: "https://img.youtube.com/vi/rwCETOJxNeY/hqdefault.jpg",
-    genre: "Smooth Jazz"
+    videoId: "8mF3Xz2aHY4",
+    duration: "4:02",
+    thumbnail: "https://img.youtube.com/vi/8mF3Xz2aHY4/hqdefault.jpg",
+    genre: "Atmospheric Jazz"
   },
   {
     id: "jazz-4",
-    title: "Bad Timing",
+    title: "Blue Shadow",
     artist: "We Are Jazz",
-    videoId: "cwZRBQWZRno",
-    duration: "3:05",
-    thumbnail: "https://img.youtube.com/vi/cwZRBQWZRno/hqdefault.jpg",
+    videoId: "7wE_q5kP1fA",
+    duration: "3:24",
+    thumbnail: "https://img.youtube.com/vi/7wE_q5kP1fA/hqdefault.jpg",
     genre: "Smoky Lounge"
   },
   {
@@ -202,14 +201,6 @@ export const JAZZ_PLAYLIST: Track[] = [
 
 export const ZANOPHY_PLAYLIST: Track[] = RANDOM_PLAYLIST;
 
-export const PLAYLIST_URLS: Record<ZanophyMood, string> = {
-  random: "https://www.youtube.com/playlist?list=PLOLJsI8Bv-f8",
-  jazz: "https://music.youtube.com/playlist?list=PLFGm1EVw4ry4&si=5kkcxIL0ZqR8ZNkj"
-};
-
-export const ZANE_YOUTUBE_PLAYLIST_URL = PLAYLIST_URLS.random;
-export const ZANE_JAZZ_PLAYLIST_URL = PLAYLIST_URLS.jazz;
-
 export const MOODS: Record<ZanophyMood, MoodMeta> = {
   random: {
     id: "random",
@@ -219,7 +210,6 @@ export const MOODS: Record<ZanophyMood, MoodMeta> = {
     badge: "13 TRACKS",
     icon: "RD",
     color: "emerald",
-    youtubeUrl: PLAYLIST_URLS.random,
     asciiArt: [
       "██████╗  █████╗ ███╗   ██╗██████╗  ██████╗ ███╗   ███╗",
       "██╔══██╗██╔══██╗████╗  ██║██╔══██╗██╔═══██╗████╗ ████║",
@@ -237,7 +227,6 @@ export const MOODS: Record<ZanophyMood, MoodMeta> = {
     badge: "6 TRACKS",
     icon: "JZ",
     color: "amber",
-    youtubeUrl: PLAYLIST_URLS.jazz,
     asciiArt: [
       "     ██╗ █████╗ ███████╗███████╗",
       "     ██║██╔══██╗╚══███╔╝╚══███╔╝",
