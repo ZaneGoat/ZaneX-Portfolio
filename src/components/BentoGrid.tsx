@@ -478,10 +478,8 @@ export const BentoGrid = ({
           </div>
         </motion.div>
 
-        {/* Exclusive Friend Lounge Card */}
-        <AnimatePresence>
-          {persona === "friend" && <FriendLoungeCard />}
-        </AnimatePresence>
+        {/* Global Live Guestbook & Lounge Card (Visible to Everyone) */}
+        <FriendLoungeCard />
 
         {/* 5 & 6 — Repositories & Systems Stack (Operator mode: hidden until user clicks "See More") */}
         {persona !== "friend" && (

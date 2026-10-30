@@ -14,11 +14,13 @@ import {
   ExternalLink,
   Wifi,
   Radio,
-  Loader2
+  Loader2,
+  Terminal
 } from "lucide-react";
 import { friendLoungeData } from "@/data/portfolio";
 import { sound } from "@/lib/sound";
 import { useMusic } from "@/context/MusicContext";
+import { usePersona } from "@/context/PersonaContext";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 interface Shoutout {
@@ -40,6 +42,8 @@ const DEFAULT_SHOUTOUTS: Shoutout[] = [
 const QUICK_REACTIONS = ["Mint tea", "Game night", "Great beats", "Good vibes", "Hey Zane!"];
 
 export const FriendLoungeCard: React.FC = () => {
+  const { persona } = usePersona();
+  const isOperator = persona === "operator";
   const { currentTrack, isPlaying, togglePlay, mood, openMoodMenu } = useMusic();
   const [shoutouts, setShoutouts] = useState<Shoutout[]>(DEFAULT_SHOUTOUTS);
   const [authorInput, setAuthorInput] = useState("");
@@ -145,7 +149,7 @@ export const FriendLoungeCard: React.FC = () => {
     const cleanMsg = messageInput.trim();
     if (!cleanMsg || isSubmitting) return;
 
-    const author = authorInput.trim() || "Friend";
+    const author = authorInput.trim() || (isOperator ? "Operator" : "Friend");
     setIsSubmitting(true);
 
     if (isSupabaseConfigured && supabase) {
@@ -224,34 +228,42 @@ export const FriendLoungeCard: React.FC = () => {
       id="friend-lounge"
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="hud-card md:col-span-2 lg:col-span-4 p-5 sm:p-7 relative overflow-hidden font-mono border border-emerald-500/35"
+      className={`hud-card md:col-span-2 lg:col-span-4 p-5 sm:p-7 relative overflow-hidden font-mono border ${
+        isOperator ? "border-primary/40 bg-[#050814]/90" : "border-emerald-500/35 bg-black/60"
+      }`}
     >
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-4 mb-5">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 bg-emerald-500/10 border border-emerald-500/25 rounded-lg text-emerald-400">
-            <HeartHandshake className="w-5 h-5" />
+          <div className={`p-2 border rounded-lg ${
+            isOperator ? "bg-primary/10 border-primary/25 text-primary" : "bg-emerald-500/10 border-emerald-500/25 text-emerald-400"
+          }`}>
+            {isOperator ? <Terminal className="w-5 h-5" /> : <HeartHandshake className="w-5 h-5" />}
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-lg sm:text-xl font-bold text-foreground tracking-tight uppercase">
-                Friend Lounge
+                {isOperator ? "Live Guestbook & Lounge Scratchpad" : "Friend Lounge"}
               </h3>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                ACTIVE
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                isOperator ? "bg-primary/15 text-primary border-primary/30" : "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+              }`}>
+                PUBLIC BROADCAST
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Off-duty setup, Zanophy soundtrack, and live guestbook.
+              {isOperator ? "Global visitor guestbook stream, Zanophy audio deck, and community scratchpad." : "Off-duty setup, Zanophy soundtrack, and live guestbook."}
             </p>
           </div>
         </div>
 
         <button
           onClick={triggerFriendPulse}
-          className="px-3 py-1.5 bg-white/[0.04] hover:bg-emerald-500/15 border border-white/10 hover:border-emerald-500/35 text-emerald-300 rounded-lg text-xs font-bold transition-colors active:scale-95 flex items-center gap-1.5 cursor-pointer"
+          className={`px-3 py-1.5 bg-white/[0.04] border text-xs font-bold rounded-lg transition-colors active:scale-95 flex items-center gap-1.5 cursor-pointer ${
+            isOperator ? "hover:bg-primary/15 border-white/10 hover:border-primary/35 text-primary" : "hover:bg-emerald-500/15 border-white/10 hover:border-emerald-500/35 text-emerald-300"
+          }`}
         >
-          <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+          <Sparkles className="w-3.5 h-3.5 text-primary" />
           <span>VIBE PULSE</span>
         </button>
       </div>
@@ -260,13 +272,15 @@ export const FriendLoungeCard: React.FC = () => {
         {/* Left Column */}
         <div className="md:col-span-6 space-y-3">
           <div className="bg-black/50 border border-white/[0.08] rounded-xl p-3.5 sm:p-4 space-y-3">
-            <span className="text-[10px] text-emerald-400 uppercase font-bold tracking-wider block">
+            <span className={`text-[10px] uppercase font-bold tracking-wider block ${
+              isOperator ? "text-primary" : "text-emerald-400"
+            }`}>
               Off-Duty Setup
             </span>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
               <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.07] flex items-start gap-2">
-                <Gamepad2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <Gamepad2 className={`w-4 h-4 shrink-0 mt-0.5 ${isOperator ? "text-primary" : "text-emerald-400"}`} />
                 <div>
                   <span className="text-muted-foreground block text-[10px]">ROTATION</span>
                   <span className="font-bold text-foreground">Cyberpunk 2077, CS2, Elden Ring</span>
@@ -274,7 +288,7 @@ export const FriendLoungeCard: React.FC = () => {
               </div>
 
               <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.07] flex items-start gap-2">
-                <Coffee className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <Coffee className={`w-4 h-4 shrink-0 mt-0.5 ${isOperator ? "text-primary" : "text-emerald-400"}`} />
                 <div>
                   <span className="text-muted-foreground block text-[10px]">DAILY FUEL</span>
                   <span className="font-bold text-foreground">{friendLoungeData.teaIntake}</span>
@@ -283,11 +297,13 @@ export const FriendLoungeCard: React.FC = () => {
 
               <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.07] flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:col-span-2">
                 <div className="flex items-start gap-2 min-w-0">
-                  <div className="p-1.5 bg-emerald-500/15 border border-emerald-500/25 rounded-md text-emerald-400 shrink-0 mt-0.5">
+                  <div className={`p-1.5 border rounded-md shrink-0 mt-0.5 ${
+                    isOperator ? "bg-primary/15 border-primary/25 text-primary" : "bg-emerald-500/15 border-emerald-500/25 text-emerald-400"
+                  }`}>
                     <Music className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <span className="text-emerald-400 block text-[10px] font-bold">
+                    <span className={`block text-[10px] font-bold ${isOperator ? "text-primary" : "text-emerald-400"}`}>
                       ZANOPHY {isPlaying ? "· PLAYING" : "· READY"}
                     </span>
                     <span className="font-bold text-foreground truncate block">
@@ -302,7 +318,9 @@ export const FriendLoungeCard: React.FC = () => {
                       sound.playClick();
                       togglePlay();
                     }}
-                    className="p-1.5 bg-emerald-500 text-background rounded-md font-bold active:scale-95 transition-transform cursor-pointer"
+                    className={`p-1.5 rounded-md font-bold active:scale-95 transition-transform cursor-pointer ${
+                      isOperator ? "bg-primary text-background" : "bg-emerald-500 text-background"
+                    }`}
                     title={isPlaying ? "Pause Track" : "Play Track"}
                   >
                     {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current ml-0.5" />}
@@ -315,6 +333,8 @@ export const FriendLoungeCard: React.FC = () => {
                     className={`px-2 py-1 border rounded-md text-[10px] font-bold transition-colors cursor-pointer ${
                       mood === "jazz"
                         ? "bg-amber-500/15 border-amber-500/35 text-amber-300"
+                        : isOperator
+                        ? "bg-primary/10 border-primary/25 text-primary"
                         : "bg-emerald-500/10 border-emerald-500/25 text-emerald-300"
                     }`}
                   >
@@ -325,7 +345,7 @@ export const FriendLoungeCard: React.FC = () => {
             </div>
 
             <div className="p-3 rounded-lg bg-black/60 border border-white/[0.07] text-xs text-muted-foreground leading-relaxed">
-              <p className="text-emerald-400 font-bold mb-1">Note:</p>
+              <p className={`font-bold mb-1 ${isOperator ? "text-primary" : "text-emerald-400"}`}>Note:</p>
               <p>{friendLoungeData.homieNote}</p>
             </div>
 
@@ -359,12 +379,14 @@ export const FriendLoungeCard: React.FC = () => {
         <div className="md:col-span-6 flex flex-col justify-between">
           <div className="bg-black/50 border border-white/[0.08] rounded-xl p-3.5 sm:p-4 space-y-3 flex-1 flex flex-col">
             <div className="flex items-center justify-between border-b border-white/[0.07] pb-2">
-              <span className="text-xs text-emerald-400 font-bold uppercase flex items-center gap-1.5">
+              <span className={`text-xs font-bold uppercase flex items-center gap-1.5 ${
+                isOperator ? "text-primary" : "text-emerald-400"
+              }`}>
                 <Send className="w-3.5 h-3.5" /> Guestbook Scratchpad
               </span>
               <span className="text-[10px] font-mono flex items-center gap-1">
                 {isLiveConnected ? (
-                  <span className="inline-flex items-center gap-1 text-emerald-400">
+                  <span className={`inline-flex items-center gap-1 ${isOperator ? "text-primary" : "text-emerald-400"}`}>
                     <Radio className="w-3 h-3 animate-pulse" /> LIVE STREAM
                   </span>
                 ) : isSupabaseConfigured ? (
@@ -383,12 +405,14 @@ export const FriendLoungeCard: React.FC = () => {
                   key={s.id}
                   className={`p-2.5 rounded-lg text-xs space-y-0.5 border ${
                     s.timestamp === "Pinned"
-                      ? "bg-emerald-500/10 border-emerald-500/35"
+                      ? isOperator
+                        ? "bg-primary/10 border-primary/35"
+                        : "bg-emerald-500/10 border-emerald-500/35"
                       : "bg-white/[0.02] border-white/[0.07]"
                   }`}
                 >
                   <div className="flex items-center justify-between text-[10px]">
-                    <span className="font-bold text-emerald-400">@{s.author}</span>
+                    <span className={`font-bold ${isOperator ? "text-primary" : "text-emerald-400"}`}>@{s.author}</span>
                     <span className="text-muted-foreground text-[9px]">{s.timestamp}</span>
                   </div>
                   <p className="text-foreground/90 break-words leading-relaxed">{s.message}</p>
@@ -408,7 +432,9 @@ export const FriendLoungeCard: React.FC = () => {
                       sound.playClick();
                       setMessageInput((prev) => (prev ? `${prev} ${reaction}` : reaction));
                     }}
-                    className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] hover:bg-emerald-500/15 border border-white/10 hover:border-emerald-500/35 text-foreground/80 hover:text-emerald-300 transition-colors cursor-pointer"
+                    className={`text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/10 text-foreground/80 transition-colors cursor-pointer ${
+                      isOperator ? "hover:bg-primary/15 hover:border-primary/35 hover:text-primary" : "hover:bg-emerald-500/15 hover:border-emerald-500/35 hover:text-emerald-300"
+                    }`}
                   >
                     {reaction}
                   </button>
@@ -421,7 +447,9 @@ export const FriendLoungeCard: React.FC = () => {
                   value={authorInput}
                   onChange={(e) => setAuthorInput(e.target.value)}
                   placeholder="Your Name / Handle"
-                  className="sm:w-32 bg-black/60 border border-white/15 focus:border-emerald-500/50 rounded-lg px-2.5 py-2 sm:py-1.5 text-xs text-foreground outline-none placeholder:text-muted-foreground/60"
+                  className={`sm:w-32 bg-black/60 border border-white/15 rounded-lg px-2.5 py-2 sm:py-1.5 text-xs text-foreground outline-none placeholder:text-muted-foreground/60 ${
+                    isOperator ? "focus:border-primary/50" : "focus:border-emerald-500/50"
+                  }`}
                   maxLength={25}
                   disabled={isSubmitting}
                 />
@@ -431,14 +459,18 @@ export const FriendLoungeCard: React.FC = () => {
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     placeholder="Leave a message in Zane's guestbook..."
-                    className="flex-1 min-w-0 bg-black/60 border border-white/15 focus:border-emerald-500/50 rounded-lg px-2.5 py-2 sm:py-1.5 text-xs text-foreground outline-none placeholder:text-muted-foreground/60"
+                    className={`flex-1 min-w-0 bg-black/60 border border-white/15 rounded-lg px-2.5 py-2 sm:py-1.5 text-xs text-foreground outline-none placeholder:text-muted-foreground/60 ${
+                      isOperator ? "focus:border-primary/50" : "focus:border-emerald-500/50"
+                    }`}
                     maxLength={180}
                     disabled={isSubmitting}
                   />
                   <button
                     type="submit"
                     disabled={isSubmitting || !messageInput.trim()}
-                    className="px-3.5 py-2 sm:py-1.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold text-xs rounded-lg active:scale-95 transition-all flex items-center gap-1 shrink-0 cursor-pointer"
+                    className={`px-3.5 py-2 sm:py-1.5 disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold text-xs rounded-lg active:scale-95 transition-all flex items-center gap-1 shrink-0 cursor-pointer ${
+                      isOperator ? "bg-primary hover:bg-primary/90" : "bg-emerald-500 hover:bg-emerald-400"
+                    }`}
                   >
                     {isSubmitting ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
@@ -451,7 +483,9 @@ export const FriendLoungeCard: React.FC = () => {
               </div>
 
               {statusNotice && (
-                <div className="text-[10px] text-emerald-400 flex items-center gap-1 font-bold animate-fade-in">
+                <div className={`text-[10px] flex items-center gap-1 font-bold animate-fade-in ${
+                  isOperator ? "text-primary" : "text-emerald-400"
+                }`}>
                   <CheckCircle2 className="w-3 h-3" /> {statusNotice}
                 </div>
               )}
