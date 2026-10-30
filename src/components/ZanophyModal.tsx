@@ -15,6 +15,7 @@ import {
   Plus,
   Radio,
   Trash2,
+  RotateCcw,
   Disc3,
   Music2,
   Check
@@ -50,7 +51,8 @@ export const ZanophyModal: React.FC = () => {
     toggleShuffle,
     toggleLoop,
     addCustomTrack,
-    removeCustomTrack
+    removeCustomTrack,
+    resetToDefaultPlaylist
   } = useMusic();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -211,6 +213,16 @@ export const ZanophyModal: React.FC = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   <span>AUTORELOAD ACTIVE</span>
                 </span>
+
+                <button
+                  type="button"
+                  onClick={resetToDefaultPlaylist}
+                  className="text-[11px] text-emerald-400/90 hover:text-emerald-300 flex items-center gap-1 border border-emerald-500/30 px-2 py-1 rounded-lg bg-white/5 hover:bg-emerald-500/15 transition-colors cursor-pointer"
+                  title="Reload original default playlist"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Reset Playlist</span>
+                </button>
 
                 <button
                   type="button"

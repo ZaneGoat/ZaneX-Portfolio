@@ -79,6 +79,7 @@ interface MusicContextType {
   toggleLoop: () => void;
   addCustomTrack: (url: string, title?: string, artist?: string) => boolean;
   removeCustomTrack: (id: string) => void;
+  resetToDefaultPlaylist: () => void;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -394,6 +395,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [isPlaying, play, pause]);
 
   const loadAndPlayTrack = useCallback((track: Track) => {
+    if (!track) return;
     if (playerRef.current && typeof playerRef.current.loadVideoById === "function") {
       try {
         playerRef.current.loadVideoById(track.videoId);
@@ -586,6 +588,25 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [mood, currentTrack.id, currentTrackIndex, isPlaying, buildPlaylistForMood, loadAndPlayTrack]);
 
+  // Reset to default playlist (clears cached deletions and restores full playlist)
+  const resetToDefaultPlaylist = useCallback(() => {
+    sound.playSuccess();
+    sound.haptic([40, 20]);
+    try {
+      localStorage.removeItem(STORAGE_DELETED_KEY);
+      localStorage.removeItem(STORAGE_PLAYLIST_KEY);
+    } catch { /* ignore */ }
+
+    const restored = mood === "jazz" ? JAZZ_PLAYLIST : RANDOM_PLAYLIST;
+    setPlaylist(restored);
+    setCurrentTrackIndex(0);
+    broadcastPlaylistUpdate();
+
+    if (restored.length > 0 && isPlaying) {
+      loadAndPlayTrack(restored[0]);
+    }
+  }, [mood, isPlaying, loadAndPlayTrack]);
+
   const setMood = useCallback((newMood: ZanophyMood) => {
     sound.playClick();
     sound.haptic(30);
@@ -651,7 +672,8 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         toggleShuffle,
         toggleLoop,
         addCustomTrack,
-        removeCustomTrack
+        removeCustomTrack,
+        resetToDefaultPlaylist
       }}
     >
       {children}
