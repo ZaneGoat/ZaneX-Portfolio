@@ -422,7 +422,7 @@ export const TerminalOverlay = ({
             setMood("random");
             newLogs.push({
               type: "output",
-              content: `[RANDOM] Zanophy Mood switched to [RANDOM] — 3 AM Midnight Radio (13 Tracks loaded).`
+              content: `[RANDOM] Zanophy Mood switched to [RANDOM] — 3 AM Midnight Radio (38 Tracks loaded).`
             });
           } else if (arg === "jazz" || arg === "they are jazz" || arg === "theyarejazz") {
             setMood("jazz");
@@ -470,7 +470,7 @@ export const TerminalOverlay = ({
                     >
                       <p className="font-bold flex items-center justify-between text-xs">
                         <span>[1] RANDOM</span>
-                        <span className="text-[10px] text-emerald-400 font-normal">13 Tracks</span>
+                        <span className="text-[10px] text-emerald-400 font-normal">38 Tracks</span>
                       </p>
                       <p className="text-[10px] text-muted-foreground mt-0.5">3 AM Midnight Radio (Phonk, Dream Pop, Sufi)</p>
                     </button>

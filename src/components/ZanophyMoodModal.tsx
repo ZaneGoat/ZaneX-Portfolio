@@ -91,7 +91,7 @@ export const ZanophyMoodModal: React.FC = () => {
                   {/* Card Header */}
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                      13 TRACKS
+                      38 TRACKS
                     </span>
                     {mood === "random" && (
                       <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
