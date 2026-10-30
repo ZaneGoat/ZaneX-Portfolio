@@ -157,6 +157,8 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const playerRef = useRef<YouTubePlayerInstance | null>(null);
   const isApiReadyRef = useRef<boolean>(false);
+  const pendingPlayRef = useRef<boolean>(false);
+  const pendingTrackRef = useRef<Track | null>(null);
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const volumeRef = useRef<number>(volume);
   const isMutedRef = useRef<boolean>(isMuted);
@@ -265,11 +267,17 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (!window.YT || !window.YT.Player) return;
       isApiReadyRef.current = true;
 
-      if (!playerRef.current && document.getElementById("zanophy-yt-player-iframe")) {
+      const mountEl = document.getElementById("zanophy-yt-player-iframe");
+      if (!mountEl) {
+        setTimeout(loadPlayer, 100);
+        return;
+      }
+
+      if (!playerRef.current) {
         try {
           playerRef.current = new window.YT.Player("zanophy-yt-player-iframe", {
-            height: "1",
-            width: "1",
+            height: "200",
+            width: "200",
             videoId: currentTrack.videoId,
             playerVars: {
               autoplay: 0,
@@ -280,7 +288,9 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               rel: 0,
               playsinline: 1,
               enablejsapi: 1,
-              origin: typeof window !== "undefined" ? window.location.origin : undefined
+              origin: typeof window !== "undefined" && window.location.origin && window.location.origin !== "null"
+                ? window.location.origin
+                : undefined
             },
             events: {
               onReady: (event: YouTubePlayerEvent) => {
@@ -288,6 +298,17 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                   playerRef.current = event.target;
                 }
                 syncPlayerVolume(volumeRef.current, isMutedRef.current);
+                if (pendingPlayRef.current) {
+                  pendingPlayRef.current = false;
+                  try {
+                    if (pendingTrackRef.current) {
+                      event.target.loadVideoById(pendingTrackRef.current.videoId);
+                    } else {
+                      event.target.playVideo();
+                    }
+                    setIsPlaying(true);
+                  } catch { /* ignore */ }
+                }
               },
               onStateChange: (event: YouTubePlayerEvent) => {
                 if (event?.target) {
@@ -319,6 +340,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     };
 
+    let checkTimer: ReturnType<typeof setInterval> | null = null;
     if (window.YT && window.YT.Player) {
       loadPlayer();
     } else {
@@ -336,9 +358,22 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (prevCallback) prevCallback();
         loadPlayer();
       };
+
+      // Fallback polling check in case onYouTubeIframeAPIReady already triggered
+      let checkCount = 0;
+      checkTimer = setInterval(() => {
+        checkCount++;
+        if (window.YT && window.YT.Player) {
+          if (checkTimer) clearInterval(checkTimer);
+          loadPlayer();
+        } else if (checkCount > 50) {
+          if (checkTimer) clearInterval(checkTimer);
+        }
+      }, 100);
     }
 
     return () => {
+      if (checkTimer) clearInterval(checkTimer);
       if (pollTimerRef.current) clearInterval(pollTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -372,16 +407,22 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setIsPlaying(true);
         sound.haptic(25);
       } catch { /* ignore */ }
+    } else {
+      pendingPlayRef.current = true;
+      setIsPlaying(true);
     }
   }, []);
 
   const pause = useCallback(() => {
+    pendingPlayRef.current = false;
     if (playerRef.current && typeof playerRef.current.pauseVideo === "function") {
       try {
         playerRef.current.pauseVideo();
         setIsPlaying(false);
         sound.haptic(20);
       } catch { /* ignore */ }
+    } else {
+      setIsPlaying(false);
     }
   }, []);
 
@@ -396,6 +437,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const loadAndPlayTrack = useCallback((track: Track) => {
     if (!track) return;
+    pendingTrackRef.current = track;
     if (playerRef.current && typeof playerRef.current.loadVideoById === "function") {
       try {
         playerRef.current.loadVideoById(track.videoId);
@@ -407,6 +449,10 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } catch {
         play();
       }
+    } else {
+      pendingPlayRef.current = true;
+      setIsPlaying(true);
+      setCurrentTime(0);
     }
   }, [play, syncPlayerVolume]);
 
@@ -677,9 +723,28 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }}
     >
       {children}
+      <YouTubeHiddenMount />
     </MusicContext.Provider>
   );
 };
+
+const YouTubeHiddenMount = React.memo(() => (
+  <div
+    aria-hidden="true"
+    style={{
+      position: "fixed",
+      bottom: "-9999px",
+      left: "-9999px",
+      width: "200px",
+      height: "200px",
+      overflow: "hidden",
+      opacity: 0.01,
+      pointerEvents: "none",
+      zIndex: -1
+    }}
+    dangerouslySetInnerHTML={{ __html: '<div id="zanophy-yt-player-iframe"></div>' }}
+  />
+));
 
 export const useMusic = () => {
   const context = useContext(MusicContext);
