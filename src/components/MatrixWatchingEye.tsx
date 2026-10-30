@@ -1,9 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { sound } from "@/lib/sound";
 
-const RAMP = " .'`^\",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
-const RAMP_LEN = RAMP.length;
-
 const clamp = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v);
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 const smoothstep = (e0: number, e1: number, x: number) => {
@@ -15,12 +12,182 @@ interface MatrixWatchingEyeProps {
   className?: string;
 }
 
-/**
- * Fixed Top-Center Visor Optic Pod (Matrix HUD)
- * - Live procedural 70-char RGB micro-ASCII eye housed in the center keystone of Navigation.
- * - Tracks cursor & touch position relative to the top-center pod across the entire viewport.
- * - Blinks organically on every click/tap anywhere on the page (and double-blinks when clicked directly).
- */
+// Fullscreen quad vertex shader
+const VS_SOURCE = `
+attribute vec2 aPosition;
+varying vec2 vUv;
+void main() {
+  vUv = aPosition * 0.5 + 0.5;
+  gl_Position = vec4(aPosition, 0.0, 1.0);
+}
+`;
+
+// Realistic Raymarched / Physically Shaded 3D Eyeball Fragment Shader
+const FS_SOURCE = `
+precision highp float;
+varying vec2 vUv;
+
+uniform vec2 uResolution;
+uniform float uTime;
+uniform vec2 uLook;
+uniform float uBlink;
+uniform float uClickPulse;
+uniform float uLockMix;
+
+// Smooth minimum
+float smin(float a, float b, float k) {
+  float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+  return mix(b, a, h) - k * h * (1.0 - h);
+}
+
+void main() {
+  // Normalized aspect-corrected coordinate centered at (0, 0)
+  vec2 p = (gl_FragCoord.xy - 0.5 * uResolution) / min(uResolution.x * 0.46, uResolution.y * 1.08);
+
+  // Eyelid aperture arch
+  float nx = p.x / 1.05;
+  float absNx = abs(nx);
+  if (absNx >= 1.0) {
+    gl_FragColor = vec4(0.012, 0.024, 0.055, 1.0);
+    return;
+  }
+
+  float arch = pow(max(0.0, 1.0 - nx * nx), 0.84);
+  float maxHalfOpen = 0.42;
+  float gazeLidShift = uLook.y * 0.045 * arch * uBlink;
+  float upperLid = -maxHalfOpen * arch * uBlink + gazeLidShift;
+  float lowerLid =  maxHalfOpen * arch * uBlink + gazeLidShift;
+
+  // Outer Almond Contour Mask
+  if (p.y < upperLid - 0.04 || p.y > lowerLid + 0.04) {
+    gl_FragColor = vec4(0.012, 0.024, 0.055, 1.0);
+    return;
+  }
+
+  // Eyelid lashes / seam contour
+  float dLid = min(abs(p.y - upperLid), abs(p.y - lowerLid));
+  float lidThickness = uBlink < 0.15 ? 0.065 : 0.038;
+
+  bool insideAperture = p.y >= upperLid && p.y <= lowerLid && uBlink > 0.025;
+
+  if (!insideAperture) {
+    if (dLid < lidThickness) {
+      float edge = (1.0 - dLid / lidThickness) * (1.0 - absNx * 0.3);
+      vec3 lidColor = mix(vec3(0.0, 0.55, 0.35), vec3(0.4, 1.0, 0.7), edge);
+      gl_FragColor = vec4(lidColor * (0.6 + 0.4 * (1.0 - uBlink)), 1.0);
+      return;
+    }
+    gl_FragColor = vec4(0.012, 0.024, 0.055, 1.0);
+    return;
+  }
+
+  // --- Real 3D Spherical Eyeball Intersection ---
+  float sphereR = 1.15;
+  float r2 = dot(p, p);
+  float zSphere = sqrt(max(0.001, sphereR * sphereR - r2));
+  vec3 sphereNormal = normalize(vec3(p.x, p.y, zSphere));
+
+  // Gaze vector in 3D
+  vec3 gazeDir = normalize(vec3(uLook.x * 0.52, uLook.y * 0.32, 1.0));
+
+  // Angle from gaze vector to current surface normal
+  float gazeDot = dot(sphereNormal, gazeDir);
+  float irisAngle = acos(clamp(gazeDot, -1.0, 1.0));
+
+  float irisRadius = 0.38;
+  float pupilRadius = 0.13 + 0.04 * uClickPulse;
+
+  // Environmental lighting
+  vec3 lightDir1 = normalize(vec3(0.35, 0.55, 0.8));
+  vec3 lightDir2 = normalize(vec3(-0.45, -0.2, 0.6));
+  float diff1 = max(0.0, dot(sphereNormal, lightDir1));
+  float diff2 = max(0.0, dot(sphereNormal, lightDir2));
+
+  // Eyelid ambient occlusion / shadow
+  float distToUpper = p.y - upperLid;
+  float distToLower = lowerLid - p.y;
+  float lidAO = smoothstep(0.0, 0.12, distToUpper) * smoothstep(0.0, 0.09, distToLower);
+
+  vec3 col = vec3(0.0);
+
+  if (irisAngle < irisRadius) {
+    // ---- Realistic Iris & Pupil ----
+    float normR = irisAngle / irisRadius;
+
+    if (normR < pupilRadius / irisRadius) {
+      // Void black pupil with cornea wet reflection
+      col = vec3(0.01, 0.018, 0.028);
+    } else {
+      // Sub-pupil to limbal margin
+      float tR = (normR - pupilRadius / irisRadius) / (1.0 - pupilRadius / irisRadius);
+      
+      // Radial angle around gaze center for organic striae/fibers
+      vec3 tangent = normalize(cross(gazeDir, vec3(0.0, 1.0, 0.0)));
+      vec3 bitangent = cross(gazeDir, tangent);
+      float localX = dot(sphereNormal - gazeDir, tangent);
+      float localY = dot(sphereNormal - gazeDir, bitangent);
+      float phi = atan(localY, localX);
+
+      // Organic iris fiber harmonics
+      float fiber1 = sin(phi * 36.0 + sin(tR * 18.0 + uTime * 0.8));
+      float fiber2 = cos(phi * 24.0 - cos(tR * 28.0 - uTime * 0.5));
+      float fiber3 = sin(phi * 64.0 + tR * 12.0);
+      float striae = 0.5 + 0.28 * fiber1 + 0.14 * fiber2 + 0.08 * fiber3;
+
+      // Golden Collarette Ring (inner iris sphincter)
+      float collarette = exp(-pow((tR - 0.28) / 0.18, 2.0));
+      // Dark Limbal Ring (outer edge of iris)
+      float limbalRing = smoothstep(1.0, 0.72, tR);
+
+      // Realistic Cyberpunk Emerald & Golden Hazel Palette
+      vec3 outerIris = vec3(0.0, 0.78, 0.48); // Matrix Emerald
+      vec3 innerIris = vec3(0.08, 0.95, 0.62); // Bright mint
+      vec3 goldCollarette = vec3(1.0, 0.82, 0.28); // Amber Gold
+      
+      vec3 irisColor = mix(outerIris, innerIris, striae * 0.8);
+      irisColor = mix(irisColor, goldCollarette, collarette * (0.65 + 0.35 * uClickPulse));
+      irisColor *= limbalRing;
+      irisColor *= (0.45 + 0.55 * diff1);
+
+      col = irisColor;
+    }
+
+    // Cornea Wet Highlights (Fresnel + Specular reflection)
+    vec3 viewDir = vec3(0.0, 0.0, 1.0);
+    vec3 halfVec1 = normalize(lightDir1 + viewDir);
+    float spec1 = pow(max(0.0, dot(sphereNormal, halfVec1)), 180.0);
+    vec3 halfVec2 = normalize(lightDir2 + viewDir);
+    float spec2 = pow(max(0.0, dot(sphereNormal, halfVec2)), 90.0);
+
+    col += vec3(0.95, 1.0, 0.98) * spec1 * 1.35;
+    col += vec3(0.5, 0.8, 1.0) * spec2 * 0.45;
+
+  } else {
+    // ---- Real Anatomical Sclera (White of Eye) with depth shading ----
+    float limbusEdge = smoothstep(irisRadius, irisRadius + 0.05, irisAngle);
+    
+    // Slight organic warmth with subtle sub-surface vascular depth
+    vec3 scleraBase = vec3(0.82, 0.88, 0.86);
+    float scleraShade = (diff1 * 0.7 + diff2 * 0.3) * (0.45 + 0.55 * limbusEdge);
+
+    col = scleraBase * scleraShade;
+
+    // Outer corner subtle redness / shadow
+    float cornerDark = smoothstep(0.4, 0.95, abs(p.x));
+    col = mix(col, vec3(0.65, 0.68, 0.70), cornerDark * 0.4);
+  }
+
+  // Apply eyelid shadow
+  col *= (0.35 + 0.65 * lidAO);
+
+  // Subtle Holographic CRT Scanline
+  float scanline = sin(gl_FragCoord.y * 1.5) * 0.04;
+  col -= scanline;
+
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
 export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className = "" }) => {
   const podRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -38,21 +205,69 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
     const canvas = canvasRef.current;
     const pod = podRef.current;
     if (!canvas || !pod) return;
-    const ctx = canvas.getContext("2d", { alpha: false });
-    if (!ctx) return;
+
+    // WebGL Context
+    const gl = canvas.getContext("webgl", { alpha: false, antialias: true }) ||
+               (canvas.getContext("experimental-webgl", { alpha: false, antialias: true }) as WebGLRenderingContext | null);
+
+    if (!gl) {
+      console.warn("WebGL not supported, rendering fallback.");
+      return;
+    }
 
     startMsRef.current = performance.now();
+
+    // Shader compiler helper
+    const createShader = (type: number, src: string) => {
+      const s = gl.createShader(type);
+      if (!s) return null;
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        console.error("Shader compile err:", gl.getShaderInfoLog(s));
+        gl.deleteShader(s);
+        return null;
+      }
+      return s;
+    };
+
+    const vs = createShader(gl.VERTEX_SHADER, VS_SOURCE);
+    const fs = createShader(gl.FRAGMENT_SHADER, FS_SOURCE);
+    if (!vs || !fs) return;
+
+    const program = gl.createProgram();
+    if (!program) return;
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error("Program link err:", gl.getProgramInfoLog(program));
+      return;
+    }
+    gl.useProgram(program);
+
+    // Quad Buffer
+    const quad = new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]);
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, quad, gl.STATIC_DRAW);
+
+    const aPos = gl.getAttribLocation(program, "aPosition");
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+    // Uniform locations
+    const uResLoc = gl.getUniformLocation(program, "uResolution");
+    const uTimeLoc = gl.getUniformLocation(program, "uTime");
+    const uLookLoc = gl.getUniformLocation(program, "uLook");
+    const uBlinkLoc = gl.getUniformLocation(program, "uBlink");
+    const uClickPulseLoc = gl.getUniformLocation(program, "uClickPulse");
+    const uLockMixLoc = gl.getUniformLocation(program, "uLockMix");
+
     let cssW = 148;
     let cssH = 48;
     let dpr = 1;
-    let cellW = 4.2;
-    let cellH = 6.5;
-    let cols = 1;
-    let rows = 1;
-    let fontSpec = "bold 6.5px 'Consolas', 'Courier New', monospace";
-    let uCoords = new Float32Array(0);
-    let vCoords = new Float32Array(0);
-    let unitPxVal = 40;
     let lockMix = 0;
     let frameCount = 0;
 
@@ -81,39 +296,16 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
       }
 
       dpr = Math.min(2, window.devicePixelRatio || 1);
-      const fontSize = vw < 640 ? 5.0 : vw < 1024 ? 5.8 : vw < 1536 ? 6.0 : 6.6;
-      fontSpec = `bold ${fontSize}px 'Consolas', 'Courier New', monospace`;
+      const renderW = Math.round(cssW * dpr);
+      const renderH = Math.round(cssH * dpr);
 
-      canvas.width = Math.round(cssW * dpr);
-      canvas.height = Math.round(cssH * dpr);
+      canvas.width = renderW;
+      canvas.height = renderH;
       canvas.style.width = `${cssW}px`;
       canvas.style.height = `${cssH}px`;
 
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.font = fontSpec;
-      ctx.textBaseline = "top";
-
-      const measuredW = ctx.measureText("M").width || fontSize * 0.6;
-      cellW = Math.max(3.1, measuredW);
-      cellH = Math.max(4.8, fontSize * 1.12);
-
-      cols = Math.max(16, Math.ceil(cssW / cellW));
-      rows = Math.max(6, Math.ceil(cssH / cellH));
-
-      uCoords = new Float32Array(cols);
-      vCoords = new Float32Array(rows);
-
-      // Isotropic physical scaling so iris & pupil stay circular inside the almond pod
-      const unitPx = Math.min(cssW * 0.45, cssH * 1.05);
-      unitPxVal = unitPx;
-      for (let c = 0; c < cols; c++) {
-        const px = (c + 0.5) * cellW - cssW * 0.5;
-        uCoords[c] = px / unitPx;
-      }
-      for (let r = 0; r < rows; r++) {
-        const py = (r + 0.5) * cellH - cssH * 0.5;
-        vCoords[r] = py / unitPx;
-      }
+      gl.viewport(0, 0, renderW, renderH);
+      gl.uniform2f(uResLoc, renderW, renderH);
     };
 
     resizePod();
@@ -123,7 +315,6 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
       const vh = Math.max(1, window.innerHeight);
       const rect = pod.getBoundingClientRect();
       const cx = rect.left + rect.width * 0.5;
-      // Horizontal gaze relative to the center pod; vertical gaze relative to upper-hero horizon
       targetX = clamp((clientX - cx) / (vw * 0.44), -1.0, 1.0);
       targetY = clamp((clientY - vh * 0.26) / (vh * 0.62), -1.0, 1.0);
     };
@@ -161,8 +352,6 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
     window.addEventListener("touchmove", onTouchMove, { capture: true, passive: true });
     window.addEventListener("pointerdown", onGlobalPointerDown, { capture: true, passive: true });
 
-    const eyeOut = { r: 0, g: 0, b: 0, lum: 0 };
-
     const computeSingleBlink = (elapsed: number, duration: number): number => {
       if (elapsed < 0 || elapsed > duration) return 1.0;
       const closeEnd = duration * 0.36;
@@ -176,147 +365,9 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
       return 0.02 + 0.98 * smoothstep(0.0, 1.0, (elapsed - holdEnd) / (duration - holdEnd));
     };
 
-    const evaluateVisorEye = (
-      u: number,
-      v: number,
-      t: number,
-      blinkOpen: number,
-      lookU: number,
-      lookV: number,
-      clickPulse: number
-    ) => {
-      const absU = Math.abs(u);
-      const absV = Math.abs(v);
-      if (absU >= 1.05 || absV >= 0.46) {
-        eyeOut.lum = 0;
-        return;
-      }
-
-      const nx = u / 1.02;
-      const arch = Math.pow(Math.max(0.0, 1.0 - nx * nx), 0.82);
-
-      const maxHalfOpen = 0.40;
-      const gazeLidShift = lookV * 0.045 * arch * blinkOpen;
-      const upperLid = -maxHalfOpen * arch * blinkOpen + gazeLidShift;
-      const lowerLid = maxHalfOpen * arch * blinkOpen + gazeLidShift;
-
-      const insideAperture = v >= upperLid && v <= lowerLid && blinkOpen > 0.025;
-
-      if (insideAperture) {
-        const eu = u - lookU;
-        const ev = v - lookV;
-        const r = Math.hypot(eu, ev);
-        const angle = Math.atan2(ev, eu);
-
-        const distToUpper = v - upperLid;
-        const distToLower = lowerLid - v;
-        const lidShadow =
-          smoothstep(0.0, 0.10, distToUpper) * smoothstep(0.0, 0.08, distToLower);
-
-        const specDist = Math.hypot(eu + 0.075 - lookU * 0.12, ev + 0.065 - lookV * 0.12);
-        const spec2Dist = Math.hypot(eu - 0.065, ev - 0.055);
-        const spec =
-          Math.exp(-specDist * specDist * 980.0) +
-          0.45 * Math.exp(-spec2Dist * spec2Dist * 1300.0);
-
-        const pupilRadius = 0.13 + 0.035 * clickPulse;
-
-        if (r < pupilRadius) {
-          const pupilEdge = smoothstep(pupilRadius - 0.028, pupilRadius, r);
-          let rr = mix(3, 0, pupilEdge);
-          let gg = mix(6, 175, pupilEdge);
-          let bb = mix(12, 120, pupilEdge);
-          let lum = mix(0.03, 0.42, pupilEdge);
-
-          if (spec > 0.06) {
-            const s = clamp(spec, 0.0, 1.0);
-            rr = mix(rr, 245, s);
-            gg = mix(gg, 255, s);
-            bb = mix(bb, 250, s);
-            lum = mix(lum, 1.0, s);
-          }
-
-          eyeOut.r = rr;
-          eyeOut.g = gg;
-          eyeOut.b = bb;
-          eyeOut.lum = lum;
-          return;
-        } else if (r < 0.365) {
-          const nr = (r - pupilRadius) / (0.365 - pupilRadius);
-          const fiberWave = Math.sin(angle * 22.0 + Math.sin(r * 30.0 + t * 1.1));
-          const fiberWave2 = Math.cos(angle * 14.0 - Math.cos(r * 36.0 - t * 0.7));
-          const fibers = 0.5 + 0.35 * fiberWave + 0.15 * fiberWave2;
-
-          const collarette = Math.exp(-Math.pow((nr - 0.28) / 0.18, 2.0));
-          const limbal = smoothstep(1.0, 0.72, nr);
-          const tone = clamp(fibers * 0.68 + collarette * 0.52, 0.0, 1.0) * limbal;
-
-          // Vivid Matrix Emerald + Golden-Amber Collarette Flare on Click
-          const goldMix = clamp(collarette * (0.55 + 0.45 * clickPulse), 0.0, 1.0);
-          const baseR = mix(0, 255, goldMix);
-          const baseG = mix(255, 220, goldMix);
-          const baseB = mix(158, 95, goldMix);
-
-          let rr = mix(baseR * 0.38, baseR, tone) * (0.50 + 0.50 * limbal);
-          let gg = mix(baseG * 0.52, baseG, tone) * (0.50 + 0.50 * limbal);
-          let bb = mix(baseB * 0.52, baseB, tone) * (0.50 + 0.50 * limbal);
-
-          rr *= 0.52 + 0.48 * lidShadow;
-          gg *= 0.52 + 0.48 * lidShadow;
-          bb *= 0.52 + 0.48 * lidShadow;
-
-          let lum = clamp(
-            (0.40 + 0.60 * tone) * limbal * (0.52 + 0.48 * lidShadow),
-            0.10,
-            0.98
-          );
-
-          if (spec > 0.05) {
-            const s = clamp(spec, 0.0, 1.0);
-            rr = mix(rr, 245, s);
-            gg = mix(gg, 255, s);
-            bb = mix(bb, 252, s);
-            lum = mix(lum, 1.0, s);
-          }
-
-          eyeOut.r = rr;
-          eyeOut.g = gg;
-          eyeOut.b = bb;
-          eyeOut.lum = lum;
-          return;
-        } else {
-          // Crisp spherical cyber-sclera
-          const sphereZ = Math.sqrt(Math.max(0.06, 1.0 - (u * u * 0.68 + v * v * 2.1)));
-          const limbusAO = smoothstep(0.365, 0.415, r);
-          const shade = sphereZ * (0.45 + 0.55 * lidShadow) * (0.74 + 0.26 * limbusAO);
-
-          eyeOut.r = 95 * shade;
-          eyeOut.g = 230 * shade;
-          eyeOut.b = 185 * shade;
-          eyeOut.lum = clamp(shade * 0.72, 0.08, 0.76);
-          return;
-        }
-      }
-
-      // Eyelid cyber-lash contour (glows vivid emerald when blinking shut!)
-      const dLid = Math.min(Math.abs(v - upperLid), Math.abs(v - lowerLid));
-      const lidThickness = blinkOpen < 0.15 ? 0.068 : 0.048;
-      if (dLid < lidThickness) {
-        const lashStrength = (1.0 - dLid / lidThickness) * (1.0 - Math.abs(nx) * 0.28);
-        const blinkGlow = 1.0 + (1.0 - blinkOpen) * 0.85;
-        eyeOut.r = clamp(mix(0, 140, lashStrength) * blinkGlow, 0, 255);
-        eyeOut.g = clamp(mix(135, 255, lashStrength) * blinkGlow, 0, 255);
-        eyeOut.b = clamp(mix(90, 200, lashStrength) * blinkGlow, 0, 255);
-        eyeOut.lum = clamp(lashStrength * (0.55 + 0.40 * (1.0 - blinkOpen)), 0.12, 0.94);
-        return;
-      }
-
-      eyeOut.lum = 0;
-    };
-
     let rafId = 0;
     let lastFrameMs = 0;
-    const frameInterval = 1000 / 40;
+    const frameInterval = 1000 / 60; // 60 FPS silky smooth WebGL
 
     const render = (now: number) => {
       rafId = requestAnimationFrame(render);
@@ -350,150 +401,19 @@ export const MatrixWatchingEye: React.FC<MatrixWatchingEyeProps> = ({ className 
           ? Math.sin((sinceManual / 0.55) * Math.PI)
           : 0.0;
 
-      ctx.fillStyle = "#03060e";
-      ctx.fillRect(0, 0, cssW, cssH);
-      ctx.font = fontSpec;
-
-      let lastColor = "";
-      for (let r = 0; r < rows; r++) {
-        const v = vCoords[r];
-        const py = r * cellH;
-
-        let batchStr = "";
-        let batchStartCol = 0;
-        let batchColor = "";
-
-        const flushBatch = () => {
-          if (batchStr.length > 0 && batchColor) {
-            if (batchColor !== lastColor) {
-              ctx.fillStyle = batchColor;
-              lastColor = batchColor;
-            }
-            ctx.fillText(batchStr, batchStartCol * cellW, py);
-            batchStr = "";
-          }
-        };
-
-        for (let c = 0; c < cols; c++) {
-          const u = uCoords[c];
-          evaluateVisorEye(u, v, t, blinkOpen, lookU, lookV, clickPulse);
-
-          if (eyeOut.lum <= 0.03) {
-            flushBatch();
-            continue;
-          }
-
-          const charIdx = clamp(Math.floor(eyeOut.lum * (RAMP_LEN - 1)), 0, RAMP_LEN - 1);
-          if (charIdx === 0) {
-            flushBatch();
-            continue;
-          }
-
-          const ch = RAMP[charIdx];
-          const qr = (Math.round(eyeOut.r) >> 3) << 3;
-          const qg = (Math.round(eyeOut.g) >> 3) << 3;
-          const qb = (Math.round(eyeOut.b) >> 3) << 3;
-          const colorStr = `rgb(${qr},${qg},${qb})`;
-
-          if (
-            batchStr.length > 0 &&
-            colorStr === batchColor &&
-            batchStartCol + batchStr.length === c
-          ) {
-            batchStr += ch;
-          } else {
-            flushBatch();
-            batchColor = colorStr;
-            batchStartCol = c;
-            batchStr = ch;
-          }
-        }
-        flushBatch();
-      }
-
-      // ---- Holographic reticle overlay (vector pass on top of the ASCII eye) ----
       lockMix += ((lockedRef.current ? 1 : 0) - lockMix) * 0.2;
-      const cx = cssW * 0.5;
-      const cy = cssH * 0.5;
-      const orbitRx = unitPxVal * 1.1;
-      const orbitRy = Math.min(cssH * 0.47, unitPxVal * 0.52);
 
-      ctx.save();
-      ctx.lineWidth = 0.8;
+      // Pass uniforms to WebGL shader
+      gl.uniform1f(uTimeLoc, t);
+      gl.uniform2f(uLookLoc, lookU, lookV);
+      gl.uniform1f(uBlinkLoc, blinkOpen);
+      gl.uniform1f(uClickPulseLoc, clickPulse);
+      gl.uniform1f(uLockMixLoc, lockMix);
 
-      // Counter-rotating dashed orbital rings around the eyelid aperture
-      ctx.setLineDash([3, 4]);
-      ctx.lineDashOffset = -t * 14;
-      ctx.strokeStyle = `rgba(0,255,158,${0.26 + 0.3 * lockMix})`;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, orbitRx, orbitRy, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.setLineDash([1.5, 6]);
-      ctx.lineDashOffset = t * 9;
-      ctx.strokeStyle = `rgba(0,224,255,${0.22 + 0.2 * lockMix})`;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, orbitRx * 0.9, orbitRy * 0.82, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-      // Range ticks on the horizontal axis (left & right of the almond)
-      ctx.strokeStyle = `rgba(0,255,158,${0.5 + 0.3 * lockMix})`;
-      for (const side of [-1, 1]) {
-        const x0 = cx + side * (orbitRx + 1.5);
-        ctx.beginPath();
-        ctx.moveTo(x0, cy);
-        ctx.lineTo(x0 + side * 5, cy);
-        for (let k = 1; k <= 2; k++) {
-          const xt = x0 + side * k * 2.2;
-          ctx.moveTo(xt, cy - 1.6);
-          ctx.lineTo(xt, cy + 1.6);
-        }
-        ctx.stroke();
-      }
-
-      // Iris target brackets: loose while tracking, tighten into a gold lock on hover
-      const ix = cx + lookU * unitPxVal;
-      const iy = cy + lookV * unitPxVal;
-      const bw = mix(unitPxVal * 0.6, unitPxVal * 0.42, lockMix);
-      const bh = Math.min(cssH * 0.44, bw * 0.92);
-      const bl = 3.5;
-      const lr = Math.round(mix(0, 255, lockMix));
-      const lg = Math.round(mix(255, 205, lockMix));
-      const lb = Math.round(mix(158, 80, lockMix));
-      ctx.strokeStyle = `rgba(${lr},${lg},${lb},${0.4 + 0.5 * lockMix})`;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
-        const px = ix + sx * bw;
-        const py = iy + sy * bh;
-        ctx.moveTo(px, py - sy * bl);
-        ctx.lineTo(px, py);
-        ctx.lineTo(px - sx * bl, py);
-      }
-      ctx.stroke();
-
-      // Click pulse: expanding ripple ring from the iris
-      if (clickPulse > 0.01) {
-        const sinceClick = clamp(sinceManual / 0.55, 0, 1);
-        ctx.strokeStyle = `rgba(255,220,120,${0.55 * (1 - sinceClick)})`;
-        ctx.beginPath();
-        ctx.ellipse(ix, iy, unitPxVal * (0.3 + 0.9 * sinceClick), unitPxVal * (0.24 + 0.5 * sinceClick), 0, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-
-      // Servo shutter line while the eyelid snaps shut
-      if (blinkOpen < 0.45) {
-        ctx.fillStyle = `rgba(143,247,204,${0.65 * (1 - blinkOpen / 0.45)})`;
-        ctx.fillRect(cx - orbitRx * 0.95, cy - 0.5, orbitRx * 1.9, 1);
-      }
-
-      // Fine CRT scanlines
-      ctx.fillStyle = "rgba(0,0,0,0.16)";
-      for (let y = 1; y < cssH; y += 2) ctx.fillRect(0, y, cssW, 0.6);
-      ctx.restore();
-
-      // ---- Live telemetry readout (throttled DOM writes, no React re-render) ----
-      if (frameCount++ % 5 === 0) {
+      // Telemetry update
+      if (frameCount++ % 4 === 0) {
         const az = Math.round(smoothX * 60);
         const el = Math.round(-smoothY * 30);
         const fmt = (n: number) => `${n >= 0 ? "+" : "-"}${String(Math.abs(n)).padStart(2, "0")}°`;
